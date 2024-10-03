@@ -26,6 +26,12 @@ char *my_strcpy(char *dest, const char *src) {
 
 }
 
+/*
+Copia n caracteres de la cadena src a dest.
+*dest: cadena destino
+*src: cadena fuente
+n: numero de caracteres a copiar
+*/
 char *my_strncpy(char *dest, const char *src, size_t n) {
     int src_size = my_strlen(src);
     if (n > src_size) {
