@@ -1,1 +1,1 @@
-Repository dedicated to save and share material of the subject Programació II taught in Computer Engineering at UIB.
+Repository dedicated to save and share material of the subject Sistemes Operatius I taught in Computer Engineering at UIB.
