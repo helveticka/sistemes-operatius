@@ -27,7 +27,21 @@ char *my_strcpy(char *dest, const char *src) {
 }
 
 char *my_strncpy(char *dest, const char *src, size_t n) {
-
+    int src_size = my_strlen(src);
+    if (n > src_size) {
+        int i;
+        for (i = 0; i < src_size; i++) {
+            dest[i] = src[i];
+        }
+        for (; i <= strlen(dest); i++) {
+            dest[i] = '\0';
+        }
+    } else {
+        for (int i = 0; i < n; i++) {
+            dest[i] = src[i];
+        }
+    }
+    return dest;
 }
 
 char *my_strcat(char *dest, const char *src) {
