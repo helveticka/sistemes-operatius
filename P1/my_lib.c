@@ -84,25 +84,31 @@ struct my_stack *my_stack_init (int size) {
 }
 
 int my_stack_push (struct my_stack *stack, void *data) {
-
+    //TODO xavi
 }
 
 void *my_stack_pop (struct my_stack *stack) {
-
+    //TODO pedro
 }
 
 int my_stack_len (struct my_stack *stack) {
-
+    struct my_stack_node *aux_node = stack -> top; 
+    int size = 0;
+    while (aux_node != NULL) {    
+        size++;
+        aux_node = aux_node -> next;        
+    }
+    return size;
 }
 
 int my_stack_purge (struct my_stack *stack) {
-
+    //TODO xavi
 }
 
 int my_stack_write (struct my_stack *stack, char *filename) {
-
+    //TODO harpo
 }
 
 struct my_stack *my_stack_read (char *filename) {
-
+    //TODO pedro
 }
