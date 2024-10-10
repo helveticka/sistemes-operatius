@@ -1,4 +1,4 @@
-// Autores: 
+// Autores: Xavier Campos, Pedro Felix, Harpo Joan
 
 #include "my_lib.h"
 
@@ -68,5 +68,41 @@ char *my_strcat(char *dest, const char *src) {
 }
 
 char *my_strchr(const char *str, int c) {
+
+}
+
+/*
+Inicializa una struct de tipo pila.
+size: tamano de la pila
+return: devuelve un puntero a la pila inicializada
+*/
+struct my_stack *my_stack_init (int size) {
+    struct my_stack *stack = malloc(size);
+    stack -> size = size;
+    stack -> top = NULL;
+    return stack;
+}
+
+int my_stack_push (struct my_stack *stack, void *data) {
+
+}
+
+void *my_stack_pop (struct my_stack *stack) {
+
+}
+
+int my_stack_len (struct my_stack *stack) {
+
+}
+
+int my_stack_purge (struct my_stack *stack) {
+
+}
+
+int my_stack_write (struct my_stack *stack, char *filename) {
+
+}
+
+struct my_stack *my_stack_read (char *filename) {
 
 }
