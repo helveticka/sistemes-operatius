@@ -23,7 +23,13 @@ int my_strcmp(const char *str1, const char *str2) {
 }
 
 char *my_strcpy(char *dest, const char *src) {
-
+    int src_size = my_strlen(src);
+    int i;
+    for (i = 0; i < src_size; i++) {
+        dest[i] = src[i];
+    }
+    dest[i] = '\0';
+    return dest;
 }
 
 /*
@@ -51,7 +57,14 @@ char *my_strncpy(char *dest, const char *src, size_t n) {
 }
 
 char *my_strcat(char *dest, const char *src) {
-
+    int src_size = my_strlen(src);
+    int dest_size = my_strlen(dest);
+    int i;
+    for (i = 0; i < dest_size + src_size - 1; i++) {
+        dest[src_size + i] = src[i];
+    }
+    dest[src_size + i] = '\0';
+    return dest;
 }
 
 char *my_strchr(const char *str, int c) {
