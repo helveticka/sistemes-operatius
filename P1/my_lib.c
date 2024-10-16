@@ -91,6 +91,11 @@ void *my_stack_pop (struct my_stack *stack) {
     //TODO pedro
 }
 
+/*
+Devuelve la longitud de la pila.
+*stack: puntero a la pila
+return: numero de nodos
+*/
 int my_stack_len (struct my_stack *stack) {
     struct my_stack_node *aux_node = stack -> top; 
     int size = 0;
@@ -105,8 +110,50 @@ int my_stack_purge (struct my_stack *stack) {
     //TODO xavi
 }
 
+/*
+Almacena los datos de la pila en un fichero
+*stack: puntero a la pila
+*filename: nombre del fichero
+return: numero de elementos almacenados
+*/
 int my_stack_write (struct my_stack *stack, char *filename) {
-    //TODO harpo
+    int fd;
+    int data_bytes;
+    int read_bytes = 0;
+    const int BYTES = 4;
+    void *data;
+    struct my_stack *aux_stack;
+    struct my_stack_node *aux_node;
+
+    if (stack != NULL) {
+        data_bytes = stack -> size;
+        aux_stack = my_stack_init(stack -> size);
+        aux_node = stack -> top;
+        while (aux_node != NULL) {
+            my_stack_push(aux_stack, aux_node -> data);
+            aux_node = aux_node -> next;
+        }
+        fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+        if (fd != -1) {
+            if (write(fd, &data_bytes, BYTES) != -1 ) {
+                data = my_stack_pop(aux_stack);
+                while (data != NULL) {
+                    if (write(fd, data, data_bytes) != -1) {
+                        read_bytes++;
+                    }
+                    data = my_stack_pop(aux_stack);
+                }
+            }
+            else {
+                read_bytes = -1;
+            }
+            close(fd);
+        }
+        else {
+            read_bytes = -1;
+        }
+    }
+    return read_bytes;
 }
 
 struct my_stack *my_stack_read (char *filename) {
