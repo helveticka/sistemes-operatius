@@ -87,18 +87,18 @@ Inicializa una struct de tipo pila.
 size: tamano de la pila
 return: devuelve un puntero a la pila inicializada
 */
-struct my_stack *my_stack_init (int size) {
+struct my_stack *my_stack_init(int size) {
     struct my_stack *stack = malloc(size);
     stack -> size = size;
     stack -> top = NULL;
     return stack;
 }
 
-int my_stack_push (struct my_stack *stack, void *data) {
+int my_stack_push(struct my_stack *stack, void *data) {
     //TODO xavi
 }
 
-void *my_stack_pop (struct my_stack *stack) {
+void *my_stack_pop(struct my_stack *stack) {
     //TODO pedro
 }
 
@@ -107,7 +107,7 @@ Devuelve la longitud de la pila.
 *stack: puntero a la pila
 return: numero de nodos
 */
-int my_stack_len (struct my_stack *stack) {
+int my_stack_len(struct my_stack *stack) {
     struct my_stack_node *aux_node = stack -> top; 
     int size = 0;
     while (aux_node != NULL) {    
@@ -117,7 +117,7 @@ int my_stack_len (struct my_stack *stack) {
     return size;
 }
 
-int my_stack_purge (struct my_stack *stack) {
+int my_stack_purge(struct my_stack *stack) {
     //TODO xavi
 }
 
@@ -127,7 +127,7 @@ Almacena los datos de la pila en un fichero
 *filename: nombre del fichero
 return: numero de elementos almacenados
 */
-int my_stack_write (struct my_stack *stack, char *filename) {
+int my_stack_write(struct my_stack *stack, char *filename) {
     int fd;
     int data_bytes;
     int read_bytes = 0;
@@ -144,9 +144,14 @@ int my_stack_write (struct my_stack *stack, char *filename) {
             my_stack_push(aux_stack, aux_node -> data);
             aux_node = aux_node -> next;
         }
-        fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
-        if (fd != -1) {
-            if (write(fd, &data_bytes, BYTES) != -1 ) {
+        if ((fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)) == -1) {
+            perror("my_stack_write() error");
+            read_bytes = -1;
+        } else {
+            if (write(fd, &data_bytes, BYTES) == -1) {
+                perror("my_stack_write() error");
+                read_bytes = -1;
+            } else {
                 data = my_stack_pop(aux_stack);
                 while (data != NULL) {
                     if (write(fd, data, data_bytes) != -1) {
@@ -155,18 +160,12 @@ int my_stack_write (struct my_stack *stack, char *filename) {
                     data = my_stack_pop(aux_stack);
                 }
             }
-            else {
-                read_bytes = -1;
-            }
             close(fd);
-        }
-        else {
-            read_bytes = -1;
         }
     }
     return read_bytes;
 }
 
-struct my_stack *my_stack_read (char *filename) {
+struct my_stack *my_stack_read(char *filename) {
     //TODO pedro
 }
