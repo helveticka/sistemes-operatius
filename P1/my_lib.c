@@ -1,4 +1,4 @@
-// Autores: Xavier Campos, Pedro Felix, Harpo Joan holaaaaa
+// Autores: Xavier Campos, Pedro Felix, Harpo Joan
 
 #include "my_lib.h"
 #include <stdbool.h>
