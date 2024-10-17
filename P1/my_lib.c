@@ -1,6 +1,7 @@
 // Autores: Xavier Campos, Pedro Felix, Harpo Joan
 
 #include "my_lib.h"
+#include <stdbool.h>
 
 void main(){
   char cadena[]="Hola";
@@ -19,7 +20,17 @@ size_t my_strlen(const char *str) {
 }
 
 int my_strcmp(const char *str1, const char *str2) {
-
+    bool cmp = true;
+    int i = 0;
+    int diff = 0;
+    while(cmp&&(str1[i]||str2[i])){
+        diff = str1[i]-str2[i];
+        if(diff!=0){
+            cmp=false;
+        }
+        i++;
+    }
+    return diff;
 }
 
 char *my_strcpy(char *dest, const char *src) {
@@ -68,7 +79,7 @@ char *my_strcat(char *dest, const char *src) {
 }
 
 char *my_strchr(const char *str, int c) {
-
+    //Xavi
 }
 
 /*
