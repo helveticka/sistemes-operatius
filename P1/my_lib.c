@@ -99,8 +99,8 @@ int my_stack_push(struct my_stack *stack, void *data) {
 }
 
 /*
-Elimina el nodo superior de la pila
-*stack: puntero a la pila
+Elimina el nodo superior de la pila.
+*stack: puntero a la pila.
 return: punteroa los datos del elemento eliminado 
 o NULL si la pila está vacía.
 */
@@ -179,6 +179,12 @@ int my_stack_write(struct my_stack *stack, char *filename) {
     return read_bytes;
 }
 
+/*
+Lee los datos de la pila almacenados en el fichero
+y reconstruye la pila en memoria principal.
+*filename: nombre del fichero.
+return: puntero a la pila creada o NULL si hubo error.
+*/
 struct my_stack *my_stack_read(char *filename) {
     int fd;
     struct my_stack *stack;
