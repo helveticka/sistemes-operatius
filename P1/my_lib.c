@@ -98,8 +98,21 @@ int my_stack_push(struct my_stack *stack, void *data) {
     //TODO xavi
 }
 
+/*
+Elimina el nodo superior de la pila
+*stack: puntero a la pila
+return: punteroa los datos del elemento eliminado 
+o NULL si la pila está vacía.
+*/
 void *my_stack_pop(struct my_stack *stack) {
-    //TODO pedro
+    if(stack -> top == NULL){
+        return NULL;
+    }
+    struct my_struct_node *aux_node = stack -> top;
+    void *data = aux_node -> data;
+    stack -> top = aux_node -> next;
+    free(aux_node);
+    return data;
 }
 
 /*
