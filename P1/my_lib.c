@@ -180,5 +180,40 @@ int my_stack_write(struct my_stack *stack, char *filename) {
 }
 
 struct my_stack *my_stack_read(char *filename) {
-    //TODO pedro
+    int fd;
+    struct my_stack *stack;
+    void *data;
+    int size = sizeof(int);
+    stack = my_stack_init(size);
+
+    if ((fd = open(filename, O_RDONLY)) == -1) {
+        perror("my_stack_read() error");
+        return NULL;
+    }
+
+    if (read(fd, &size, size) == -1) {
+        perror("my_stack_read() error");
+        return NULL;
+    }
+
+    read(fd, &size, size);
+    data = malloc(size);
+    if(!data){
+        perror("malloc() error");
+        close(fd);
+        return NULL;
+    }
+
+    while (read(fd, data, size)>0){
+        my_stack_push(stack,data);
+        data = malloc(size);
+        if(!data){
+            perror("malloc() error");
+            close(fd);
+            return NULL;
+        }
+    }
+    free(data);
+    close(fd);
+    return stack;
 }
