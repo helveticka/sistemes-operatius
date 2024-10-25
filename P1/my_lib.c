@@ -3,12 +3,6 @@
 #include "my_lib.h"
 #include <stdbool.h>
 
-void main(){
-  char cadena[]="Hola";
-  printf("my_strlen(\"%s\"): %ld\n", cadena, my_strlen(cadena));
-  return;
-}
-
 size_t my_strlen(const char *str) {
     size_t len = 0;
     int i = 0;
@@ -87,13 +81,13 @@ c: carácter a buscar
 return: puntero que apunta a la primera ocurrencia de c
 */
 char *my_strchr(const char *str, int c) {
-    int i = 0;
     while(*str != '\0'){
         if(*str == (char)c){
             return (char *)str;
         }
         str++;
     }
+    return NULL;
 }
 
 /*
