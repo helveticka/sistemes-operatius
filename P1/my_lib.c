@@ -19,15 +19,17 @@ size_t my_strlen(const char *str) {
     return len;
 }
 
+/*
+Compara dos cadenas carácter a carácter a nivel de codigo ASCII
+*str1: primera cadena a comparar
+*str2: segunda cadena a comparar
+return: diferencia numérica obtenida al restar los codigos ASCII de str2 a str1
+*/
 int my_strcmp(const char *str1, const char *str2) {
-    bool cmp = true;
     int i = 0;
     int diff = 0;
-    while(cmp&&(str1[i]||str2[i])){
+    while(str1[i]||str2[i]){
         diff = str1[i]-str2[i];
-        if(diff!=0){
-            cmp=false;
-        }
         i++;
     }
     return diff;
@@ -78,8 +80,20 @@ char *my_strcat(char *dest, const char *src) {
     return dest;
 }
 
+/*
+Busca la primera ocurrencia de un carácter dado en una cadena
+*str: cadena de caracteres
+c: carácter a buscar
+return: puntero que apunta a la primera ocurrencia de c
+*/
 char *my_strchr(const char *str, int c) {
-    //Xavi
+    int i = 0;
+    while(*str != '\0'){
+        if(*str == (char)c){
+            return (char *)str;
+        }
+        str++;
+    }
 }
 
 /*
@@ -94,14 +108,26 @@ struct my_stack *my_stack_init(int size) {
     return stack;
 }
 
+/*
+Inserta un nuevo nodo en los elementos de la pila
+*stack: puntero a la pila
+*data: dato a insertar en la pila
+return: 0 si ha funcionado, -1 si ha habido error
+*/
 int my_stack_push(struct my_stack *stack, void *data) {
-    //TODO xavi
+    struct my_stack_node *new_node = create_node(data, stack->size);
+    if (new_node == NULL) {
+        return -1;
+    }
+    new_node->next = stack->top;
+    stack->top = new_node;
+    return 0;
 }
 
 /*
 Elimina el nodo superior de la pila.
 *stack: puntero a la pila.
-return: punteroa los datos del elemento eliminado 
+return: puntero a los datos del elemento eliminado 
 o NULL si la pila está vacía.
 */
 void *my_stack_pop(struct my_stack *stack) {
@@ -128,8 +154,26 @@ int my_stack_len(struct my_stack *stack) {
     return size;
 }
 
+/*
+Recorre la pila liberando la memoria reservada
+para cada uno de los datos y para cada nodo
+*stack: puntero a la pila
+return: número de bytes liberados
+*/
 int my_stack_purge(struct my_stack *stack) {
-    //TODO xavi
+    struct my_stack_node *current = stack->top;
+    struct my_stack_node *next;
+    int total_bytes = 0;
+    while (current != NULL) {
+        next = current->next;
+        total_bytes += stack->size;
+        free(current->data);
+        total_bytes += sizeof(*current);
+        free(current);
+        current = next;
+    }
+    stack->top = NULL;
+    return total_bytes;
 }
 
 /*
