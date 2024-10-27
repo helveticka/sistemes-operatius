@@ -113,10 +113,11 @@ Inserta un nuevo nodo en los elementos de la pila
 return: 0 si ha funcionado, -1 si ha habido error
 */
 int my_stack_push(struct my_stack *stack, void *data) {
-    struct my_stack_node *new_node = (struct my_stack_node *)malloc(sizeof(struct my_stack_node));
+    struct my_stack_node *new_node = malloc(sizeof(struct my_stack_node));
     if (new_node == NULL) {
         return -1;
     }
+    new_node->data = data;
     new_node->next = stack->top;
     stack->top = new_node;
     return 0;
@@ -170,7 +171,8 @@ int my_stack_purge(struct my_stack *stack) {
         free(current);
         current = next;
     }
-    stack->top = NULL;
+    total_bytes += sizeof(*stack);
+    free(stack);
     return total_bytes;
 }
 
