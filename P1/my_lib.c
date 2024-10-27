@@ -115,7 +115,7 @@ Inserta un nuevo nodo en los elementos de la pila
 return: 0 si ha funcionado, -1 si ha habido error
 */
 int my_stack_push(struct my_stack *stack, void *data) {
-    struct my_stack_node *new_node = create_node(data, stack->size);
+    struct my_stack_node *new_node = (struct my_stack_node *)malloc(sizeof(struct my_stack_node));
     if (new_node == NULL) {
         return -1;
     }
