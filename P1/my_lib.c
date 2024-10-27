@@ -3,6 +3,12 @@
 #include "my_lib.h"
 #include <stdbool.h>
 
+
+/*
+Devuelve la longitud de una cadena.
+*str: cadena de caracteres
+return: longitud de la cadena
+*/
 size_t my_strlen(const char *str) {
     size_t len = 0;
     int i = 0;
@@ -33,6 +39,12 @@ int my_strcmp(const char *str1, const char *str2) {
     return diff;
 }
 
+/*
+Copia una cadena de caracteres de src a dest.
+*dest: cadena destino
+*src: cadena fuente
+return: puntero a la cadena destino
+*/
 char *my_strcpy(char *dest, const char *src) {
     int src_size = my_strlen(src);
     int i;
@@ -67,6 +79,12 @@ char *my_strncpy(char *dest, const char *src, size_t n) {
     return dest;
 }
 
+/*
+Concatena la cadena src al final de dest.
+*dest: cadena destino
+*src: cadena fuente
+return: puntero a la cadena destino
+*/
 char *my_strcat(char *dest, const char *src) {
     int src_size = my_strlen(src);
     int dest_size = my_strlen(dest);
