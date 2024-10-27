@@ -232,7 +232,7 @@ struct my_stack *my_stack_read(char *filename) {
     struct my_stack *stack;
     void *data;
     int size = sizeof(int);
-    stack = my_stack_init(size);
+    
 
     if ((fd = open(filename, O_RDONLY)) == -1) {
         perror("my_stack_read() error");
@@ -243,8 +243,8 @@ struct my_stack *my_stack_read(char *filename) {
         perror("my_stack_read() error");
         return NULL;
     }
-
-    read(fd, &size, size);
+    
+    stack = my_stack_init(size);
     data = malloc(size);
     if(!data){
         perror("malloc() error");
@@ -260,6 +260,7 @@ struct my_stack *my_stack_read(char *filename) {
             close(fd);
             return NULL;
         }
+        
     }
     free(data);
     close(fd);
