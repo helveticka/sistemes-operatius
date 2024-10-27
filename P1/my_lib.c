@@ -20,10 +20,14 @@ Compara dos cadenas carácter a carácter a nivel de codigo ASCII
 return: diferencia numérica obtenida al restar los codigos ASCII de str2 a str1
 */
 int my_strcmp(const char *str1, const char *str2) {
+    bool cmp = true;
     int i = 0;
     int diff = 0;
-    while(str1[i]||str2[i]){
+    while(cmp&&(str1[i]||str2[i])){
         diff = str1[i]-str2[i];
+        if(diff!=0){
+            cmp=false;
+        }
         i++;
     }
     return diff;
@@ -68,9 +72,9 @@ char *my_strcat(char *dest, const char *src) {
     int dest_size = my_strlen(dest);
     int i;
     for (i = 0; i < dest_size + src_size - 1; i++) {
-        dest[src_size + i] = src[i];
+        dest[src_size + i + 1] = src[i];
     }
-    dest[src_size + i] = '\0';
+    dest[src_size + i + 1] = '\0';
     return dest;
 }
 
