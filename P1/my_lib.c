@@ -2,7 +2,6 @@
 
 #include "my_lib.h"
 
-
 /*
 Devuelve la longitud de una cadena.
 *str: cadena de caracteres
