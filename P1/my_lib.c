@@ -1,7 +1,7 @@
 // Autores: Xavier Campos, Pedro Felix, Harpo Joan
 
 #include "my_lib.h"
-#include <stdbool.h>
+//#include <stdbool.h>
 
 
 /*
@@ -26,13 +26,13 @@ Compara dos cadenas carácter a carácter a nivel de codigo ASCII
 return: diferencia numérica obtenida al restar los codigos ASCII de str2 a str1
 */
 int my_strcmp(const char *str1, const char *str2) {
-    bool cmp = true;
+    int cmp = 1;
     int i = 0;
     int diff = 0;
     while(cmp&&(str1[i]||str2[i])){
         diff = str1[i]-str2[i];
         if(diff!=0){
-            cmp=false;
+            cmp=0;
         }
         i++;
     }
