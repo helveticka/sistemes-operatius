@@ -1,0 +1,117 @@
+//Autores: 
+
+#include "nivel1.h"
+
+int main() {
+    while (1) {
+        if (read_line(line)) {
+            execute_line(line);
+        }
+    }
+    return EXIT_SUCCESS;
+}
+
+char *read_line(char *line) {
+
+}
+
+int execute_line(char *line) {
+
+}
+
+int parse_args(char **args, char *line) {
+
+}
+
+int check_internal(char **args) {
+    int command = 0;
+
+    if (!strcmp(args[0], "cd")) {
+        internal_cd(args);
+        command = 1;
+    }
+
+    if (!strcmp(args[0], "export")) {
+        internal_export(args);
+        command = 1;
+    }
+
+    if (!strcmp(args[0], "source")) {
+        internal_source(args);
+        command = 1;
+    }
+
+    if (!strcmp(args[0], "jobs")) {
+        internal_jobs(args);
+        command = 1;
+    }
+
+    if (!strcmp(args[0], "fg")) {
+        internal_fg(args);
+        command = 1;
+    }
+
+    if (!strcmp(args[0], "bg")) {
+        internal_bg(args);
+        command = 1;
+    }
+
+    if (!strcmp(args[0], "exit")) {
+        printf("Bye Bye\n");
+        exit(0);
+        return EXIT_SUCCESS;
+    }
+    return command;
+}
+
+int internal_cd(char **args) {
+#if DEBUGN1
+    fprintf(stderr, GRIS "[internal_cd() → Esta función cambiará de directorio]\n" RESET);
+#endif
+    return EXIT_SUCCESS;
+}
+
+int internal_export(char **args) {
+#if DEBUGN1
+    fprintf(stderr, GRIS "[internal_export() → Esta función asignará valores a variables cd de entorno]\n" RESET);
+#endif
+    return EXIT_SUCCESS;
+}
+
+int internal_source(char **args) {
+#if DEBUGN1
+    fprintf(stderr, GRIS "[internal_source() → Esta función ejecutará un fichero de líneas de comandos]\n" RESET);
+#endif
+    return EXIT_SUCCESS;
+} 
+
+int internal_jobs(char **args) {
+#if DEBUGN1
+    fprintf(stderr, GRIS "[internal_jobs() → Esta función mostrará el PID de los procesos que no estén en foreground]\n" RESET);
+#endif
+    return EXIT_SUCCESS;
+}
+
+int internal_fg(char **args) {
+#if DEBUGN1
+    fprintf(stderr, GRIS "[internal_fg() → Esta función traerá los procesos más recientes al primer plano]\n" RESET);
+#endif
+    return EXIT_SUCCESS;
+}
+
+int internal_bg(char **args) {
+#if DEBUGN1
+    fprintf(stderr, GRIS "[internal_bg() → Esta función mostrará los procesos parados o en segundo plano]\n" RESET);
+#endif
+    return EXIT_SUCCESS;
+}
+
+void print_prompt(void) {
+    user = getenv("USER");
+    char path[200];
+    getcwd(path, sizeof(path));
+
+    printf(NEGRITA AZUL "%s: " RESET, user);
+    printf(NEGRITA "%s%c " RESET, path, PROMPT);
+    fflush(stdout);
+}
