@@ -11,8 +11,28 @@ int main() {
     return EXIT_SUCCESS;
 }
 
+/**
+ Imprime el prompt y lee una linea de consola.
+ *line: puntero donde se almacenará la linea leída.
+ return: puntero a la línea leída.
+ */
 char *read_line(char *line) {
+    print_prompt();
+    // Lee una línea desde stdin
+    if(fgets(line,ARGS_SIZE,stdin) != NULL){
+        // Sustituye el carácter '\n' por '\0'
+        if(strlen(line) > 0 && line[strlen(line) - 1] == '\n'){
+            line[strlen(line) - 1] = '\0';
+        }
+        return line;
+    } else{
+        // Verifica si fue por Ctrl + D
+        if(feof(stdin)){
+            printf("\rAdiós\n");
+            exit(0);
+        }
 
+    }
 }
 
 int execute_line(char *line) {
