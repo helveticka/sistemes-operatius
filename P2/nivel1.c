@@ -36,11 +36,32 @@ char *read_line(char *line) {
 }
 
 int execute_line(char *line) {
-
+    char *args[ARGS_SIZE];
+    if(parse_args(args, line) > 0){
+        check_internal(args);
+    }
+    return 0;
 }
 
 int parse_args(char **args, char *line) {
-
+    const char *delimiters = " \t\n\r";
+    char *token;
+    unsigned int counter = 0;
+    token = strtok(line,delimiters);
+    while(token != NULL){
+        if(token[0] == '#'){
+            token = NULL;
+            args[counter] = token;
+            counter++;
+            break;
+        }
+        args[counter] = token;
+        counter++;
+        printf("[parse_args()→ token %d: %s]\n", counter,token);
+        token = strtok(NULL,delimiters);
+    }
+    printf("[parse_args()→ token %d: %s]\n", counter, token);
+    return counter;
 }
 
 int check_internal(char **args) {
