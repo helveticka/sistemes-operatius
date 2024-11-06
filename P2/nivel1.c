@@ -109,17 +109,83 @@ int check_internal(char **args) {
 }
 
 int internal_cd(char **args) {
-#if DEBUGN1
-    fprintf(stderr, GRIS "[internal_cd() → Esta función cambiará de directorio]\n" RESET);
-#endif
-    return EXIT_SUCCESS;
+char *home_dir = getenv("HOME");      // Obtener el directorio HOME
+    char current_dir[1024];           // Buffer para el directorio actual
+    int result;
+
+    // Caso 1: Sin argumentos (ir al directorio HOME)
+    if (args[1] == NULL) {
+        if (home_dir == NULL) {
+            fprintf(stderr, "Error: la variable HOME no está definida.\n");
+            return -1;
+        }
+        result = chdir(home_dir);
+    }
+    // Caso 2: Un solo argumento (directorio especificado en args[1])
+    else if (args[2] == NULL) {
+        result = chdir(args[1]);
+    }
+
+    // Verificar si `chdir()` tuvo éxito
+    if (result != 0) {
+        // Si `chdir` falla, imprime el error y retorna -1
+        perror("Error al cambiar de directorio");
+        return -1;
+    }
+
+    // Obtener el directorio actual después del cambio
+    if (getcwd(current_dir, sizeof(current_dir)) == NULL) {
+        perror("Error al obtener el directorio actual");
+        return -1;
+    }
+
+    // Mostrar el directorio actual
+    printf("Directorio actual: %s\n", current_dir);
+
+    return 0;
 }
 
 int internal_export(char **args) {
-#if DEBUGN1
-    fprintf(stderr, GRIS "[internal_export() → Esta función asignará valores a variables cd de entorno]\n" RESET);
-#endif
-    return EXIT_SUCCESS;
+    // Verificar si el número de argumentos es adecuado (debe tener args[1])
+    if (args[1] == NULL || args[2] != NULL) {
+        fprintf(stderr, "Uso: export NOMBRE=VALOR\n");
+        return -1;
+    }
+
+    // Descomponer en tokens el argumento NOMBRE=VALOR
+    char *name = strtok(args[1], "=");
+    char *value = strtok(NULL, "=");
+
+    // Verificar si el formato es correcto (debe haber un nombre y un valor)
+    if (name == NULL || value == NULL) {
+        fprintf(stderr, "Uso: export NOMBRE=VALOR\n");
+        return -1;
+    }
+
+    // Mostrar el valor inicial de la variable de entorno
+    char *initial_value = getenv(name);
+    if (initial_value != NULL) {
+        printf("Valor inicial de %s: %s\n", name, initial_value);
+    } else {
+        printf("La variable %s no estaba definida.\n", name);
+    }
+
+    // Asignar el nuevo valor a la variable de entorno
+    if (setenv(name, value, 1) != 0) {
+        perror("Error al establecer la variable de entorno");
+        return -1;
+    }
+
+    // Mostrar el nuevo valor de la variable de entorno
+    char *new_value = getenv(name);
+    if (new_value != NULL) {
+        printf("Nuevo valor de %s: %s\n", name, new_value);
+    } else {
+        fprintf(stderr, "Error: la variable %s no se estableció correctamente.\n", name);
+        return -1;
+    }
+
+    return 0;
 }
 
 int internal_source(char **args) {
