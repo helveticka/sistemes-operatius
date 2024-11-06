@@ -33,6 +33,7 @@ char *read_line(char *line) {
         }
 
     }
+    return line;
 }
 
 int execute_line(char *line) {
