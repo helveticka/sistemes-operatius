@@ -28,7 +28,9 @@ char *read_line(char *line) {
     } else{
         // Verifica si fue por Ctrl + D
         if(feof(stdin)){
+#if DEBUGN1
             printf("\rAdiós\n");
+#endif
             exit(0);
         }
 
