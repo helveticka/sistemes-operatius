@@ -70,6 +70,10 @@ int parse_args(char **args, char *line) {
 int check_internal(char **args) {
     int command = 0;
 
+    if (args == NULL || args[0] == NULL) {
+        return 0;
+    }
+
     if (!strcmp(args[0], "cd")) {
         internal_cd(args);
         command = 1;
