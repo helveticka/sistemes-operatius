@@ -1,4 +1,4 @@
-//Autores: 
+// Autores: Xavier Campos, Pedro Felix, Harpo Joan
 
 #include "nivel2.h"
 
@@ -54,31 +54,35 @@ int parse_args(char **args, char *line) {
     while(token != NULL){
         if(token[0] == '#'){
 #if DEBUGN1
-            printf("[parse_args()→ token %d: %s]\n", counter,token);
+            printf(GRIS "[parse_args()→ token %d: %s]\n" RESET, counter,token);
 #endif
             token = NULL;
             args[counter] = token;
 #if DEBUGN1
-            printf("[parse_args()→ token %d corregido: %s]\n", counter,token);
+            printf(GRIS "[parse_args()→ token %d corregido: %s]\n" RESET, counter,token);
 #endif
             counter++;
             return counter;
         }
         args[counter] = token;
 #if DEBUGN1
-        printf("[parse_args()→ token %d: %s]\n", counter,token);
+        printf(GRIS "[parse_args()→ token %d: %s]\n" RESET, counter,token);
 #endif
         counter++;
         token = strtok(NULL,delimiters);
     }
 #if DEBUGN1
-    printf("[parse_args()→ token %d: %s]\n", counter, token);
+    printf(GRIS "[parse_args()→ token %d: %s]\n" RESET, counter, token);
 #endif
     return counter;
 }
 
 int check_internal(char **args) {
     int command = 0;
+
+    if (args == NULL || args[0] == NULL) {
+        return 0;
+    }
 
     if (!strcmp(args[0], "cd")) {
         internal_cd(args);
@@ -119,6 +123,9 @@ int check_internal(char **args) {
 }
 
 int internal_cd(char **args) {
+#if DEBUGN1
+    fprintf(stderr, GRIS "[internal_cd()→ Esta función cambiará de directorio]\n" RESET);
+#endif
     char *home_dir = getenv("HOME");      // Obtener el directorio HOME
     char current_dir[1024];           // Buffer para el directorio actual
     int result = 0;
@@ -154,8 +161,10 @@ int internal_cd(char **args) {
 
     return 0;
 }
-
 int internal_export(char **args) {
+#if DEBUGN1
+    fprintf(stderr, GRIS "[internal_export()→ Esta función asignará valores a variables cd de entorno]\n" RESET);
+#endif
     // Verificar si el número de argumentos es adecuado (debe tener args[1])
     if (args[1] == NULL || args[2] != NULL) {
         fprintf(stderr, "Uso: export NOMBRE=VALOR\n");
@@ -200,28 +209,28 @@ int internal_export(char **args) {
 
 int internal_source(char **args) {
 #if DEBUGN1
-    fprintf(stderr, GRIS "[internal_source() → Esta función ejecutará un fichero de líneas de comandos]\n" RESET);
+    fprintf(stderr, GRIS "[internal_source()→ Esta función ejecutará un fichero de líneas de comandos]\n" RESET);
 #endif
     return EXIT_SUCCESS;
 } 
 
 int internal_jobs(char **args) {
 #if DEBUGN1
-    fprintf(stderr, GRIS "[internal_jobs() → Esta función mostrará el PID de los procesos que no estén en foreground]\n" RESET);
+    fprintf(stderr, GRIS "[internal_jobs()→ Esta función mostrará el PID de los procesos que no estén en foreground]\n" RESET);
 #endif
     return EXIT_SUCCESS;
 }
 
 int internal_fg(char **args) {
 #if DEBUGN1
-    fprintf(stderr, GRIS "[internal_fg() → Esta función traerá los procesos más recientes al primer plano]\n" RESET);
+    fprintf(stderr, GRIS "[internal_fg()→ Esta función traerá los procesos más recientes al primer plano]\n" RESET);
 #endif
     return EXIT_SUCCESS;
 }
 
 int internal_bg(char **args) {
 #if DEBUGN1
-    fprintf(stderr, GRIS "[internal_bg() → Esta función mostrará los procesos parados o en segundo plano]\n" RESET);
+    fprintf(stderr, GRIS "[internal_bg()→ Esta función mostrará los procesos parados o en segundo plano]\n" RESET);
 #endif
     return EXIT_SUCCESS;
 }

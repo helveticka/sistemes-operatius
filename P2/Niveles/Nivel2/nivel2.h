@@ -1,4 +1,4 @@
-// Autores: 
+// Autores: Xavier Campos, Pedro Felix, Harpo Joan
 
 #define _POSIX_C_SOURCE 200112L
 
