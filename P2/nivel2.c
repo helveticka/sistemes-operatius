@@ -53,17 +53,27 @@ int parse_args(char **args, char *line) {
     token = strtok(line,delimiters);
     while(token != NULL){
         if(token[0] == '#'){
+#if DEBUGN1
+            printf("[parse_args()→ token %d: %s]\n", counter,token);
+#endif
             token = NULL;
             args[counter] = token;
+#if DEBUGN1
+            printf("[parse_args()→ token %d corregido: %s]\n", counter,token);
+#endif
             counter++;
-            break;
+            return counter;
         }
         args[counter] = token;
-        counter++;
+#if DEBUGN1
         printf("[parse_args()→ token %d: %s]\n", counter,token);
+#endif
+        counter++;
         token = strtok(NULL,delimiters);
     }
+#if DEBUGN1
     printf("[parse_args()→ token %d: %s]\n", counter, token);
+#endif
     return counter;
 }
 
