@@ -109,7 +109,7 @@ int check_internal(char **args) {
 }
 
 int internal_cd(char **args) {
-char *home_dir = getenv("HOME");      // Obtener el directorio HOME
+    char *home_dir = getenv("HOME");      // Obtener el directorio HOME
     char current_dir[1024];           // Buffer para el directorio actual
     int result;
 
