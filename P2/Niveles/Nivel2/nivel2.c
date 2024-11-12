@@ -171,9 +171,26 @@ int internal_export(char **args) {
         return -1;
     }
 
+    /*
     // Descomponer en tokens el argumento NOMBRE=VALOR
     char *name = strtok(args[1], "=");
     char *value = strtok(NULL, "=");
+    */
+
+   // Buscar el primer '=' en args[1]
+    char *equal_sign = strchr(args[1], '=');
+    if (equal_sign == NULL) {
+        fprintf(stderr, "Uso: export NOMBRE=VALOR\n");
+        return -1;
+    }
+
+    // Dividir en nombre y valor
+    size_t name_len = equal_sign - args[1];
+    char *name = (char *)malloc(name_len + 1);
+    strncpy(name, args[1], name_len);
+    name[name_len] = '\0';
+
+    char *value = equal_sign + 1;
 
     // Verificar si el formato es correcto (debe haber un nombre y un valor)
     if (name == NULL || value == NULL) {
