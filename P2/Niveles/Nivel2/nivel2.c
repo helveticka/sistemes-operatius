@@ -128,7 +128,7 @@ int internal_cd(char **args) {
 #endif
     char *home_dir = getenv("HOME");      // Obtener el directorio HOME
     char current_dir[1024];           // Buffer para el directorio actual
-    int result = 0;
+    int result = -1;
 
     // Caso 1: Sin argumentos (ir al directorio HOME)
     if (args[1] == NULL) {
@@ -160,6 +160,7 @@ int internal_cd(char **args) {
     printf("Directorio actual: %s\n", current_dir);
 
     return 0;
+
 }
 int internal_export(char **args) {
 #if DEBUGN1
