@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <errno.h>
 
 // Debugs
 #define DEBUGN1 0
@@ -48,6 +49,11 @@ struct info_job {
    char estado; 
    char cmd[COMMAND_LINE_SIZE]; 
 };
+
+static struct info_job jobs_list [N_JOBS];
+static char mi_shell[COMMAND_LINE_SIZE];
+int active_jobs = 0;
+char line[COMMAND_LINE_SIZE];
 
 // Funciones
 char *read_line(char *line);
