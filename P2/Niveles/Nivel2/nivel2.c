@@ -38,10 +38,65 @@ char *read_line(char *line) {
     return line;
 }
 
+// Variables globales
+char my_shell[] = "mi_shell";
+typedef struct {
+    pid_t pid;
+    char cmd[ARGS_SIZE];
+    char state;
+} job;
+
+job jobs_list[1]; // Lista de trabajos (solo uno en foreground)
+
 int execute_line(char *line) {
     char *args[ARGS_SIZE];
-    if(parse_args(args, line) > 0){
-        check_internal(args);
+    if (parse_args(args, line) > 0) {
+        // Verificar si es un comando interno
+        if (check_internal(args) == 0) {
+            // Comando externo, crear proceso hijo
+            pid_t pid = fork();
+            if (pid < 0) {
+                perror("Error en fork");
+                return -1;
+            }
+            if (pid == 0) { // Proceso hijo
+                // Ejecuta el comando externo
+                execvp(args[0], args);
+                
+                // Si execvp falla, muestra el error y termina
+                perror("Error al ejecutar el comando");
+                exit(-1);
+            } else { // Proceso padre (minishell)
+                // Actualizar jobs_list para el proceso en foreground
+                jobs_list[0].pid = pid;
+                strncpy(jobs_list[0].cmd, line, ARGS_SIZE - 1);
+                jobs_list[0].cmd[ARGS_SIZE - 1] = '\0';
+                jobs_list[0].state = 'E'; // Estado en ejecución
+                
+                // Imprimir información de depuración
+                printf("PID del padre (minishell): %d\n", getpid());
+                printf("PID del hijo: %d\n", pid);
+                printf("Ejecutando en foreground: %s\n", jobs_list[0].cmd);
+
+                // Esperar a que el hijo termine
+                int status;
+                if (waitpid(pid, &status, 0) == -1) {
+                    perror("Error en waitpid");
+                } else {
+                    // Verificar el estado de salida del hijo
+                    if (WIFEXITED(status)) {
+                        printf("El hijo %d ha terminado con estado %d\n", pid, WEXITSTATUS(status));
+                    } else if (WIFSIGNALED(status)) {
+                        printf("El hijo %d fue terminado por la señal %d\n", pid, WTERMSIG(status));
+                    }
+                }
+
+                // Limpiar jobs_list después de la ejecución
+                jobs_list[0].pid = 0;
+                jobs_list[0].cmd[0] = '\0';
+                jobs_list[0].state = '\0';
+            }
+        }
     }
     return 0;
 }
