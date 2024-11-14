@@ -217,7 +217,6 @@ void print_prompt(void) {
     char path[200];
     getcwd(path, sizeof(path));
 
-    printf(NEGRITA AZUL "%s: " RESET, user);
-    printf(NEGRITA "%s%c " RESET, path, PROMPT);
+    printf(NEGRITA AZUL "%s %c: " RESET, user, PROMPT);
     fflush(stdout);
 }
