@@ -22,6 +22,8 @@
     */
     char *read_line(char *line) {
         print_prompt();
+        fflush(stdout);
+        memset(line,'/0',COMMAND_LINE_SIZE);
         // Lee una línea desde stdin
         if(fgets(line,ARGS_SIZE,stdin) != NULL){
             // Sustituye el carácter '\n' por '\0'
@@ -79,11 +81,11 @@
                     // Verificar el estado de salida del hijo
                     if (WIFEXITED(status)) {
 #if DEBUGN3                        
-                        printf(GRIS"[execute_line()→ Procedo hijo %d (%s) finalizado con exit(), status: %d\n"RESET, pid, jobs_list[0].cmd, WEXITSTATUS(status));
+                        printf(GRIS"[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), status: %d\n"RESET, pid, jobs_list[0].cmd, WEXITSTATUS(status));
 #endif
                     } else if (WIFSIGNALED(status)) {
 #if DEBUGN3
-                        printf(GRIS"[execute_line()→ Procedo hijo %d (%s) finalizado con exit(), status: %d\n"RESET, pid, jobs_list[0].cmd, WTERMSIG(status));
+                        printf(GRIS"[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), status: %d\n"RESET, pid, jobs_list[0].cmd, WTERMSIG(status));
 #endif
                     }
                 }
@@ -123,6 +125,7 @@
             counter++;
             token = strtok(NULL,delimiters);
         }
+        args[counter] = NULL;
     #if DEBUGN1
         printf(GRIS "[parse_args()→ token %d: %s]\n" RESET, counter, token);
     #endif

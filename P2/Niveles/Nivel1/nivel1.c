@@ -18,6 +18,8 @@ int main() {
  */
 char *read_line(char *line) {
     print_prompt();
+    fflush(stdout);
+    memset(line,'/0',COMMAND_LINE_SIZE);
     // Lee una línea desde stdin
     if(fgets(line,ARGS_SIZE,stdin) != NULL){
         // Sustituye el carácter '\n' por '\0'
@@ -71,6 +73,7 @@ int parse_args(char **args, char *line) {
         counter++;
         token = strtok(NULL,delimiters);
     }
+    args[counter] = NULL;
 #if DEBUGN1
     printf(GRIS "[parse_args()→ token %d: %s]\n" RESET, counter, token);
 #endif
