@@ -38,16 +38,6 @@
     return line;
 }
 
-// Variables globales
-char my_shell[] = "mi_shell";
-typedef struct {
-    pid_t pid;
-    char cmd[ARGS_SIZE];
-    char state;
-} job;
-
-job jobs_list[1]; // Lista de trabajos (solo uno en foreground)
-
 int execute_line(char *line) {
     char *args[ARGS_SIZE];
     if(parse_args(args, line) > 0){
