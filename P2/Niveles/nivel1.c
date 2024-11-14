@@ -100,47 +100,39 @@ int parse_args(char **args, char *line) {
  */
 int check_internal(char **args) {
     int command = 0;
-
+    // Si no hay argumentos, no se hace nada
     if (args == NULL || args[0] == NULL) {
         return 0;
     }
-
     else if (!strcmp(args[0], "cd")) {
         internal_cd(args);
         command = 1;
     }
-
     else if (!strcmp(args[0], "export")) {
         internal_export(args);
         command = 1;
     }
-
     else if (!strcmp(args[0], "source")) {
         internal_source(args);
         command = 1;
     }
-
     else if (!strcmp(args[0], "jobs")) {
         internal_jobs(args);
         command = 1;
     }
-
     else if (!strcmp(args[0], "fg")) {
         internal_fg(args);
         command = 1;
     }
-
     else if (!strcmp(args[0], "bg")) {
         internal_bg(args);
         command = 1;
     }
-
     else if (!strcmp(args[0], "exit")) {
         printf("Bye Bye\n");
         exit(0);
         return EXIT_SUCCESS;
     }
-
     return command;
 }
 /**
