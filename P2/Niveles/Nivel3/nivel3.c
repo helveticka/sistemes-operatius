@@ -66,12 +66,11 @@
                 strncpy(jobs_list[0].cmd, line, ARGS_SIZE - 1);
                 jobs_list[0].cmd[ARGS_SIZE - 1] = '\0';
                 jobs_list[0].estado = 'E'; // Estado en ejecución
-                
+#if DEBUGN3
                 // Imprimir información de depuración
-                printf("PID del padre (minishell): %d\n", getpid());
-                printf("PID del hijo: %d\n", pid);
-                printf("Ejecutando en foreground: %s\n", jobs_list[0].cmd);
-
+                printf(GRIS"[execute_line()→ PID del padre: %d (./nivel3)]\n"RESET, getpid());
+                printf(GRIS"[execute_line()→ PID del hijo: %d (%s)\n"RESET, pid, jobs_list[0].cmd);
+#endif
                 // Esperar a que el hijo termine
                 int status;
                 if (waitpid(pid, &status, 0) == -1) {
@@ -79,9 +78,13 @@
                 } else {
                     // Verificar el estado de salida del hijo
                     if (WIFEXITED(status)) {
-                        printf("El hijo %d ha terminado con estado %d\n", pid, WEXITSTATUS(status));
+#if DEBUGN3                        
+                        printf(GRIS"[execute_line()→ Procedo hijo %d (%s) finalizado con exit(), status: %d\n"RESET, pid, jobs_list[0].cmd, WEXITSTATUS(status));
+#endif
                     } else if (WIFSIGNALED(status)) {
-                        printf("El hijo %d fue terminado por la señal %d\n", pid, WTERMSIG(status));
+#if DEBUGN3
+                        printf(GRIS"[execute_line()→ Procedo hijo %d (%s) finalizado con exit(), status: %d\n"RESET, pid, jobs_list[0].cmd, WTERMSIG(status));
+#endif
                     }
                 }
 
