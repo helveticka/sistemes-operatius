@@ -23,7 +23,7 @@
     char *read_line(char *line) {
         print_prompt();
         fflush(stdout);
-        memset(line,'/0',COMMAND_LINE_SIZE);
+        memset(line,'\0',COMMAND_LINE_SIZE);
         // Lee una línea desde stdin
         if(fgets(line,ARGS_SIZE,stdin) != NULL){
             // Sustituye el carácter '\n' por '\0'
@@ -46,6 +46,11 @@
 
     int execute_line(char *line) {
     char *args[ARGS_SIZE];
+#if DEBUGN3
+    char command[COMMAND_LINE_SIZE];
+    strcpy(command,line);
+    command[COMMAND_LINE_SIZE - 1] = '\0';
+#endif
     if (parse_args(args, line) > 0) {
         // Verificar si es un comando interno
         if (check_internal(args) == 0) {
@@ -65,13 +70,13 @@
             } else { // Proceso padre (minishell)
                 // Actualizar jobs_list para el proceso en foreground
                 jobs_list[0].pid = pid;
-                strncpy(jobs_list[0].cmd, line, ARGS_SIZE - 1);
-                jobs_list[0].cmd[ARGS_SIZE - 1] = '\0';
+                strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
+                jobs_list[0].cmd[COMMAND_LINE_SIZE - 1] = '\0';
                 jobs_list[0].estado = 'E'; // Estado en ejecución
 #if DEBUGN3
                 // Imprimir información de depuración
                 printf(GRIS"[execute_line()→ PID del padre: %d (./nivel3)]\n"RESET, getpid());
-                printf(GRIS"[execute_line()→ PID del hijo: %d (%s)\n"RESET, pid, jobs_list[0].cmd);
+                printf(GRIS"[execute_line()→ PID del hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
 #endif
                 // Esperar a que el hijo termine
                 int status;
@@ -81,11 +86,11 @@
                     // Verificar el estado de salida del hijo
                     if (WIFEXITED(status)) {
 #if DEBUGN3                        
-                        printf(GRIS"[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), status: %d\n"RESET, pid, jobs_list[0].cmd, WEXITSTATUS(status));
+                        printf(GRIS"[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), status: %d]\n"RESET, pid, jobs_list[0].cmd, WEXITSTATUS(status));
 #endif
                     } else if (WIFSIGNALED(status)) {
 #if DEBUGN3
-                        printf(GRIS"[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), status: %d\n"RESET, pid, jobs_list[0].cmd, WTERMSIG(status));
+                        printf(GRIS"[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), status: %d]\n"RESET, pid, jobs_list[0].cmd, WTERMSIG(status));
 #endif
                     }
                 }

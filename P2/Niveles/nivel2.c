@@ -19,7 +19,7 @@
     char *read_line(char *line) {
         print_prompt();
         fflush(stdout);
-        memset(line,'/0',COMMAND_LINE_SIZE);
+        memset(line,'\0',COMMAND_LINE_SIZE);
         // Lee una línea desde stdin
         if(fgets(line,ARGS_SIZE,stdin) != NULL){
             // Sustituye el carácter '\n' por '\0'
