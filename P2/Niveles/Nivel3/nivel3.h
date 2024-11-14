@@ -9,6 +9,8 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/wait.h>
+#include <sys/types.h>
 
 // Debugs
 #define DEBUGN1 0
