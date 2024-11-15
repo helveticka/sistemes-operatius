@@ -343,6 +343,38 @@ int internal_source(char **args) {
     fclose(file); 
     return EXIT_FAILURE;
 } 
+
+void ctrlc(int signum) {
+    // Reasignar signal() para capturar futuras señales SIGINT
+    signal(SIGINT, ctrlc);
+
+    // Imprimir un salto de línea para mantener un prompt limpio
+    printf("\n");
+    fflush(stdout);
+
+    printf(GRIS"[ctrlc()→ Soy el proceso con PID %d (./nivel4), el proceso en foreground es %d (%s)]\n"RESET, getpid(),jobs_list[0].pid, jobs_list[0].cmd);
+
+    // Verificar si hay un proceso en foreground
+    if (jobs_list[0].pid > 0) {
+        // Obtener el nombre del comando en ejecución en foreground
+        char *foreground_cmd = jobs_list[0].cmd;
+        
+        // Verificar que el proceso en foreground NO sea el shell actual
+        if (strncmp(foreground_cmd, mi_shell, strlen(mi_shell)) != 0) {
+            // Enviar la señal SIGTERM al proceso en foreground
+            if (kill(jobs_list[0].pid, SIGTERM) == 0) {
+                printf(GRIS"[ctrlc()→ Señal 15 enviada a %d (%s) por %d (./nivel4)]\n"RESET, jobs_list[0].pid, jobs_list[0].cmd, getpid());
+            }
+        } else {
+            printf(GRIS"[ctrlc()→ Señal 15 no enviada por %d (./nivel4) debido a que el proceso en foreground es el shell]\n"RESET, getpid());
+        }
+    } else {
+        printf(GRIS"[ctrlc()→ Señal 15 no enviada por %d (./nivel4) debido a que no hay proceso en foreground]\n"RESET, getpid());
+    }
+
+    fflush(stdout); // Asegurar la impresión inmediata del mensaje
+}
+
 /**
  Muestra los procesos que no están en foreground.
  *args: array de punteros a char con los argumentos introducidos.

@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <signal.h>
 // Debugs
 #define DEBUGN1 0
 #define DEBUGN2 0
