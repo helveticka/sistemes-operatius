@@ -4,6 +4,9 @@
  * Método principal del archivo.
  */
 int main(int argc, char *argv[]) {
+    // Señales
+    signal(SIGCHLD, reaper); 
+    signal(SIGINT, ctrlc); 
     // Inicialización de la lista de trabajos
     jobs_list[FOREGROUND].pid = 0;
     jobs_list[FOREGROUND].estado = NINGUNO;
@@ -52,7 +55,7 @@ char *read_line(char *line) {
  */
 int execute_line(char *line) {
     char *args[ARGS_SIZE];
-#if DEBUGN3
+#if DEBUGN3 || DEBUGN4
     char command[COMMAND_LINE_SIZE];
     strcpy(command,line);
     command[COMMAND_LINE_SIZE - 1] = '\0';
@@ -68,6 +71,10 @@ int execute_line(char *line) {
             }
             // Proceso hijo
             if (pid == 0) { 
+                // Asignar acción por defecto a la señal SIGCHLD
+                signal(SIGCHLD, SIG_DFL);
+                // Ignorar la señal SIGINT en el proceso hijo
+                signal(SIGINT, SIG_IGN);
                 // Ejecuta el comando externo
                 execvp(args[0], args);
                 // Si execvp falla, muestra el error y termina
@@ -82,9 +89,9 @@ int execute_line(char *line) {
                 strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
                 jobs_list[0].cmd[COMMAND_LINE_SIZE - 1] = '\0';
                 jobs_list[0].estado = 'E'; // EJECUTANDOSE
-#if DEBUGN3
+#if DEBUGN3 || DEBUGN4
                 // Imprimir información de depuración
-                printf(GRIS"[execute_line()→ PID padre: %d (./nivel3)]\n"RESET, getpid());
+                printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);
                 printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
 #endif
                 // Esperar a que el hijo termine

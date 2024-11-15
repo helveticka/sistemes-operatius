@@ -63,7 +63,8 @@ int execute_line(char *line) {
             // Comando externo, crear proceso hijo
             pid_t pid = fork();
             if (pid < 0) {
-                perror("Error en fork");
+                perror(ROJO "Error en fork()");
+                printf(RESET);
                 return -1;
             }
             // Proceso hijo
@@ -84,7 +85,7 @@ int execute_line(char *line) {
                 jobs_list[0].estado = 'E'; // EJECUTANDOSE
 #if DEBUGN3
                 // Imprimir información de depuración
-                printf(GRIS"[execute_line()→ PID padre: %d (./nivel3)]\n"RESET, getpid());
+                printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);
                 printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
 #endif
                 // Esperar a que el hijo termine

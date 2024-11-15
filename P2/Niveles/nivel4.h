@@ -12,7 +12,8 @@
 // Debugs
 #define DEBUGN1 0
 #define DEBUGN2 0
-#define DEBUGN3 1
+#define DEBUGN3 0
+#define DEBUGN4 1
 // Constantes
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
@@ -62,3 +63,5 @@ int internal_fg(char **args);
 int internal_bg(char **args); 
 int internal_exit(char **args);
 void print_prompt(void);
+void reaper(int signum);
+void ctrlc(int signum);
