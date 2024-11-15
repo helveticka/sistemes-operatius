@@ -1,5 +1,4 @@
 // Autores: Xavier Campos, Pedro Felix, Harpo Joan
-
 #include "nivel3.h"
 /**
  * Método principal del archivo.

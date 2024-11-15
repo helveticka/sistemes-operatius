@@ -1,7 +1,5 @@
 // Autores: Xavier Campos, Pedro Felix, Harpo Joan
-
 #define _POSIX_C_SOURCE 200112L
-
 // Librerías
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,28 +9,25 @@
 #include <errno.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-
 // Debugs
 #define DEBUGN1 0
 #define DEBUGN2 0
 #define DEBUGN3 1
-
 // Constantes
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
-
+const char PROMPT = '$';
 #define N_JOBS 64
 #define FOREGROUND 0
 #define NINGUNO 'N'
 #define EJECUTANDOSE 'E'
 #define DETENIDO 'D'
 #define FINALIZADO 'F'
-
+// Variables globales
 char *user;
-const char PROMPT = '$';
 char line[COMMAND_LINE_SIZE];
 static char mi_shell[COMMAND_LINE_SIZE]; 
-
+// Códigos de color
 #define RESET "\033[0m"
 #define NEGRO "\x1b[30m"
 #define GRIS "\x1b[94m"
@@ -44,19 +39,16 @@ static char mi_shell[COMMAND_LINE_SIZE];
 #define CYAN "\x1b[36m"
 #define BLANCO "\x1b[97m"
 #define NEGRITA "\x1b[1m"
-
 // Estructuras
 struct info_job {
    pid_t pid;
    char estado; 
    char cmd[COMMAND_LINE_SIZE]; 
 };
-
 static struct info_job jobs_list [N_JOBS];
 static char mi_shell[COMMAND_LINE_SIZE];
 int active_jobs = 0;
 char line[COMMAND_LINE_SIZE];
-
 // Funciones
 char *read_line(char *line);
 int execute_line(char *line);

@@ -1,25 +1,21 @@
 // Autores: Xavier Campos, Pedro Felix, Harpo Joan
-
 #define _POSIX_C_SOURCE 200112L
-
 // Librerías
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
-
 // Debugs
 #define DEBUGN1 1
-
 // Constantes
 #define COMMAND_LINE_SIZE 1024
 #define ARGS_SIZE 64
-
-char *user;
 const char PROMPT = '$';
+// Variables globales
+char *user;
 char line[COMMAND_LINE_SIZE];
-
+// Códigos de color
 #define RESET "\033[0m"
 #define NEGRO "\x1b[30m"
 #define GRIS "\x1b[94m"
@@ -31,7 +27,6 @@ char line[COMMAND_LINE_SIZE];
 #define CYAN "\x1b[36m"
 #define BLANCO "\x1b[97m"
 #define NEGRITA "\x1b[1m"
-
 // Funciones
 char *read_line(char *line);
 int execute_line(char *line);
