@@ -76,14 +76,16 @@ int execute_line(char *line) {
                 // Ignorar la señal SIGINT en el proceso hijo
                 signal(SIGINT, SIG_IGN);
                 // Ejecuta el comando externo
-                execvp(args[0], args);
-                // Si execvp falla, muestra el error y termina
-                fprintf(stderr, ROJO "%s: ", command);
-                perror("");
-                printf(RESET);
-                exit(-1);
+                if (execvp(args[0], args) < 0) {
+                    // Si execvp falla, muestra el error y termina
+                    fprintf(stderr, ROJO "%s: ", args[0]);
+                    perror("");
+                    printf(RESET);
+                    exit(-1);
+                }
+                exit(0);
             // Proceso padre (minishell)
-            } else { 
+            } else if (pid > 0) { 
                 // Actualizar jobs_list para el proceso en foreground
                 jobs_list[0].pid = pid;
                 strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
@@ -94,26 +96,12 @@ int execute_line(char *line) {
                 printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);
                 printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
 #endif
-                // Esperar a que el hijo termine
-                int status;
-                if (waitpid(pid, &status, 0) == -1) {
-                    perror("Error en waitpid");
-                } else {
-                    // Verificar el estado de salida del hijo
-                    if (WIFEXITED(status)) {
-#if DEBUGN3                        
-                        printf(GRIS"[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), status: %d]\n"RESET, pid, jobs_list[0].cmd, WEXITSTATUS(status));
-#endif
-                    } else if (WIFSIGNALED(status)) {
-#if DEBUGN3
-                        printf(GRIS"[execute_line()→ Proceso hijo %d (%s) finalizado con exit(), status: %d]\n"RESET, pid, jobs_list[0].cmd, WTERMSIG(status));
-#endif
-                    }
+                while (jobs_list[0].pid > 0) {
+                    pause();
                 }
-                // Limpiar jobs_list después de la ejecución
-                jobs_list[0].pid = 0;
-                jobs_list[0].cmd[0] = '\0';
-                jobs_list[0].estado = '\0';
+            } else {
+                fprintf(stderr, ROJO "fork: %s\n"RESET, strerror(errno));
+                exit(-2);
             }
         }
     }
@@ -374,7 +362,8 @@ void ctrlc(int signum) {
 
     fflush(stdout); // Asegurar la impresión inmediata del mensaje
 }
-
+void reaper(int signum) {
+}
 /**
  Muestra los procesos que no están en foreground.
  *args: array de punteros a char con los argumentos introducidos.
