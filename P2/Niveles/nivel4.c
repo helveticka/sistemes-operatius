@@ -377,9 +377,9 @@ void reaper(int signum) {
 
         // Mostrar información del hijo terminado
         if (WIFEXITED(status)) {
-            printf(GRIS"[reaper()→ Proceso hijo %d finalizado con exit code %d.\n]"RESET, ended, WEXITSTATUS(status));
+            printf(GRIS"[reaper()→ Proceso hijo %d (%d) finalizado con exit code %d.\n]"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
         } else if (WIFSIGNALED(status)) {
-            printf(GRIS"[reaper()→ Proceso hijo %d finalizado por señal %d.\n]"RESET, ended, WTERMSIG(status));
+            printf(GRIS"[reaper()→ Proceso hijo %d (%d) finalizado por señal %d.\n]"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
         }
 
         // Si el hijo terminado es el proceso en primer plano
