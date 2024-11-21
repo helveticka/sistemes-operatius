@@ -42,7 +42,6 @@ char *read_line(char *line) {
 #endif
             exit(EXIT_SUCCESS);
         }
-
     }
     return ptr;
 }
@@ -395,9 +394,9 @@ void reaper(int signum) {
         // Si el hijo terminado es el proceso en primer plano
         if (ended == jobs_list[0].pid) {
             // Resetear el proceso en primer plano
-            jobs_list[0].pid = 0;                        // PID a 0
-            jobs_list[0].estado = 'F';                   // Estado 'Finished'
-            memset(jobs_list[0].cmd, '\0', COMMAND_LINE_SIZE); // Resetear el comando
+            jobs_list[0].pid = 0;
+            jobs_list[0].estado = 'F';
+            memset(jobs_list[0].cmd, '\0', COMMAND_LINE_SIZE);
         }
     }
     // Manejar errores de waitpid
@@ -442,10 +441,11 @@ int internal_bg(char **args) {
  Imprime el prompt.
  */
 void print_prompt(void) {
+    // Obtener el nombre de usuario
     user = getenv("USER");
     char path[200];
     getcwd(path, sizeof(path));
-
+    // Prints del prompt
     printf(NEGRITA MAGENTA "%s" RESET, user);
     printf(NEGRITA ":" RESET);
     printf(NEGRITA CYAN "MINISHELL" RESET);
