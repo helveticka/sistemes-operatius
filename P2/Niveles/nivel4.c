@@ -360,12 +360,12 @@ void ctrlc(int signum) {
             }
         } else {
 #if DEBUGN4
-            printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel4) debido a que el proceso en foreground es el shell]\n"RESET, SIGINT, getpid());
+            printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel4) debido a que el proceso en foreground es el shell]\n"RESET, SIGTERM, getpid());
 #endif
         }
     } else {
 #if DEBUGN4
-        printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel4) debido a que no hay proceso en foreground]\n"RESET, SIGINT,getpid());
+        printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel4) debido a que no hay proceso en foreground]\n"RESET, SIGTERM, getpid());
 #endif
     }
     // Asegurar la impresión inmediata del mensaje
@@ -385,11 +385,11 @@ void reaper(int signum) {
         // Mostrar información del hijo terminado
         if (WIFEXITED(status)) {
 #if DEBUGN4
-            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d].\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
+            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
 #endif
         } else if (WIFSIGNALED(status)) {
 #if DEBUGN4
-            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado por señal %d].\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
+            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
 #endif        
         }
         // Si el hijo terminado es el proceso en primer plano
