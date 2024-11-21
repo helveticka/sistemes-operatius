@@ -29,13 +29,11 @@ char *read_line(char *line) {
     print_prompt();
     fflush(stdout);
     memset(line, '\0', COMMAND_LINE_SIZE);
+    char *ptr = fgets(line,COMMAND_LINE_SIZE,stdin);
     // Lee una línea desde stdin
-    if(fgets(line,ARGS_SIZE,stdin) != NULL){
+    if(ptr != NULL){
         // Sustituye el carácter '\n' por '\0'
-        if(strlen(line) > 0 && line[strlen(line) - 1] == '\n'){
-            line[strlen(line) - 1] = '\0';
-        }
-        return line;
+        line[strlen(line) - 1] = '\0';
     } else{
         // Verifica si fue por Ctrl + D
         if(feof(stdin)){
@@ -46,7 +44,7 @@ char *read_line(char *line) {
         }
 
     }
-    return line;
+    return ptr;
 }
 /**
  Ejecuta una línea de comandos.
@@ -55,12 +53,17 @@ char *read_line(char *line) {
  */
 int execute_line(char *line) {
     char *args[ARGS_SIZE];
+    int numArgs = parse_args(args, line);
+    if (numArgs > 0) {
+
 #if DEBUGN3 || DEBUGN4
-    char command[COMMAND_LINE_SIZE];
-    strcpy(command,line);
-    command[COMMAND_LINE_SIZE - 1] = '\0';
+        char command[COMMAND_LINE_SIZE];
+        for (size_t i = 0; i < numArgs; i++)
+        {
+            strcat(command,args[0]);
+        }
+        command[COMMAND_LINE_SIZE - 1] = '\0';
 #endif
-    if (parse_args(args, line) > 0) {
         // Verificar si es un comando interno
         if (check_internal(args) == 0) {
             // Comando externo, crear proceso hijo
