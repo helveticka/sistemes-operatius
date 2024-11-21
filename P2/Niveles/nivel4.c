@@ -134,7 +134,6 @@ int parse_args(char **args, char *line) {
 #if DEBUGN1
             fprintf(stderr, GRIS "[parse_args()→ token %d corregido: %s]\n" RESET, counter,token);
 #endif
-            counter++;
             return counter;
         }
         args[counter] = token;
@@ -160,7 +159,7 @@ int check_internal(char **args) {
     int command = 0;
     // Si no hay argumentos, no se hace nada
     if (args == NULL || args[0] == NULL) {
-        return 0;
+        return -1;
     }
     else if (!strcmp(args[0], "cd")) {
         internal_cd(args);
@@ -379,9 +378,9 @@ void reaper(int signum) {
 
         // Mostrar información del hijo terminado
         if (WIFEXITED(status)) {
-            printf(GRIS"[reaper()→ Proceso hijo %d (%d) finalizado con exit code %d.\n]"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
+            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d.\n]"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
         } else if (WIFSIGNALED(status)) {
-            printf(GRIS"[reaper()→ Proceso hijo %d (%d) finalizado por señal %d.\n]"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
+            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado por señal %d.\n]"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
         }
 
         // Si el hijo terminado es el proceso en primer plano
