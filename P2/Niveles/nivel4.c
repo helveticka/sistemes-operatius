@@ -363,6 +363,36 @@ void ctrlc(int signum) {
     fflush(stdout); // Asegurar la impresión inmediata del mensaje
 }
 void reaper(int signum) {
+    int status;
+    pid_t ended;
+
+    // Reasignar la señal SIGCHLD al manejador (en sistemas donde no es persistente)
+    signal(SIGCHLD, reaper);
+
+    // Procesar todos los hijos que hayan terminado
+    while ((ended = waitpid(-1, &status, WNOHANG)) > 0) {
+        // Mostrar información del hijo terminado
+
+        if (WIFEXITED(status)) {
+            printf("Proceso hijo con PID %d finalizado con exit code %d.\n", ended, WEXITSTATUS(status));
+        } else if (WIFSIGNALED(status)) {
+            printf("Proceso hijo con PID %d finalizado por señal %d.\n", ended, WTERMSIG(status));
+        }
+
+        // Si el hijo terminado es el proceso en primer plano
+        if (ended == jobs_list[0].pid) {
+
+            // Resetear el proceso en primer plano
+            jobs_list[0].pid = 0;                        // PID a 0
+            jobs_list[0].estado = 'F';                   // Estado 'Finished'
+            memset(jobs_list[0].cmd, '\0', COMMAND_LINE_SIZE); // Resetear el comando
+        }
+    }
+
+    // Manejar errores de waitpid
+    if (ended == -1 && errno != ECHILD) {
+        perror("Error en waitpid");
+    }
 }
 /**
  Muestra los procesos que no están en foreground.
