@@ -371,17 +371,17 @@ void reaper(int signum) {
     int status;
     pid_t ended;
 
-    // Reasignar la señal SIGCHLD al manejador (en sistemas donde no es persistente)
+    // Reasignar la señal SIGCHLD al manejador
     signal(SIGCHLD, reaper);
 
     // Procesar todos los hijos que hayan terminado
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0) {
-        // Mostrar información del hijo terminado
 
+        // Mostrar información del hijo terminado
         if (WIFEXITED(status)) {
-            printf("Proceso hijo con PID %d finalizado con exit code %d.\n", ended, WEXITSTATUS(status));
+            printf(GRIS"[reaper()→ Proceso hijo %d (%d) finalizado con exit code %d.\n]"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
         } else if (WIFSIGNALED(status)) {
-            printf("Proceso hijo con PID %d finalizado por señal %d.\n", ended, WTERMSIG(status));
+            printf(GRIS"[reaper()→ Proceso hijo %d (%d) finalizado por señal %d.\n]"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
         }
 
         // Si el hijo terminado es el proceso en primer plano
