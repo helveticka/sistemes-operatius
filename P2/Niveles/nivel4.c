@@ -55,7 +55,6 @@ int execute_line(char *line) {
     char *args[ARGS_SIZE];
     int numArgs = parse_args(args, line);
     if (numArgs > 0) {
-
 #if DEBUGN3 || DEBUGN4
         char command[COMMAND_LINE_SIZE] = "";
         for (size_t i = 0; i < numArgs; i++) {
@@ -186,7 +185,6 @@ int check_internal(char **args) {
         command = 1;
     }
     else if (!strcmp(args[0], "exit")) {
-        printf("Bye Bye\n");
         exit(0);
         return EXIT_SUCCESS;
     }
@@ -335,70 +333,73 @@ int internal_source(char **args) {
     fclose(file); 
     return EXIT_FAILURE;
 } 
-
+/**
+ Captura la señal SIGINT (Ctrl+C) y la envía al proceso en foreground
+ signum: número de la señal
+ */
 void ctrlc(int signum) {
     // Reasignar signal() para capturar futuras señales SIGINT
     signal(SIGINT, ctrlc);
-
     // Imprimir un salto de línea para mantener un prompt limpio
     printf("\n");
     fflush(stdout);
-
+#if DEBUGN4
     printf(GRIS"[ctrlc()→ Soy el proceso con PID %d (./nivel4), el proceso en foreground es %d (%s)]\n"RESET, getpid(),jobs_list[0].pid, jobs_list[0].cmd);
-
+#endif
     // Verificar si hay un proceso en foreground
     if (jobs_list[0].pid > 0) {
         // Obtener el nombre del comando en ejecución en foreground
         char *foreground_cmd = jobs_list[0].cmd;
-        
         // Verificar que el proceso en foreground NO sea el shell actual
         if (strncmp(foreground_cmd, mi_shell, strlen(mi_shell)) != 0) {
             // Enviar la señal SIGTERM al proceso en foreground
             if (kill(jobs_list[0].pid, SIGTERM) == 0) {
-                printf(GRIS"[ctrlc()→ Señal %d enviada a %d (%s) por %d (./nivel4)]\n"RESET, SIGINT,jobs_list[0].pid, jobs_list[0].cmd, getpid());
+#if DEBUGN4
+                printf(GRIS"[ctrlc()→ Señal %d enviada a %d (%s) por %d (./nivel4)]\n"RESET, SIGTERM, jobs_list[0].pid, jobs_list[0].cmd, getpid());
+#endif
             }
         } else {
-            printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel4) debido a que el proceso en foreground es el shell]\n"RESET, SIGINT,getpid());
+#if DEBUGN4
+            printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel4) debido a que el proceso en foreground es el shell]\n"RESET, SIGINT, getpid());
+#endif
         }
     } else {
+#if DEBUGN4
         printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel4) debido a que no hay proceso en foreground]\n"RESET, SIGINT,getpid());
+#endif
     }
-
-    fflush(stdout); // Asegurar la impresión inmediata del mensaje
+    // Asegurar la impresión inmediata del mensaje
+    fflush(stdout); 
 }
+/**
+ Captura la señal SIGCHLD y maneja los procesos hijos que han terminado.
+ signum: número de la señal
+ */
 void reaper(int signum) {
     int status;
     pid_t ended;
-
     // Reasignar la señal SIGCHLD al manejador
     signal(SIGCHLD, reaper);
-
     // Procesar todos los hijos que hayan terminado
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0) {
-
         // Mostrar información del hijo terminado
         if (WIFEXITED(status)) {
-<<<<<<< HEAD
-            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d.\n]"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
+#if DEBUGN4
+            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d].\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
+#endif
         } else if (WIFSIGNALED(status)) {
-            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado por señal %d.\n]"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
-=======
-            printf(GRIS"[reaper()→ Proceso hijo %d (%d) finalizado con exit code %d].\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
-        } else if (WIFSIGNALED(status)) {
-            printf(GRIS"[reaper()→ Proceso hijo %d (%d) finalizado por señal %d].\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
->>>>>>> 0a598b046644b9962fab713168fba4749cafce7d
+#if DEBUGN4
+            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado por señal %d].\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
+#endif        
         }
-
         // Si el hijo terminado es el proceso en primer plano
         if (ended == jobs_list[0].pid) {
-
             // Resetear el proceso en primer plano
             jobs_list[0].pid = 0;                        // PID a 0
             jobs_list[0].estado = 'F';                   // Estado 'Finished'
             memset(jobs_list[0].cmd, '\0', COMMAND_LINE_SIZE); // Resetear el comando
         }
     }
-
     // Manejar errores de waitpid
     if (ended == -1 && errno != ECHILD) {
         perror("Error en waitpid");
