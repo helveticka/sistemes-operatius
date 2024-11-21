@@ -57,10 +57,12 @@ int execute_line(char *line) {
     if (numArgs > 0) {
 
 #if DEBUGN3 || DEBUGN4
-        char command[COMMAND_LINE_SIZE];
-        for (size_t i = 0; i < numArgs; i++)
-        {
-            strcat(command,args[0]);
+        char command[COMMAND_LINE_SIZE] = "";
+        for (size_t i = 0; i < numArgs; i++) {
+            strcat(command, args[i]);
+            if (i < numArgs - 1) {
+                strcat(command, " ");
+            }
         }
         command[COMMAND_LINE_SIZE - 1] = '\0';
 #endif
@@ -354,13 +356,13 @@ void ctrlc(int signum) {
         if (strncmp(foreground_cmd, mi_shell, strlen(mi_shell)) != 0) {
             // Enviar la señal SIGTERM al proceso en foreground
             if (kill(jobs_list[0].pid, SIGTERM) == 0) {
-                printf(GRIS"[ctrlc()→ Señal 15 enviada a %d (%s) por %d (./nivel4)]\n"RESET, jobs_list[0].pid, jobs_list[0].cmd, getpid());
+                printf(GRIS"[ctrlc()→ Señal %d enviada a %d (%s) por %d (./nivel4)]\n"RESET, SIGINT,jobs_list[0].pid, jobs_list[0].cmd, getpid());
             }
         } else {
-            printf(GRIS"[ctrlc()→ Señal 15 no enviada por %d (./nivel4) debido a que el proceso en foreground es el shell]\n"RESET, getpid());
+            printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel4) debido a que el proceso en foreground es el shell]\n"RESET, SIGINT,getpid());
         }
     } else {
-        printf(GRIS"[ctrlc()→ Señal 15 no enviada por %d (./nivel4) debido a que no hay proceso en foreground]\n"RESET, getpid());
+        printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel4) debido a que no hay proceso en foreground]\n"RESET, SIGINT,getpid());
     }
 
     fflush(stdout); // Asegurar la impresión inmediata del mensaje
