@@ -372,6 +372,44 @@ void ctrlc(int signum) {
     fflush(stdout); 
 }
 /**
+ Captura la señal SIGTSTP (Ctrl+Z) y la envía al proceso en foreground
+ signum: número de la señal
+ */
+void ctrlz(int signum) {
+    signal(SIGTSTP, ctrlz);
+#if DEBUGN5
+        printf(GRIS"\n[ctrlz()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n"RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+        printf(GRIS"[ctrlz()→ recibida señal %d (SIGTSTP)]\n"RESET, signum);
+#endif
+    // Reasignar signal() para capturar futuras señales SIGTSTP
+    if (jobs_list[0].pid > 0) {
+        if (strcmp(jobs_list[0].cmd, mi_shell)) {
+            // Enviar la señal SIGSTOP al proceso en foreground
+            kill(jobs_list[0].pid, SIGSTOP);
+#if DEBUGN5
+                printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) enviada a %d (%s) por %d (%s)]"RESET, signum, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
+#endif
+            // Actualizamos el proceso detenido y lo añadimos a la lista de jobs
+            jobs_list[0].estado = DETENIDO;
+            jobs_list_add(jobs_list[0].pid, jobs_list[0].estado, jobs_list[0].cmd);
+
+            // Actualizamos el foreground con sus propiedades de serie (Reset)
+            jobs_list[0].pid = 0;
+            jobs_list[0].estado = NINGUNO;
+            memset(jobs_list[0].cmd, '\0', COMMAND_LINE_SIZE);
+        } else {
+#if DEBUGN5
+            printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que su proceso en foreground es el shell]\n"RESET, signum, getpid(), mi_shell);
+#endif
+        }
+    } else {
+#if DEBUGN5
+        printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que no hay proceso en foreground]\n"RESET, signum, getpid(), mi_shell);
+#endif
+    }
+    fflush(stdout);
+}
+/**
  Captura la señal SIGCHLD y maneja los procesos hijos que han terminado.
  signum: número de la señal
  */
@@ -414,6 +452,11 @@ int internal_jobs(char **args) {
 #if DEBUGN1
     fprintf(stderr, GRIS "[internal_jobs()→ Esta función mostrará el PID de los procesos que no estén en foreground]\n" RESET);
 #endif
+    for (int i = 1; i < N_JOBS; i++) {
+        if (jobs_list[i].pid > 0) {
+            fprintf(stderr, "[%d] %d	%c		%s\n", i, jobs_list[i].pid, jobs_list[i].estado, jobs_list[i].cmd);
+        }
+    }
     return EXIT_SUCCESS;
 }
 /**
@@ -452,4 +495,17 @@ void print_prompt(void) {
     printf(NEGRITA CYAN "MINISHELL" RESET);
     printf(NEGRITA "%c " RESET, PROMPT);
     fflush(stdout);
+}
+/**
+ Busca en el array de trabajos el PID retorna su posición.
+ pid: PID del proceso a buscar.
+ return: posición del proceso en el array de trabajos.
+ */
+int jobs_list_find(pid_t pid) {
+    for (int pos = 0; pos < N_JOBS; pos++) {
+        if (jobs_list[pos].pid == pid) {
+            return pos;
+        }
+    }
+    return EXIT_FAILURE;
 }
