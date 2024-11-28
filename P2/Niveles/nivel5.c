@@ -378,8 +378,8 @@ void ctrlc(int signum) {
 void ctrlz(int signum) {
     signal(SIGTSTP, ctrlz);
 #if DEBUGN5
-        printf(GRIS"\n[ctrlz()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n"RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
-        printf(GRIS"[ctrlz()→ recibida señal %d (SIGTSTP)]\n"RESET, signum);
+    printf(GRIS"\n[ctrlz()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n"RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+    printf(GRIS"[ctrlz()→ recibida señal %d (SIGTSTP)]\n"RESET, signum);
 #endif
     // Reasignar signal() para capturar futuras señales SIGTSTP
     if (jobs_list[0].pid > 0) {
@@ -387,12 +387,11 @@ void ctrlz(int signum) {
             // Enviar la señal SIGSTOP al proceso en foreground
             kill(jobs_list[0].pid, SIGSTOP);
 #if DEBUGN5
-                printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) enviada a %d (%s) por %d (%s)]"RESET, signum, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
+            printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) enviada a %d (%s) por %d (%s)]"RESET, signum, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
 #endif
             // Actualizamos el proceso detenido y lo añadimos a la lista de jobs
             jobs_list[0].estado = DETENIDO;
             jobs_list_add(jobs_list[0].pid, jobs_list[0].estado, jobs_list[0].cmd);
-
             // Actualizamos el foreground con sus propiedades de serie (Reset)
             jobs_list[0].pid = 0;
             jobs_list[0].estado = NINGUNO;
