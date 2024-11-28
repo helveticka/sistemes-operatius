@@ -516,3 +516,24 @@ int jobs_list_find(pid_t pid) {
     }
     return EXIT_FAILURE;
 }
+
+// Función para eliminar un trabajo por posición en la lista
+int jobs_list_remove(int pos) {
+    if (pos < 0 || pos >= n_job) {
+        return -1; // Posición inválida
+    }
+
+    // Mover el último trabajo a la posición eliminada, si no es el mismo
+    if (pos != n_job - 1) {
+        jobs_list[pos] = jobs_list[n_job - 1];
+    }
+
+    // Limpiar el último trabajo
+    jobs_list[n_job - 1].pid = 0;
+    jobs_list[n_job - 1].estado = 0;
+    jobs_list[n_job - 1].cmd[0] = '\0';
+
+    n_job--; // Decrementar el número de trabajos
+
+    return 0; // Éxito
+}

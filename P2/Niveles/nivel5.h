@@ -29,7 +29,8 @@ const char PROMPT = '$';
 // Variables globales
 char *user;
 char line[COMMAND_LINE_SIZE];
-static char mi_shell[COMMAND_LINE_SIZE]; 
+static char mi_shell[COMMAND_LINE_SIZE];
+int n_job;
 // Códigos de color
 #define RESET "\033[0m"
 #define NEGRO "\x1b[30m"
