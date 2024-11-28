@@ -555,7 +555,6 @@ int is_background(char **args) {
 int jobs_list_add(pid_t pid, char estado, char *cmd) {
     // Verificar si se ha alcanzado el límite de trabajos
     if (n_job >= N_JOBS) {
-        fprintf(stderr, "Error: no se pueden añadir más trabajos (límite: %d).\n", N_JOBS);
         return -1; // Error
     }
 
