@@ -67,6 +67,7 @@ int execute_line(char *line) {
 // HASTA AQUI ESTABA COMENTADO EN EL NIVEL 4
         // Verificar si es un comando interno
         if (check_internal(args) == 0) {
+            int bg = is_background(args);
             // Comando externo, crear proceso hijo
             pid_t pid = fork();
             if (pid < 0) {
@@ -79,6 +80,8 @@ int execute_line(char *line) {
                 signal(SIGCHLD, SIG_DFL);
                 // Ignorar la señal SIGINT en el proceso hijo
                 signal(SIGINT, SIG_IGN);
+                // Ignorar la señal SIGTSTP en el proceso hijo
+                signal(SIGTSTP, SIG_IGN);
                 // Ejecuta el comando externo
                 if (execvp(args[0], args) < 0) {
                     // Si execvp falla, muestra el error y termina
@@ -90,16 +93,21 @@ int execute_line(char *line) {
                 exit(0);
             // Proceso padre (minishell)
             } else if (pid > 0) { 
-                // Actualizar jobs_list para el proceso en foreground
-                jobs_list[0].pid = pid;
-                strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
-                jobs_list[0].cmd[COMMAND_LINE_SIZE - 1] = '\0';
-                jobs_list[0].estado = 'E'; // EJECUTANDOSE
+                if(bg == 0){
+                    // Actualizar jobs_list para el proceso en foreground
+                    jobs_list[0].pid = pid;
+                    strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
+                    jobs_list[0].cmd[COMMAND_LINE_SIZE - 1] = '\0';
+                    jobs_list[0].estado = EJECUTANDOSE;
 #if DEBUGN3 || DEBUGN4
-                // Imprimir información de depuración
-                printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);
-                printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
+                    // Imprimir información de depuración
+                    printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);
+                    printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
 #endif
+                } else{
+                    jobs_list_add(pid, EJECUTANDOSE, command);
+                }
+                
                 while (jobs_list[0].pid > 0) {
                     pause();
                 }
