@@ -537,3 +537,38 @@ int jobs_list_remove(int pos) {
 
     return 0; // Éxito
 }
+int is_background(char **args) {
+    int i = 0;
+
+    // Recorrer el array de argumentos para buscar el token "&"
+    while (args[i] != NULL) {
+        if (strcmp(args[i], "&") == 0) {
+            args[i] = NULL; // Sustituir el token "&" por NULL
+            return 1;       // Es un comando en background
+        }
+        i++;
+    }
+
+    return 0; // No se encontró el token "&", es foreground
+}
+
+int jobs_list_add(pid_t pid, char estado, char *cmd) {
+    // Verificar si se ha alcanzado el límite de trabajos
+    if (n_job >= N_JOBS) {
+        fprintf(stderr, "Error: no se pueden añadir más trabajos (límite: %d).\n", N_JOBS);
+        return -1; // Error
+    }
+
+    // Añadir el nuevo trabajo a la lista
+    jobs_list[n_job].pid = pid;
+    jobs_list[n_job].estado = estado;
+
+    // Copiar el comando al campo correspondiente
+    strncpy(jobs_list[n_job].cmd, cmd, COMMAND_LINE_SIZE - 1);
+    jobs_list[n_job].cmd[COMMAND_LINE_SIZE - 1] = '\0'; // Asegurar el final nulo
+
+    // Incrementar el contador global de trabajos
+    n_job++;
+    return 0; // Éxito
+}
+
