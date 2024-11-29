@@ -343,7 +343,7 @@ void ctrlc(int signum) {
     // Imprimir un salto de línea para mantener un prompt limpio
     printf("\n");
     fflush(stdout);
-#if DEBUGN4
+#if DEBUGN5
     printf(GRIS"[ctrlc()→ Soy el proceso con PID %d (./nivel4), el proceso en foreground es %d (%s)]\n"RESET, getpid(),jobs_list[0].pid, jobs_list[0].cmd);
 #endif
     // Verificar si hay un proceso en foreground
@@ -354,17 +354,17 @@ void ctrlc(int signum) {
         if (strncmp(foreground_cmd, mi_shell, strlen(mi_shell)) != 0) {
             // Enviar la señal SIGTERM al proceso en foreground
             if (kill(jobs_list[0].pid, SIGTERM) == 0) {
-#if DEBUGN4
+#if DEBUGN5
                 printf(GRIS"[ctrlc()→ Señal %d enviada a %d (%s) por %d (./nivel4)]\n"RESET, SIGTERM, jobs_list[0].pid, jobs_list[0].cmd, getpid());
 #endif
             }
         } else {
-#if DEBUGN4
+#if DEBUGN5
             printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel4) debido a que el proceso en foreground es el shell]\n"RESET, SIGTERM, getpid());
 #endif
         }
     } else {
-#if DEBUGN4
+#if DEBUGN5
         printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel4) debido a que no hay proceso en foreground]\n"RESET, SIGTERM, getpid());
 #endif
     }
