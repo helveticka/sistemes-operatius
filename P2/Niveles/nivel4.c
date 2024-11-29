@@ -54,7 +54,6 @@ int execute_line(char *line) {
     char *args[ARGS_SIZE];
     int numArgs = parse_args(args, line);
     if (numArgs > 0) {
-#if DEBUGN3 || DEBUGN4
         char command[COMMAND_LINE_SIZE] = "";
         for (size_t i = 0; i < numArgs; i++) {
             strcat(command, args[i]);
@@ -63,7 +62,6 @@ int execute_line(char *line) {
             }
         }
         command[COMMAND_LINE_SIZE - 1] = '\0';
-#endif
         // Verificar si es un comando interno
         if (check_internal(args) == 0) {
             // Comando externo, crear proceso hijo
@@ -93,7 +91,7 @@ int execute_line(char *line) {
                 jobs_list[0].pid = pid;
                 strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
                 jobs_list[0].cmd[COMMAND_LINE_SIZE - 1] = '\0';
-                jobs_list[0].estado = 'E'; // EJECUTANDOSE
+                jobs_list[0].estado = EJECUTANDOSE;
 #if DEBUGN3 || DEBUGN4
                 // Imprimir información de depuración
                 printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);

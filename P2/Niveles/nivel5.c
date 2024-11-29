@@ -67,6 +67,7 @@ int execute_line(char *line) {
 // HASTA AQUI ESTABA COMENTADO EN EL NIVEL 4
         // Verificar si es un comando interno
         if (check_internal(args) == 0) {
+            int bg = is_background(args);
             // Comando externo, crear proceso hijo
             pid_t pid = fork();
             if (pid < 0) {
@@ -79,6 +80,8 @@ int execute_line(char *line) {
                 signal(SIGCHLD, SIG_DFL);
                 // Ignorar la señal SIGINT en el proceso hijo
                 signal(SIGINT, SIG_IGN);
+                // Ignorar la señal SIGTSTP en el proceso hijo
+                signal(SIGTSTP, SIG_IGN);
                 // Ejecuta el comando externo
                 if (execvp(args[0], args) < 0) {
                     // Si execvp falla, muestra el error y termina
@@ -90,16 +93,21 @@ int execute_line(char *line) {
                 exit(0);
             // Proceso padre (minishell)
             } else if (pid > 0) { 
-                // Actualizar jobs_list para el proceso en foreground
-                jobs_list[0].pid = pid;
-                strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
-                jobs_list[0].cmd[COMMAND_LINE_SIZE - 1] = '\0';
-                jobs_list[0].estado = 'E'; // EJECUTANDOSE
+                if(bg == 0){
+                    // Actualizar jobs_list para el proceso en foreground
+                    jobs_list[0].pid = pid;
+                    strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
+                    jobs_list[0].cmd[COMMAND_LINE_SIZE - 1] = '\0';
+                    jobs_list[0].estado = EJECUTANDOSE;
 #if DEBUGN3 || DEBUGN4
-                // Imprimir información de depuración
-                printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);
-                printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
+                    // Imprimir información de depuración
+                    printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);
+                    printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
 #endif
+                } else{
+                    jobs_list_add(pid, EJECUTANDOSE, command);
+                }
+                
                 while (jobs_list[0].pid > 0) {
                     pause();
                 }
@@ -508,3 +516,58 @@ int jobs_list_find(pid_t pid) {
     }
     return EXIT_FAILURE;
 }
+
+// Función para eliminar un trabajo por posición en la lista
+int jobs_list_remove(int pos) {
+    if (pos < 0 || pos >= n_job) {
+        return -1; // Posición inválida
+    }
+
+    // Mover el último trabajo a la posición eliminada, si no es el mismo
+    if (pos != n_job - 1) {
+        jobs_list[pos] = jobs_list[n_job - 1];
+    }
+
+    // Limpiar el último trabajo
+    jobs_list[n_job - 1].pid = 0;
+    jobs_list[n_job - 1].estado = 0;
+    jobs_list[n_job - 1].cmd[0] = '\0';
+
+    n_job--; // Decrementar el número de trabajos
+
+    return 0; // Éxito
+}
+int is_background(char **args) {
+    int i = 0;
+
+    // Recorrer el array de argumentos para buscar el token "&"
+    while (args[i] != NULL) {
+        if (strcmp(args[i], "&") == 0) {
+            args[i] = NULL; // Sustituir el token "&" por NULL
+            return 1;       // Es un comando en background
+        }
+        i++;
+    }
+
+    return 0; // No se encontró el token "&", es foreground
+}
+
+int jobs_list_add(pid_t pid, char estado, char *cmd) {
+    // Verificar si se ha alcanzado el límite de trabajos
+    if (n_job >= N_JOBS) {
+        return -1; // Error
+    }
+
+    // Añadir el nuevo trabajo a la lista
+    jobs_list[n_job].pid = pid;
+    jobs_list[n_job].estado = estado;
+
+    // Copiar el comando al campo correspondiente
+    strncpy(jobs_list[n_job].cmd, cmd, COMMAND_LINE_SIZE - 1);
+    jobs_list[n_job].cmd[COMMAND_LINE_SIZE - 1] = '\0'; // Asegurar el final nulo
+
+    // Incrementar el contador global de trabajos
+    n_job++;
+    return 0; // Éxito
+}
+
