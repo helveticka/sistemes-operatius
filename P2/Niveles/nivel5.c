@@ -385,7 +385,7 @@ void ctrlc(int signum) {
  */
 void ctrlz(int signum) {
     signal(SIGTSTP, ctrlz);
-#if DEBUGN5
+#if DEBUGN4 || DEBUGN5
     printf(GRIS"\n[ctrlz()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n"RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
     printf(GRIS"[ctrlz()→ recibida señal %d (SIGTSTP)]\n"RESET, signum);
 #endif
@@ -394,7 +394,7 @@ void ctrlz(int signum) {
         if (strcmp(jobs_list[0].cmd, mi_shell)) {
             // Enviar la señal SIGSTOP al proceso en foreground
             kill(jobs_list[0].pid, SIGSTOP);
-#if DEBUGN5
+#if DEBUGN4 || DEBUGN5
             printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) enviada a %d (%s) por %d (%s)]"RESET, signum, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
 #endif
             // Actualizamos el proceso detenido y lo añadimos a la lista de jobs
@@ -405,12 +405,12 @@ void ctrlz(int signum) {
             jobs_list[0].estado = NINGUNO;
             memset(jobs_list[0].cmd, '\0', COMMAND_LINE_SIZE);
         } else {
-#if DEBUGN5
+#if DEBUGN4 || DEBUGN5
             printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que su proceso en foreground es el shell]\n"RESET, signum, getpid(), mi_shell);
 #endif
         }
     } else {
-#if DEBUGN5
+#if DEBUGN4 || DEBUGN5
         printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) no enviada por %d (%s) debido a que no hay proceso en foreground]\n"RESET, signum, getpid(), mi_shell);
 #endif
     }
@@ -429,11 +429,11 @@ void reaper(int signum) {
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0) {
         // Mostrar información del hijo terminado
         if (WIFEXITED(status)) {
-#if DEBUGN4
+#if DEBUGN4 || DEBUGN5
             printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
 #endif
         } else if (WIFSIGNALED(status)) {
-#if DEBUGN4
+#if DEBUGN4 || DEBUGN5
             printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
 #endif        
         }
