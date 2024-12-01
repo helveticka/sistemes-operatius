@@ -55,7 +55,7 @@ int execute_line(char *line) {
     char *args[ARGS_SIZE];
     int numArgs = parse_args(args, line);
     if (numArgs > 0) {
-//ESTO ESTA COMENTADO EN EL NIVEL 4
+        // Crear un string con el comando para mostrarlo en los mensajes
         char command[COMMAND_LINE_SIZE] = "";
         for (size_t i = 0; i < numArgs; i++) {
             strcat(command, args[i]);
@@ -64,7 +64,6 @@ int execute_line(char *line) {
             }
         }
         command[COMMAND_LINE_SIZE - 1] = '\0';
-// HASTA AQUI ESTABA COMENTADO EN EL NIVEL 4
         // Verificar si es un comando interno
         if (check_internal(args) == 0) {
             int bg = is_background(args);
@@ -93,21 +92,22 @@ int execute_line(char *line) {
                 exit(0);
             // Proceso padre (minishell)
             } else if (pid > 0) { 
+                printf("bg = %d\n", bg);
                 if(bg == 0){
                     // Actualizar jobs_list para el proceso en foreground
                     jobs_list[0].pid = pid;
                     strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
                     jobs_list[0].cmd[COMMAND_LINE_SIZE - 1] = '\0';
                     jobs_list[0].estado = EJECUTANDOSE;
+
+                } else{
+                    jobs_list_add(pid, EJECUTANDOSE, command);
+                }
 #if DEBUGN3 || DEBUGN4 || DEBUGN5
                     // Imprimir información de depuración
                     printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);
                     printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
 #endif
-                } else{
-                    jobs_list_add(pid, EJECUTANDOSE, command);
-                }
-                
                 while (jobs_list[0].pid > 0) {
                     pause();
                 }
@@ -353,6 +353,7 @@ void ctrlc(int signum) {
     fflush(stdout);
 #if DEBUGN5
     printf(GRIS"[ctrlc()→ Soy el proceso con PID %d (./nivel5), el proceso en foreground es %d (%s)]\n"RESET, getpid(),jobs_list[0].pid, jobs_list[0].cmd);
+    printf(GRIS"[ctrlc()→ recibida señal %d (SIGINT)]\n"RESET, SIGINT);
 #endif
     // Verificar si hay un proceso en foreground
     if (jobs_list[0].pid > 0) {
@@ -363,12 +364,12 @@ void ctrlc(int signum) {
             // Enviar la señal SIGTERM al proceso en foreground
             if (kill(jobs_list[0].pid, SIGTERM) == 0) {
 #if DEBUGN5
-                printf(GRIS"[ctrlc()→ Señal %d enviada a %d (%s) por %d (./nivel4)]\n"RESET, SIGTERM, jobs_list[0].pid, jobs_list[0].cmd, getpid());
+                printf(GRIS"[ctrlc()→ Señal %d (SIGTERM) enviada a %d (%s) por %d (./nivel4)]\n"RESET, SIGTERM, jobs_list[0].pid, jobs_list[0].cmd, getpid());
 #endif
             }
         } else {
 #if DEBUGN5
-            printf(GRIS"[ctrlc()→ Señal %d no enviada por %d (./nivel5) debido a que el proceso en foreground es el shell]\n"RESET, SIGTERM, getpid());
+            printf(GRIS"[ctrlc()→ Señal %d (SIGTERM) no enviada por %d (./nivel5) debido a que el proceso en foreground es el shell]\n"RESET, SIGTERM, getpid());
 #endif
         }
     } else {
