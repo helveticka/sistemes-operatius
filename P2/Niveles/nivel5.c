@@ -91,23 +91,30 @@ int execute_line(char *line) {
                 }
                 exit(0);
             // Proceso padre (minishell)
-            } else if (pid > 0) { 
-                printf("bg = %d\n", bg);
+            } else if (pid > 0) {
                 if(bg == 0){
                     // Actualizar jobs_list para el proceso en foreground
                     jobs_list[0].pid = pid;
                     strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
                     jobs_list[0].cmd[COMMAND_LINE_SIZE - 1] = '\0';
                     jobs_list[0].estado = EJECUTANDOSE;
-
-                } else{
-                    jobs_list_add(pid, EJECUTANDOSE, command);
-                }
 #if DEBUGN3 || DEBUGN4 || DEBUGN5
                     // Imprimir información de depuración
                     printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);
                     printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
 #endif
+
+                } else{
+                    strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
+                    jobs_list[0].cmd[COMMAND_LINE_SIZE - 1] = '\0';
+#if DEBUGN3 || DEBUGN4 || DEBUGN5
+                    // Imprimir información de depuración
+                    printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);
+                    printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
+#endif
+                    jobs_list_add(pid, EJECUTANDOSE, command);
+                    
+                }
                 while (jobs_list[0].pid > 0) {
                     pause();
                 }
@@ -426,24 +433,42 @@ void reaper(int signum) {
     pid_t ended;
     // Reasignar la señal SIGCHLD al manejador
     signal(SIGCHLD, reaper);
+#if DEBUGN5
+    printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD)]\n"RESET,SIGCHLD);
+#endif
     // Procesar todos los hijos que hayan terminado
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0) {
-        // Mostrar información del hijo terminado
-        if (WIFEXITED(status)) {
-#if DEBUGN4 || DEBUGN5
-            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
-#endif
-        } else if (WIFSIGNALED(status)) {
-#if DEBUGN4 || DEBUGN5
-            printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
-#endif        
-        }
         // Si el hijo terminado es el proceso en primer plano
         if (ended == jobs_list[0].pid) {
             // Resetear el proceso en primer plano
             jobs_list[0].pid = 0;
-            jobs_list[0].estado = 'F';
+            jobs_list[0].estado = FINALIZADO;
             memset(jobs_list[0].cmd, '\0', COMMAND_LINE_SIZE);
+            // Mostrar información del hijo terminado
+            if (WIFEXITED(status)) {
+#if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
+#endif
+            } else if (WIFSIGNALED(status)) {
+#if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
+#endif        
+            }
+        } else{
+            int pos = jobs_list_find(ended);
+            // Mostrar información del hijo terminado
+            if (WIFEXITED(status)) {
+#if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[pos].cmd, WEXITSTATUS(status));
+#endif
+            } else if (WIFSIGNALED(status)) {
+#if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[pos].cmd, WTERMSIG(status));
+#endif        
+            }
+            printf("Terminado PID %d (%s) en jobs_list[%d] con status %d\n", ended, jobs_list[pos].cmd, pos, jobs_list[pos].estado);
+            // Eliminar el trabajo de la lista de trabajos
+            jobs_list_remove(pos);
         }
     }
     // Manejar errores de waitpid
@@ -554,6 +579,9 @@ int is_background(char **args) {
 }
 
 int jobs_list_add(pid_t pid, char estado, char *cmd) {
+    // Incrementar el contador global de trabajos
+    n_job++;
+
     // Verificar si se ha alcanzado el límite de trabajos
     if (n_job >= N_JOBS) {
         return -1; // Error
@@ -567,8 +595,8 @@ int jobs_list_add(pid_t pid, char estado, char *cmd) {
     strncpy(jobs_list[n_job].cmd, cmd, COMMAND_LINE_SIZE - 1);
     jobs_list[n_job].cmd[COMMAND_LINE_SIZE - 1] = '\0'; // Asegurar el final nulo
 
-    // Incrementar el contador global de trabajos
-    n_job++;
+    fprintf(stderr, "[%d] %d	%c		%s\n", n_job, jobs_list[n_job].pid, jobs_list[n_job].estado, jobs_list[n_job].cmd);
+    
     return 0; // Éxito
 }
 

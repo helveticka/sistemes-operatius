@@ -30,7 +30,7 @@ const char PROMPT = '$';
 char *user;
 char line[COMMAND_LINE_SIZE];
 static char mi_shell[COMMAND_LINE_SIZE];
-int n_job;
+int n_job = 0;
 // Códigos de color
 #define RESET "\033[0m"
 #define NEGRO "\x1b[30m"
