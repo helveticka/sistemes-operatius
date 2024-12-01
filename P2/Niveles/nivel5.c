@@ -103,7 +103,6 @@ int execute_line(char *line) {
                     printf(GRIS"[execute_line()→ PID padre: %d (%s)]\n"RESET, getpid(), mi_shell);
                     printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
 #endif
-
                 } else{
                     strncpy(jobs_list[0].cmd, command, COMMAND_LINE_SIZE - 1);
                     jobs_list[0].cmd[COMMAND_LINE_SIZE - 1] = '\0';
@@ -113,7 +112,6 @@ int execute_line(char *line) {
                     printf(GRIS"[execute_line()→ PID hijo: %d (%s)]\n"RESET, pid, jobs_list[0].cmd);
 #endif
                     jobs_list_add(pid, EJECUTANDOSE, command);
-                    
                 }
                 while (jobs_list[0].pid > 0) {
                     pause();
@@ -371,7 +369,7 @@ void ctrlc(int signum) {
             // Enviar la señal SIGTERM al proceso en foreground
             if (kill(jobs_list[0].pid, SIGTERM) == 0) {
 #if DEBUGN5
-                printf(GRIS"[ctrlc()→ Señal %d (SIGTERM) enviada a %d (%s) por %d (./nivel4)]\n"RESET, SIGTERM, jobs_list[0].pid, jobs_list[0].cmd, getpid());
+                printf(GRIS"[ctrlc()→ Señal %d (SIGTERM) enviada a %d (%s) por %d (./nivel5)]\n"RESET, SIGTERM, jobs_list[0].pid, jobs_list[0].cmd, getpid());
 #endif
             }
         } else {
@@ -447,11 +445,11 @@ void reaper(int signum) {
             // Mostrar información del hijo terminado
             if (WIFEXITED(status)) {
 #if DEBUGN4 || DEBUGN5
-                printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
+                printf(GRIS"[reaper()→ Proceso hijo %d en foreground (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
 #endif
             } else if (WIFSIGNALED(status)) {
 #if DEBUGN4 || DEBUGN5
-                printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
+                printf(GRIS"[reaper()→ Proceso hijo %d en foreground (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
 #endif        
             }
         } else{
@@ -459,11 +457,11 @@ void reaper(int signum) {
             // Mostrar información del hijo terminado
             if (WIFEXITED(status)) {
 #if DEBUGN4 || DEBUGN5
-                printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[pos].cmd, WEXITSTATUS(status));
+                printf(GRIS"[reaper()→ Proceso hijo %d en background (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[pos].cmd, WEXITSTATUS(status));
 #endif
             } else if (WIFSIGNALED(status)) {
 #if DEBUGN4 || DEBUGN5
-                printf(GRIS"[reaper()→ Proceso hijo %d (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[pos].cmd, WTERMSIG(status));
+                printf(GRIS"[reaper()→ Proceso hijo %d en background (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[pos].cmd, WTERMSIG(status));
 #endif        
             }
             printf("Terminado PID %d (%s) en jobs_list[%d] con status %d\n", ended, jobs_list[pos].cmd, pos, jobs_list[pos].estado);
@@ -545,9 +543,6 @@ int jobs_list_find(pid_t pid) {
 
 // Función para eliminar un trabajo por posición en la lista
 int jobs_list_remove(int pos) {
-    if (pos < 0 || pos >= n_job) {
-        return -1; // Posición inválida
-    }
 
     // Mover el último trabajo a la posición eliminada, si no es el mismo
     if (pos != n_job) {
