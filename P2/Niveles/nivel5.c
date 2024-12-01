@@ -550,14 +550,14 @@ int jobs_list_remove(int pos) {
     }
 
     // Mover el último trabajo a la posición eliminada, si no es el mismo
-    if (pos != n_job - 1) {
-        jobs_list[pos] = jobs_list[n_job - 1];
+    if (pos != n_job) {
+        jobs_list[pos] = jobs_list[n_job];
     }
 
     // Limpiar el último trabajo
-    jobs_list[n_job - 1].pid = 0;
-    jobs_list[n_job - 1].estado = 0;
-    jobs_list[n_job - 1].cmd[0] = '\0';
+    jobs_list[n_job].pid = 0;
+    jobs_list[n_job].estado = 0;
+    jobs_list[n_job].cmd[0] = '\0';
 
     n_job--; // Decrementar el número de trabajos
 
@@ -595,7 +595,7 @@ int jobs_list_add(pid_t pid, char estado, char *cmd) {
     strncpy(jobs_list[n_job].cmd, cmd, COMMAND_LINE_SIZE - 1);
     jobs_list[n_job].cmd[COMMAND_LINE_SIZE - 1] = '\0'; // Asegurar el final nulo
 
-    fprintf(stderr, "[%d] %d	%c		%s\n", n_job, jobs_list[n_job].pid, jobs_list[n_job].estado, jobs_list[n_job].cmd);
+    printf("[%d] %d	%c		%s\n", n_job, jobs_list[n_job].pid, jobs_list[n_job].estado, jobs_list[n_job].cmd);
     
     return 0; // Éxito
 }
