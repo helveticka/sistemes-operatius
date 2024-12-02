@@ -401,7 +401,7 @@ void ctrlz(int signum) {
             // Enviar la señal SIGSTOP al proceso en foreground
             kill(jobs_list[0].pid, SIGSTOP);
 #if DEBUGN4 || DEBUGN5
-            printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) enviada a %d (%s) por %d (%s)]"RESET, signum, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
+            printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) enviada a %d (%s) por %d (%s)]\n"RESET, signum, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
 #endif
             // Actualizamos el proceso detenido y lo añadimos a la lista de jobs
             jobs_list[0].estado = DETENIDO;
@@ -438,12 +438,12 @@ void reaper(int signum) {
             // Mostrar información del hijo terminado
             if (WIFEXITED(status)) {
 #if DEBUGN4 || DEBUGN5
-                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD) f1]\n"RESET,SIGCHLD);
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD)]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en foreground (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
 #endif
             } else if (WIFSIGNALED(status)) {
 #if DEBUGN4 || DEBUGN5
-                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD) f2]\n"RESET,SIGCHLD);
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD)]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en foreground (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
 #endif        
             }
@@ -457,12 +457,12 @@ void reaper(int signum) {
             // Mostrar información del hijo terminado
             if (WIFEXITED(status)) {
 #if DEBUGN4 || DEBUGN5
-                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD) b1]\n"RESET,SIGCHLD);
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD)]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en background (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[pos].cmd, WEXITSTATUS(status));
 #endif
             } else if (WIFSIGNALED(status)) {
 #if DEBUGN4 || DEBUGN5
-                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD) b2]\n"RESET,SIGCHLD);
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD)]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en background (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[pos].cmd, WTERMSIG(status));
 #endif        
             }
