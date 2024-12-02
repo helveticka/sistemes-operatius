@@ -431,36 +431,38 @@ void reaper(int signum) {
     pid_t ended;
     // Reasignar la señal SIGCHLD al manejador
     signal(SIGCHLD, reaper);
-#if DEBUGN5
-    printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD)]\n"RESET,SIGCHLD);
-#endif
     // Procesar todos los hijos que hayan terminado
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0) {
         // Si el hijo terminado es el proceso en primer plano
         if (ended == jobs_list[0].pid) {
-            // Resetear el proceso en primer plano
-            jobs_list[0].pid = 0;
-            jobs_list[0].estado = FINALIZADO;
-            memset(jobs_list[0].cmd, '\0', COMMAND_LINE_SIZE);
             // Mostrar información del hijo terminado
             if (WIFEXITED(status)) {
 #if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD) f1]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en foreground (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
 #endif
             } else if (WIFSIGNALED(status)) {
 #if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD) f2]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en foreground (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
 #endif        
             }
+            // Resetear el proceso en primer plano
+            jobs_list[0].pid = 0;
+            jobs_list[0].estado = FINALIZADO;
+            memset(jobs_list[0].cmd, '\0', COMMAND_LINE_SIZE);
+            
         } else{
             int pos = jobs_list_find(ended);
             // Mostrar información del hijo terminado
             if (WIFEXITED(status)) {
 #if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD) b1]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en background (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[pos].cmd, WEXITSTATUS(status));
 #endif
             } else if (WIFSIGNALED(status)) {
 #if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD) b2]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en background (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[pos].cmd, WTERMSIG(status));
 #endif        
             }
