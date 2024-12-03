@@ -392,7 +392,7 @@ void ctrlc(int signum) {
 void ctrlz(int signum) {
     signal(SIGTSTP, ctrlz);
 #if DEBUGN4 || DEBUGN5
-    printf(GRIS"\n[ctrlz()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n"RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
+    printf(GRIS"\n[ctrlz()→ Soy el proceso con PID %d, el proceso en foreground es %d (%s)]\n"RESET, getpid(), jobs_list[0].pid, jobs_list[0].cmd);
     printf(GRIS"[ctrlz()→ recibida señal %d (SIGTSTP)]\n"RESET, signum);
 #endif
     // Reasignar signal() para capturar futuras señales SIGTSTP
