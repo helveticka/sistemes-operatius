@@ -401,7 +401,7 @@ void ctrlz(int signum) {
             // Enviar la señal SIGSTOP al proceso en foreground
             kill(jobs_list[0].pid, SIGSTOP);
 #if DEBUGN4 || DEBUGN5
-            printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) enviada a %d (%s) por %d (%s)]"RESET, signum, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
+            printf(GRIS"[ctrlz()→ Señal %d (SIGSTOP) enviada a %d (%s) por %d (%s)]\n"RESET, signum, jobs_list[0].pid, jobs_list[0].cmd, getpid(), mi_shell);
 #endif
             // Actualizamos el proceso detenido y lo añadimos a la lista de jobs
             jobs_list[0].estado = DETENIDO;
@@ -431,36 +431,37 @@ void reaper(int signum) {
     pid_t ended;
     // Reasignar la señal SIGCHLD al manejador
     signal(SIGCHLD, reaper);
-#if DEBUGN5
-    printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD)]\n"RESET,SIGCHLD);
-#endif
     // Procesar todos los hijos que hayan terminado
     while ((ended = waitpid(-1, &status, WNOHANG)) > 0) {
         // Si el hijo terminado es el proceso en primer plano
         if (ended == jobs_list[0].pid) {
-            // Resetear el proceso en primer plano
-            jobs_list[0].pid = 0;
-            jobs_list[0].estado = FINALIZADO;
-            memset(jobs_list[0].cmd, '\0', COMMAND_LINE_SIZE);
             // Mostrar información del hijo terminado
             if (WIFEXITED(status)) {
 #if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD)]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en foreground (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[0].cmd, WEXITSTATUS(status));
 #endif
             } else if (WIFSIGNALED(status)) {
 #if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD)]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en foreground (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[0].cmd, WTERMSIG(status));
 #endif        
             }
+            // Resetear el proceso en primer plano
+            jobs_list[0].pid = 0;
+            jobs_list[0].estado = FINALIZADO;
+            memset(jobs_list[0].cmd, '\0', COMMAND_LINE_SIZE);
         } else{
             int pos = jobs_list_find(ended);
             // Mostrar información del hijo terminado
             if (WIFEXITED(status)) {
 #if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD)]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en background (%s) finalizado con exit code %d]\n"RESET, ended, jobs_list[pos].cmd, WEXITSTATUS(status));
 #endif
             } else if (WIFSIGNALED(status)) {
 #if DEBUGN4 || DEBUGN5
+                printf(GRIS"[reaper()→ recibida señal %d (SIGCHLD)]\n"RESET,SIGCHLD);
                 printf(GRIS"[reaper()→ Proceso hijo %d en background (%s) finalizado por señal %d]\n"RESET, ended, jobs_list[pos].cmd, WTERMSIG(status));
 #endif        
             }
@@ -540,8 +541,11 @@ int jobs_list_find(pid_t pid) {
     }
     return EXIT_FAILURE;
 }
-
-// Función para eliminar un trabajo por posición en la lista
+/**
+ Elimina un trabajo de la lista de trabajos.
+ pos: posición del trabajo a eliminar.
+ return: 0 si todo fue bien
+ */
 int jobs_list_remove(int pos) {
 
     // Mover el último trabajo a la posición eliminada, si no es el mismo
@@ -558,9 +562,13 @@ int jobs_list_remove(int pos) {
 
     return 0; // Éxito
 }
+/**
+ Comprueba si un comando se ejecutará en background.
+ **args: array de punteros a char con los argumentos introducidos.
+ return: 0 si todo fue bien, -1 si hubo algún error.
+ */
 int is_background(char **args) {
     int i = 0;
-
     // Recorrer el array de argumentos para buscar el token "&"
     while (args[i] != NULL) {
         if (strcmp(args[i], "&") == 0) {
@@ -569,29 +577,30 @@ int is_background(char **args) {
         }
         i++;
     }
-
     return 0; // No se encontró el token "&", es foreground
 }
-
+/**
+ Añade un trabajo a la lista de trabajos.
+ pid: PID del proceso a añadir.
+ estado: estado del proceso a añadir.
+ *cmd: comando del proceso a añadir.
+ return: 0 si todo fue bien, -1 si hubo algún error.
+ */
 int jobs_list_add(pid_t pid, char estado, char *cmd) {
     // Incrementar el contador global de trabajos
     n_job++;
-
     // Verificar si se ha alcanzado el límite de trabajos
     if (n_job >= N_JOBS) {
         return -1; // Error
     }
-
     // Añadir el nuevo trabajo a la lista
     jobs_list[n_job].pid = pid;
     jobs_list[n_job].estado = estado;
-
     // Copiar el comando al campo correspondiente
     strncpy(jobs_list[n_job].cmd, cmd, COMMAND_LINE_SIZE - 1);
     jobs_list[n_job].cmd[COMMAND_LINE_SIZE - 1] = '\0'; // Asegurar el final nulo
-
+    // Imprimir información del trabajo añadido
     printf("[%d] %d	%c		%s\n", n_job, jobs_list[n_job].pid, jobs_list[n_job].estado, jobs_list[n_job].cmd);
-    
-    return 0; // Éxito
+    // Éxito
+    return 0; 
 }
-
