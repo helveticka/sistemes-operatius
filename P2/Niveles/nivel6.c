@@ -500,7 +500,45 @@ int internal_fg(char **args) {
 #if DEBUGN1
     fprintf(stderr, GRIS "[internal_fg()→ Esta función traerá los procesos más recientes al primer plano]\n" RESET);
 #endif
+    // Checkear la sintaxis del comando
+    if (args[1] == NULL) {
+        fprintf(stderr, ROJO "Error de sintaxis. Uso: fg <numero trabajo>\n" RESET);
+        return EXIT_FAILURE;
+    }
+    // Obtener la posición del trabajo en la lista de trabajos
+    int pos = atoi(args[1]);
+    // Verificar si el trabajo existe
+    if ((pos > n_job) || (pos <= 0)) {
+        fprintf(stderr, ROJO "fg %d: no existe ese trabajo\n" RESET, pos);
+        return EXIT_FAILURE;
+    }
+    // Enviar la señal SIGCONT al proceso si está detenido
+    if (jobs_list[pos].estado == DETENIDO) {
+        kill(jobs_list[pos].pid, SIGCONT);
+#if DEBUGN6
+            fprintf(stderr, GRIS "[internal_fg()→ Señal %d (SIGCONT) enviada a %d (%s)]\n" RESET, SIGCONT, jobs_list[pos].pid, jobs_list[pos].cmd);
+#endif
+    }
+    // Eliminar el token "&" del comando
+    for (int i=0; i < strlen(jobs_list[pos].cmd); i++) {
+        if (jobs_list[pos].cmd[i] == '&') {
+            jobs_list[pos].cmd[i - 1] = '\0';
+        }
+    }
+    // Actualizar el estado del trabajo a EJECUTANDOSE
+    jobs_list[pos].estado = EJECUTANDOSE;
+    // Copiar los datos del trabajo a jobs_list[0]
+    jobs_list[0] = jobs_list[pos];
+    // Eliminar el trabajo de la lista de trabajos
+    jobs_list_remove(pos);
+    // Imprimir el comando en ejecución sin el token "&"
+    fprintf(stderr, "%s\n", jobs_list[0].cmd);
+    // Esperar a que el proceso en primer plano termine
+    while (jobs_list[0].pid > 0) {
+        pause();
+    }
     return EXIT_SUCCESS;
+
 }
 /**
  Muestra los procesos parados o en segundo plano.
