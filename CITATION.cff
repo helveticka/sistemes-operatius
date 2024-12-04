@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+authors:
+- family-names: "Campos"
+  given-names: "Xavier"
+- family-names: "Félix"
+  given-names: "Pedro"
+- family-names: "Joan"
+  given-names: "Harpo"
+title: "Pràctica final de Sistemes Operatius I"
+date-released: "2024"
+url: "https://github.com/helveticka/sistemes-operatius_I"
