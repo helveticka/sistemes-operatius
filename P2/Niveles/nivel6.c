@@ -81,6 +81,8 @@ int execute_line(char *line) {
                 signal(SIGINT, SIG_IGN);
                 // Ignorar la señal SIGTSTP en el proceso hijo
                 signal(SIGTSTP, SIG_IGN);
+                // Comprobar si hay redirección de entrada
+                is_output_redirection(args);
                 // Ejecuta el comando externo
                 if (execvp(args[0], args) < 0) {
                     // Si execvp falla, muestra el error y termina
@@ -549,6 +551,34 @@ int internal_bg(char **args) {
 #if DEBUGN1
     fprintf(stderr, GRIS "[internal_bg()→ Esta función mostrará los procesos parados o en segundo plano]\n" RESET);
 #endif
+    // Checkear la sintaxis del comando
+    if (args[1] == NULL) {
+        fprintf(stderr, ROJO "Error de sintaxis. Uso: bg <numero trabajo>\n" RESET);
+        return EXIT_FAILURE;
+    }
+    // Obtener la posición del trabajo en la lista de trabajos
+    int pos = atoi(args[1]);
+    // Verificar si el trabajo existe
+    if ((pos > n_job) || (pos <= 0)) {
+        fprintf(stderr, ROJO "bg %d: no existe ese trabajo\n" RESET, pos);
+        return EXIT_FAILURE;
+    }
+    // Enviar la señal SIGCONT al proceso si está detenido
+    if (jobs_list[pos].estado == EJECUTANDOSE) {
+        fprintf(stderr, ROJO "bg %d: el trabajo ya está en segundo plano\n" RESET, pos);
+        return EXIT_FAILURE;
+    }
+    // Añadir a "&" al final del comando
+    strcat(jobs_list[pos].cmd, " &");
+    // Actualizar el estado del trabajo a EJECUTANDOSE
+    jobs_list[pos].estado = EJECUTANDOSE;
+    // Enviar la señal SIGCONT
+    kill(jobs_list[pos].pid, SIGCONT);
+#if DEBUGN6
+        fprintf(stderr, GRIS "[internal_bg()→ Señal %d (SIGCONT) enviada a %d (%s)]\n" RESET, SIGCONT, jobs_list[pos].pid, jobs_list[pos].cmd);
+#endif
+    // Imprimir el trabajo en segundo plano
+    printf("[%d] %d	%c		%s\n", n_job, jobs_list[n_job].pid, jobs_list[n_job].estado, jobs_list[n_job].cmd);    
     return EXIT_SUCCESS;
 }
 /**
