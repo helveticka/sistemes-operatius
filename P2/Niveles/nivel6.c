@@ -488,7 +488,7 @@ int internal_jobs(char **args) {
 #endif
     for (int i = 1; i < N_JOBS; i++) {
         if (jobs_list[i].pid > 0) {
-            fprintf(stderr, "[%d] %d	%c		%s\n", i, jobs_list[i].pid, jobs_list[i].estado, jobs_list[i].cmd);
+            fprintf(stderr, "[%d] %d\t%c\t%s\n", i, jobs_list[i].pid, jobs_list[i].estado, jobs_list[i].cmd);
         }
     }
     return EXIT_SUCCESS;
@@ -578,7 +578,7 @@ int internal_bg(char **args) {
         fprintf(stderr, GRIS "[internal_bg()→ Señal %d (SIGCONT) enviada a %d (%s)]\n" RESET, SIGCONT, jobs_list[pos].pid, jobs_list[pos].cmd);
 #endif
     // Imprimir el trabajo en segundo plano
-    printf("[%d] %d	%c		%s\n", n_job, jobs_list[n_job].pid, jobs_list[n_job].estado, jobs_list[n_job].cmd);    
+    printf("[%d] %d\t%c\t%s\n", n_job, jobs_list[n_job].pid, jobs_list[n_job].estado, jobs_list[n_job].cmd);    
     return EXIT_SUCCESS;
 }
 /**
@@ -668,7 +668,7 @@ int jobs_list_add(pid_t pid, char estado, char *cmd) {
     strncpy(jobs_list[n_job].cmd, cmd, COMMAND_LINE_SIZE - 1);
     jobs_list[n_job].cmd[COMMAND_LINE_SIZE - 1] = '\0'; // Asegurar el final nulo
     // Imprimir información del trabajo añadido
-    printf("[%d] %d	%c		%s\n", n_job, jobs_list[n_job].pid, jobs_list[n_job].estado, jobs_list[n_job].cmd);
+    printf("[%d] %d\t%c\t%s\n", n_job, jobs_list[n_job].pid, jobs_list[n_job].estado, jobs_list[n_job].cmd);
     // Éxito
     return 0; 
 }
