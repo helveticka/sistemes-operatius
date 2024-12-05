@@ -1,5 +1,5 @@
 // Autores: Xavier Campos, Pedro Felix, Harpo Joan
-#include "nivel6.h"
+#include "my_shell.h"
 /**
  * Método principal del archivo.
  */
@@ -37,10 +37,9 @@ char *read_line(char *line) {
         line[strlen(line) - 1] = '\0';
     } else{
         // Verifica si fue por Ctrl + D
+        printf("\r");
         if(feof(stdin)){
-#if DEBUGN1
             fprintf(stderr, GRIS "\rAdiós\n" RESET);
-#endif
             exit(EXIT_SUCCESS);
         }
     }
@@ -392,6 +391,7 @@ void ctrlc(int signum) {
  signum: número de la señal
  */
 void ctrlz(int signum) {
+    printf("\n");
     signal(SIGTSTP, ctrlz);
 #if DEBUGN4 || DEBUGN5
     printf(GRIS"\n[ctrlz()→ Soy el proceso con PID %d (%s), el proceso en foreground es %d (%s)]\n"RESET, getpid(), mi_shell, jobs_list[0].pid, jobs_list[0].cmd);
