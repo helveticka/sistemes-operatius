@@ -10,6 +10,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <fcntl.h>
 // Debugs
 #define DEBUGN1 0
 #define DEBUGN2 0
