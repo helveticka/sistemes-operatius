@@ -642,3 +642,51 @@ int jobs_list_add(pid_t pid, char estado, char *cmd) {
     // Éxito
     return 0; 
 }
+
+/**
+ Recorre los argumentos buscando el token '>' 
+ seguido del nombre de un fichero. Al encontrarlo, asocia
+ el descriptor 1 a dicho fichero
+ **args: array de punteros a char con los argumentos introducidos.
+ return: TRUE (1) si ha funcionado, FALSE (0) en caso contrario
+ */
+int is_output_redirection(char **args) {
+    int i = 0; // Índice para recorrer los argumentos
+    int fd;    // Descriptor de fichero
+
+    while (args[i] != NULL) {
+        // Buscar el token '>'
+        if (strcmp(args[i], ">") == 0) {
+            // Comprobar que hay un argumento después del '>'
+            if (args[i + 1] == NULL) {
+                return 0;
+            }
+
+            // Intentar abrir el fichero en modo de escritura (crearlo si no existe, truncarlo si existe)
+            fd = open(args[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+            if (fd < 0) {
+                return 0;
+            }
+
+            // Redirigir la salida estándar (stdout) al fichero usando dup2
+            if (dup2(fd, STDOUT_FILENO) < 0) {   
+                close(fd);
+                return 0;
+            }
+
+            // Cerrar el descriptor de fichero original
+            close(fd);
+
+            // Sustituir '>' por NULL para que execvp() no lo procese
+            args[i] = NULL;
+
+            // Sustituir el nombre del fichero también por NULL
+            args[i + 1] = NULL;
+
+            return 1;
+        }
+        i++; // Avanzar al siguiente argumento
+    }
+
+    return 0;
+}
