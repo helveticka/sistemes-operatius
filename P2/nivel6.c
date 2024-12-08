@@ -231,6 +231,38 @@ int internal_cd(char **args) {
     else if (args[2] == NULL) {
         result = chdir(args[1]);
     }
+    // Caso 3: Más de un argumento (cd avanzado)
+    else {
+        char path[1024] = ""; // Buffer para reconstruir el camino
+        bool contains_special_char = false;
+
+        // Verificar si el primer argumento contiene comillas simples, dobles o '\'
+        if (strchr(args[1], '\'') || strchr(args[1], '"') || strchr(args[1], '\\')) {
+            contains_special_char = true;
+        }
+
+        // Reconstruir el camino combinando todos los argumentos desde args[1]
+        for (int i = 1; args[i] != NULL; i++) {
+            strcat(path, args[i]);
+            if (args[i + 1] != NULL) {
+                strcat(path, " "); // Añadir espacio entre argumentos
+            }
+        }
+
+        // Si no se detectaron caracteres especiales, procesar directamente
+        if (!contains_special_char) {
+            result = chdir(path);
+        } else {
+            // Remover comillas simples, dobles o '\'
+            char sanitized_path[1024] = "";
+            for (int i = 0; path[i] != '\0'; i++) {
+                if (path[i] != '\'' && path[i] != '"' && path[i] != '\\') {
+                    strncat(sanitized_path, &path[i], 1);
+                }
+            }
+            result = chdir(sanitized_path);
+        }
+    }
     // Verificar si `chdir()` tuvo éxito
     if (result != 0) {
         // Si `chdir` falla, imprime el error y retorna -1
