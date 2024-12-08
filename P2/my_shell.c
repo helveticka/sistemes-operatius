@@ -1,7 +1,7 @@
 // Autores: Xavier Campos, Pedro Felix, Harpo Joan
 #include "my_shell.h"
 /**
- * Método principal del archivo.
+ * Método principal de my_shell.
  */
 int main(int argc, char *argv[]) {
     // Señales
@@ -199,6 +199,7 @@ int check_internal(char **args) {
         command = 1;
     }
     else if (!strcmp(args[0], "exit")) {
+        printf(NEGRITA "Adiós\n" RESET);
         exit(0);
         return EXIT_SUCCESS;
     }
@@ -230,10 +231,39 @@ int internal_cd(char **args) {
     else if (args[2] == NULL) {
         result = chdir(args[1]);
     }
+    // Caso 3: Más de un argumento (cd avanzado)
+    else {
+        char path[1024] = ""; // Buffer para reconstruir el camino
+        bool contains_special_char = false;
+        // Verificar si el primer argumento contiene comillas simples, dobles o '\'
+        if (strchr(args[1], '\'') || strchr(args[1], '"') || strchr(args[1], '\\')) {
+            contains_special_char = true;
+        }
+        // Reconstruir el camino combinando todos los argumentos desde args[1]
+        for (int i = 1; args[i] != NULL; i++) {
+            strcat(path, args[i]);
+            if (args[i + 1] != NULL) {
+                strcat(path, " "); // Añadir espacio entre argumentos
+            }
+        }
+        // Si no se detectaron caracteres especiales, procesar directamente
+        if (!contains_special_char) {
+            result = chdir(path);
+        } else {
+            // Remover comillas simples, dobles o '\'
+            char sanitized_path[1024] = "";
+            for (int i = 0; path[i] != '\0'; i++) {
+                if (path[i] != '\'' && path[i] != '"' && path[i] != '\\') {
+                    strncat(sanitized_path, &path[i], 1);
+                }
+            }
+            result = chdir(sanitized_path);
+        }
+    }
     // Verificar si `chdir()` tuvo éxito
     if (result != 0) {
         // Si `chdir` falla, imprime el error y retorna -1
-        perror(ROJO "chdir() error");
+        perror(ROJO "chdir()");
         printf(RESET);
         return EXIT_FAILURE;
     }
@@ -347,6 +377,125 @@ int internal_source(char **args) {
     fclose(file); 
     return EXIT_FAILURE;
 } 
+/**
+ Muestra los procesos que no están en foreground.
+ *args: array de punteros a char con los argumentos introducidos.
+ return: 0 si todo fue bien
+ */
+int internal_jobs(char **args) {
+#if DEBUGN1
+    fprintf(stderr, GRIS "[internal_jobs()→ Esta función mostrará el PID de los procesos que no estén en foreground]\n" RESET);
+#endif
+    for (int i = 1; i < N_JOBS; i++) {
+        if (jobs_list[i].pid > 0) {
+            fprintf(stderr, "[%d] %d\t%c\t%s\n", i, jobs_list[i].pid, jobs_list[i].estado, jobs_list[i].cmd);
+        }
+    }
+    return EXIT_SUCCESS;
+}
+/**
+ Trae los procesos más recientes al primer plano.
+ *args: array de punteros a char con los argumentos introducidos.
+ return: 0 si todo fue bien
+ */
+int internal_fg(char **args) {
+#if DEBUGN1
+    fprintf(stderr, GRIS "[internal_fg()→ Esta función traerá los procesos más recientes al primer plano]\n" RESET);
+#endif
+    // Checkear la sintaxis del comando
+    if (args[1] == NULL) {
+        fprintf(stderr, ROJO "Error de sintaxis. Uso: fg <numero trabajo>\n" RESET);
+        return EXIT_FAILURE;
+    }
+    // Obtener la posición del trabajo en la lista de trabajos
+    int pos = atoi(args[1]);
+    // Verificar si el trabajo existe
+    if ((pos > n_job) || (pos <= 0)) {
+        fprintf(stderr, ROJO "fg %d: no existe ese trabajo\n" RESET, pos);
+        return EXIT_FAILURE;
+    }
+    // Enviar la señal SIGCONT al proceso si está detenido
+    if (jobs_list[pos].estado == DETENIDO) {
+        kill(jobs_list[pos].pid, SIGCONT);
+#if DEBUGN6
+            fprintf(stderr, GRIS "[internal_fg()→ Señal %d (SIGCONT) enviada a %d (%s)]\n" RESET, SIGCONT, jobs_list[pos].pid, jobs_list[pos].cmd);
+#endif
+    }
+    // Eliminar el token "&" del comando
+    for (int i=0; i < strlen(jobs_list[pos].cmd); i++) {
+        if (jobs_list[pos].cmd[i] == '&') {
+            jobs_list[pos].cmd[i - 1] = '\0';
+        }
+    }
+    // Actualizar el estado del trabajo a EJECUTANDOSE
+    jobs_list[pos].estado = EJECUTANDOSE;
+    // Copiar los datos del trabajo a jobs_list[0]
+    jobs_list[0] = jobs_list[pos];
+    // Eliminar el trabajo de la lista de trabajos
+    jobs_list_remove(pos);
+    // Imprimir el comando en ejecución sin el token "&"
+    fprintf(stderr, "%s\n", jobs_list[0].cmd);
+    // Esperar a que el proceso en primer plano termine
+    while (jobs_list[0].pid > 0) {
+        pause();
+    }
+    return EXIT_SUCCESS;
+
+}
+/**
+ Muestra los procesos parados o en segundo plano.
+ *args: array de punteros a char con los argumentos introducidos.
+ return: 0 si todo fue bien
+ */
+int internal_bg(char **args) {
+#if DEBUGN1
+    fprintf(stderr, GRIS "[internal_bg()→ Esta función mostrará los procesos parados o en segundo plano]\n" RESET);
+#endif
+    // Checkear la sintaxis del comando
+    if (args[1] == NULL) {
+        fprintf(stderr, ROJO "Error de sintaxis. Uso: bg <numero trabajo>\n" RESET);
+        return EXIT_FAILURE;
+    }
+    // Obtener la posición del trabajo en la lista de trabajos
+    int pos = atoi(args[1]);
+    // Verificar si el trabajo existe
+    if ((pos > n_job) || (pos <= 0)) {
+        fprintf(stderr, ROJO "bg %d: no existe ese trabajo\n" RESET, pos);
+        return EXIT_FAILURE;
+    }
+    // Enviar la señal SIGCONT al proceso si está detenido
+    if (jobs_list[pos].estado == EJECUTANDOSE) {
+        fprintf(stderr, ROJO "bg %d: el trabajo ya está en segundo plano\n" RESET, pos);
+        return EXIT_FAILURE;
+    }
+    // Añadir a "&" al final del comando
+    strcat(jobs_list[pos].cmd, " &");
+    // Actualizar el estado del trabajo a EJECUTANDOSE
+    jobs_list[pos].estado = EJECUTANDOSE;
+    // Enviar la señal SIGCONT
+    kill(jobs_list[pos].pid, SIGCONT);
+#if DEBUGN6
+        fprintf(stderr, GRIS "[internal_bg()→ Señal %d (SIGCONT) enviada a %d (%s)]\n" RESET, SIGCONT, jobs_list[pos].pid, jobs_list[pos].cmd);
+#endif
+    // Imprimir el trabajo en segundo plano
+    printf("[%d] %d\t%c\t%s\n", n_job, jobs_list[n_job].pid, jobs_list[n_job].estado, jobs_list[n_job].cmd);    
+    return EXIT_SUCCESS;
+}
+/**
+ Imprime el prompt.
+ */
+void print_prompt(void) {
+    // Obtener el nombre de usuario
+    user = getenv("USER");
+    char path[200];
+    getcwd(path, sizeof(path));
+    // Prints del prompt
+    printf(NEGRITA MAGENTA "%s" RESET, user);
+    printf(NEGRITA ":" RESET);
+    printf(NEGRITA CYAN "MINISHELL" RESET);
+    printf(NEGRITA "%c " RESET, PROMPT);
+    fflush(stdout);
+}
 /**
  Captura la señal SIGINT (Ctrl+C) y la envía al proceso en foreground
  signum: número de la señal
@@ -476,125 +625,6 @@ void reaper(int signum) {
     if (ended == -1 && errno != ECHILD) {
         perror("Error en waitpid");
     }
-}
-/**
- Muestra los procesos que no están en foreground.
- *args: array de punteros a char con los argumentos introducidos.
- return: 0 si todo fue bien
- */
-int internal_jobs(char **args) {
-#if DEBUGN1
-    fprintf(stderr, GRIS "[internal_jobs()→ Esta función mostrará el PID de los procesos que no estén en foreground]\n" RESET);
-#endif
-    for (int i = 1; i < N_JOBS; i++) {
-        if (jobs_list[i].pid > 0) {
-            fprintf(stderr, "[%d] %d\t%c\t%s\n", i, jobs_list[i].pid, jobs_list[i].estado, jobs_list[i].cmd);
-        }
-    }
-    return EXIT_SUCCESS;
-}
-/**
- Trae los procesos más recientes al primer plano.
- *args: array de punteros a char con los argumentos introducidos.
- return: 0 si todo fue bien
- */
-int internal_fg(char **args) {
-#if DEBUGN1
-    fprintf(stderr, GRIS "[internal_fg()→ Esta función traerá los procesos más recientes al primer plano]\n" RESET);
-#endif
-    // Checkear la sintaxis del comando
-    if (args[1] == NULL) {
-        fprintf(stderr, ROJO "Error de sintaxis. Uso: fg <numero trabajo>\n" RESET);
-        return EXIT_FAILURE;
-    }
-    // Obtener la posición del trabajo en la lista de trabajos
-    int pos = atoi(args[1]);
-    // Verificar si el trabajo existe
-    if ((pos > n_job) || (pos <= 0)) {
-        fprintf(stderr, ROJO "fg %d: no existe ese trabajo\n" RESET, pos);
-        return EXIT_FAILURE;
-    }
-    // Enviar la señal SIGCONT al proceso si está detenido
-    if (jobs_list[pos].estado == DETENIDO) {
-        kill(jobs_list[pos].pid, SIGCONT);
-#if DEBUGN6
-            fprintf(stderr, GRIS "[internal_fg()→ Señal %d (SIGCONT) enviada a %d (%s)]\n" RESET, SIGCONT, jobs_list[pos].pid, jobs_list[pos].cmd);
-#endif
-    }
-    // Eliminar el token "&" del comando
-    for (int i=0; i < strlen(jobs_list[pos].cmd); i++) {
-        if (jobs_list[pos].cmd[i] == '&') {
-            jobs_list[pos].cmd[i - 1] = '\0';
-        }
-    }
-    // Actualizar el estado del trabajo a EJECUTANDOSE
-    jobs_list[pos].estado = EJECUTANDOSE;
-    // Copiar los datos del trabajo a jobs_list[0]
-    jobs_list[0] = jobs_list[pos];
-    // Eliminar el trabajo de la lista de trabajos
-    jobs_list_remove(pos);
-    // Imprimir el comando en ejecución sin el token "&"
-    fprintf(stderr, "%s\n", jobs_list[0].cmd);
-    // Esperar a que el proceso en primer plano termine
-    while (jobs_list[0].pid > 0) {
-        pause();
-    }
-    return EXIT_SUCCESS;
-
-}
-/**
- Muestra los procesos parados o en segundo plano.
- *args: array de punteros a char con los argumentos introducidos.
- return: 0 si todo fue bien
- */
-int internal_bg(char **args) {
-#if DEBUGN1
-    fprintf(stderr, GRIS "[internal_bg()→ Esta función mostrará los procesos parados o en segundo plano]\n" RESET);
-#endif
-    // Checkear la sintaxis del comando
-    if (args[1] == NULL) {
-        fprintf(stderr, ROJO "Error de sintaxis. Uso: bg <numero trabajo>\n" RESET);
-        return EXIT_FAILURE;
-    }
-    // Obtener la posición del trabajo en la lista de trabajos
-    int pos = atoi(args[1]);
-    // Verificar si el trabajo existe
-    if ((pos > n_job) || (pos <= 0)) {
-        fprintf(stderr, ROJO "bg %d: no existe ese trabajo\n" RESET, pos);
-        return EXIT_FAILURE;
-    }
-    // Enviar la señal SIGCONT al proceso si está detenido
-    if (jobs_list[pos].estado == EJECUTANDOSE) {
-        fprintf(stderr, ROJO "bg %d: el trabajo ya está en segundo plano\n" RESET, pos);
-        return EXIT_FAILURE;
-    }
-    // Añadir a "&" al final del comando
-    strcat(jobs_list[pos].cmd, " &");
-    // Actualizar el estado del trabajo a EJECUTANDOSE
-    jobs_list[pos].estado = EJECUTANDOSE;
-    // Enviar la señal SIGCONT
-    kill(jobs_list[pos].pid, SIGCONT);
-#if DEBUGN6
-        fprintf(stderr, GRIS "[internal_bg()→ Señal %d (SIGCONT) enviada a %d (%s)]\n" RESET, SIGCONT, jobs_list[pos].pid, jobs_list[pos].cmd);
-#endif
-    // Imprimir el trabajo en segundo plano
-    printf("[%d] %d\t%c\t%s\n", n_job, jobs_list[n_job].pid, jobs_list[n_job].estado, jobs_list[n_job].cmd);    
-    return EXIT_SUCCESS;
-}
-/**
- Imprime el prompt.
- */
-void print_prompt(void) {
-    // Obtener el nombre de usuario
-    user = getenv("USER");
-    char path[200];
-    getcwd(path, sizeof(path));
-    // Prints del prompt
-    printf(NEGRITA MAGENTA "%s" RESET, user);
-    printf(NEGRITA ":" RESET);
-    printf(NEGRITA CYAN "MINISHELL" RESET);
-    printf(NEGRITA "%c " RESET, PROMPT);
-    fflush(stdout);
 }
 /**
  Busca en el array de trabajos el PID retorna su posición.
