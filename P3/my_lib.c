@@ -273,12 +273,12 @@ struct my_stack *my_stack_read(char *filename) {
     int size = sizeof(int);
     // Se abre el fichero en modo lectura
     if ((fd = open(filename, O_RDONLY)) == -1) {
-        perror("my_stack_read() error");
+        //perror("my_stack_read() error");
         return NULL;
     }
     // Se lee el tamaño de los datos del fichero
     if (read(fd, &size, size) == -1) {
-        perror("my_stack_read() error");
+        //perror("my_stack_read() error");
         return NULL;
     }
     // Se inicializa la pila y se reserva memoria para los datos

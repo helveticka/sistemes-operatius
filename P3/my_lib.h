@@ -10,6 +10,8 @@ manejo de una pila */
 #include <sys/types.h> /* Definiciones de tipos de datos como size_t*/
 #include <unistd.h>    /* Funciones read(), write(), close()*/
 #include <errno.h>     /* COntrol de errores (errno) */
+#include <pthread.h>   /* Hilos */
+#include <limits.h>
 
 //declaraciones funciones libreria string
 size_t my_strlen(const char *str);
@@ -41,3 +43,21 @@ int my_stack_purge(struct my_stack *stack);
 struct my_stack *my_stack_read(char *filename);
 int my_stack_write(struct my_stack *stack, char *filename);
     
+ // Códigos de color
+#define RESET "\033[0m"
+#define NEGRO "\x1b[30m"
+#define GRIS "\x1b[94m"
+#define ROJO "\x1b[31m"
+#define VERDE "\x1b[32m"
+#define AMARILLO "\x1b[33m"
+#define AZUL "\x1b[34m"
+#define MAGENTA "\x1b[35m"
+#define CYAN "\x1b[36m"
+#define BLANCO "\x1b[97m"
+#define NEGRITA "\x1b[1m"
+
+static struct my_stack *stack;
+#define NUM_THREADS 10
+#define N 1000000
+void *worker(void *ptr);
+void print_stack(struct my_stack *stack);
