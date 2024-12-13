@@ -27,7 +27,16 @@ int main(int argc, char *argv[]) {
         if (*data > max) max = *data;
         fprintf(stderr, "%d\n", *data);
     }
-    fprintf(stderr, "\nItems: %d Sum: %d Min: %d Max: %d Average: %d\n", items, sum, min, max, (sum / NUM_THREADS));
+    if (items < NUM_THREADS) {
+        fprintf(stderr, "\nItems: %d", items);
+    } else {
+        fprintf(stderr, "\nItems: %d", NUM_THREADS);
+    }
+    fprintf(stderr, NEGRITA" Sum:"RESET);
+    fprintf(stderr, AZUL" %d"RESET, sum);
+    fprintf(stderr, " Min: %d Max: %d", min, max);
+    fprintf(stderr, NEGRITA" Average:"RESET);
+    fprintf(stderr, AZUL" %d\n"RESET, (sum / NUM_THREADS));
     my_stack_purge(stack);
     return EXIT_SUCCESS;
 }

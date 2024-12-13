@@ -36,7 +36,7 @@ int main (int argc, char *argv[]) {
         fprintf(stderr, "stack content for treatment:\n");
         print_stack(stack);
 #endif
-        fprintf(stderr, "stack length: %d\n\n", my_stack_len(stack));
+        fprintf(stderr, "new stack length: %d\n", my_stack_len(stack));
     } else if (my_stack_len(stack) < NUM_THREADS) {
         int items = my_stack_len(stack);
         int added = NUM_THREADS - items;
@@ -66,7 +66,7 @@ int main (int argc, char *argv[]) {
     for (int i = 0; i < NUM_THREADS; i++) {
         pthread_create(&threads[i], NULL, worker, NULL);
 #if DEBUG
-        fprintf(stderr, ORANGE_TEXT "%d) Thread %lu created\n" RESET, i, threads[i]);
+        fprintf(stderr, NARANJA "%d) Thread %lu created\n" RESET, i, threads[i]);
 #else
         fprintf(stderr, "%d) Thread %p created\n", i, (void *)threads[i]);
 #endif
@@ -93,10 +93,19 @@ int main (int argc, char *argv[]) {
 void *worker(void *ptr) {
     for (int i = 0; i < N; i++) {
         pthread_mutex_lock(&mutex);
+#if DEBUG
+        fprintf(stderr, AZUL "Soy el hilo %ld ejecutando pop\n"RESET, pthread_self());
+#endif
         int *data = my_stack_pop(stack);
         pthread_mutex_unlock(&mutex);
         (*data)++;
+#if DEBUG
+        sleep_milisegundos(1);
+#endif
         pthread_mutex_lock(&mutex);
+#if DEBUG
+        fprintf(stderr, "Soy el hilo %ld ejecutando push\n", pthread_self());
+#endif
         my_stack_push(stack, data);
         pthread_mutex_unlock(&mutex);
     }
@@ -111,4 +120,11 @@ void print_stack(struct my_stack *stack) {
         fprintf(stderr, "%d\n", *((int*)data));
         node = node -> next;
     }
+}
+
+void sleep_milisegundos(unsigned int msec) {
+   struct timespec req;
+   req.tv_sec = msec / 1000;         // Milisegundos a segundos
+   req.tv_nsec = (msec % 1000) * 1000000; // Milisegundos a nanosegundos
+   nanosleep(&req, NULL);
 }

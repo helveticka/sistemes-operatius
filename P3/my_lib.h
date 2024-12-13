@@ -54,6 +54,7 @@ int my_stack_write(struct my_stack *stack, char *filename);
 #define MAGENTA "\x1b[35m"
 #define CYAN "\x1b[36m"
 #define BLANCO "\x1b[97m"
+#define NARANJA "\x1B[38;2;255;128;0m"
 #define NEGRITA "\x1b[1m"
 
 static struct my_stack *stack;
@@ -61,3 +62,4 @@ static struct my_stack *stack;
 #define N 1000000
 void *worker(void *ptr);
 void print_stack(struct my_stack *stack);
+void sleep_milisegundos(unsigned int msec);
