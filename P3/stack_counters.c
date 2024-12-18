@@ -1,12 +1,10 @@
 // Autores: Xavier Campos, Pedro Felix, Harpo Joan
 
 #include "my_lib.h"
-#define DEBUG 0
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main (int argc, char *argv[]) {
-
     if (argv[1] == NULL) {
         fprintf(stderr, ROJO "USAGE: ./stack_counters <stack_file>\n" RESET);
         return EXIT_FAILURE;
@@ -26,7 +24,7 @@ int main (int argc, char *argv[]) {
         for (int i = 0; i < NUM_THREADS; i++) {
             int *data = malloc(sizeof(int));
             if (data == NULL) {
-                perror("malloc() error");
+                perror("malloc()");
                 return EXIT_FAILURE;
             }
             *data = 0;
@@ -34,7 +32,7 @@ int main (int argc, char *argv[]) {
         }
 #if !DEBUG
         fprintf(stderr, "stack content for treatment:\n");
-        print_stack(stack);
+        imprimir_pila(stack);
 #endif
         fprintf(stderr, "new stack length: %d\n", my_stack_len(stack));
     } else if (my_stack_len(stack) < NUM_THREADS) {
@@ -42,7 +40,7 @@ int main (int argc, char *argv[]) {
         int added = NUM_THREADS - items;
         fprintf(stderr, "initial stack length: %d\n", items);
         fprintf(stderr, "original stack content:\n");
-        print_stack(stack);
+        imprimir_pila(stack);
         fprintf(stderr, "\nNumber of elements added to inital stack: %d\n", added);
         for (int i = 0; i < added; i++) {
             int *data = malloc(sizeof(int));
@@ -54,14 +52,13 @@ int main (int argc, char *argv[]) {
             my_stack_push(stack, data);
         }
         fprintf(stderr, "stack content for treatment:\n");
-        print_stack(stack);
+        imprimir_pila(stack);
         fprintf(stderr, "new stack length: %d\n\n", my_stack_len(stack));
     } else {
         fprintf(stderr, "original stack content:\n");
-        print_stack(stack);
+        imprimir_pila(stack);
         fprintf(stderr, "original stack length: %d\n\n", my_stack_len(stack));
     }
-
     pthread_t threads[NUM_THREADS];
     for (int i = 0; i < NUM_THREADS; i++) {
         pthread_create(&threads[i], NULL, worker, NULL);
@@ -76,7 +73,7 @@ int main (int argc, char *argv[]) {
     }
 #if !DEBUG
     fprintf(stderr, "\nstack content after threads iterations:\n");
-    print_stack(stack);
+    imprimir_pila(stack);
     fprintf(stderr, "stack length: %d \n", my_stack_len(stack));
 #endif
     int items;
@@ -112,12 +109,12 @@ void *worker(void *ptr) {
     pthread_exit(NULL);
 }
 
-void print_stack(struct my_stack *stack) {
-    void *data = malloc(sizeof(int));
+void imprimir_pila(struct my_stack *stack) {
+    void *element = malloc(sizeof(int));
     struct my_stack_node *node = stack -> top;
     while (node != NULL) {
-        data = node -> data;
-        fprintf(stderr, "%d\n", *((int*)data));
+        element = node -> data;
+        fprintf(stderr, "%d\n", *((int*)element));
         node = node -> next;
     }
 }

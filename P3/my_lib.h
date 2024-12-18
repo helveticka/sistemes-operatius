@@ -57,9 +57,13 @@ int my_stack_write(struct my_stack *stack, char *filename);
 #define NARANJA "\x1B[38;2;255;128;0m"
 #define NEGRITA "\x1b[1m"
 
+// variables y constantes
 static struct my_stack *stack;
 #define NUM_THREADS 10
 #define N 1000000
+#define DEBUG 0
+
+// declaraciones funciones gestión de hilos
 void *worker(void *ptr);
-void print_stack(struct my_stack *stack);
+void imprimir_pila(struct my_stack *stack);
 void sleep_milisegundos(unsigned int msec);
