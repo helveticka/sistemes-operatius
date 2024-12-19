@@ -50,5 +50,3 @@ int main(int argc, char *argv[]) {
     my_stack_purge(stack);
     return EXIT_SUCCESS;
 }
-
-
