@@ -1,7 +1,8 @@
 // Autores: Xavier Campos, Pedro Felix, Harpo Joan
-
+#define _POSIX_C_SOURCE 200112L
 #include "my_lib.h"
 
+static struct my_stack *stack;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int main (int argc, char *argv[]) {

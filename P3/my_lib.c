@@ -1,5 +1,6 @@
 // Autores: Xavier Campos, Pedro Felix, Harpo Joan
 #include "my_lib.h"
+
 /*
 Devuelve la longitud de una cadena.
 *str: cadena de caracteres

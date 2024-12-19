@@ -3,7 +3,7 @@
 #include "my_lib.h"
 
 int main(int argc, char *argv[]) {
-    struct my_stack *stack;
+    static struct my_stack *stack;
     int sum = 0;
     int min = INT_MAX;
     int max = 0;

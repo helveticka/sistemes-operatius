@@ -12,6 +12,7 @@ manejo de una pila */
 #include <errno.h>     /* COntrol de errores (errno) */
 #include <pthread.h>   /* Hilos */
 #include <limits.h>
+#include <time.h>      /* Función sleep() */
 
 //declaraciones funciones libreria string
 size_t my_strlen(const char *str);
@@ -58,7 +59,6 @@ int my_stack_write(struct my_stack *stack, char *filename);
 #define NEGRITA "\x1b[1m"
 
 // variables y constantes
-static struct my_stack *stack;
 #define NUM_THREADS 10
 #define N 1000000
 #define DEBUG 0

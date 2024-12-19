@@ -16,7 +16,7 @@
 #define DEBUGN2 0
 #define DEBUGN3 0
 #define DEBUGN4 0
-#define DEBUGN5 0
+#define DEBUGN5 1
 #define DEBUGN6 1
 // Constantes
 #define COMMAND_LINE_SIZE 1024
