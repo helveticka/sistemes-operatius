@@ -2,10 +2,10 @@
 
 ## Content
 In this repository there are three directorys, where we store each one of the subject assigned practices.
-### P1: my_lib
+### P1: my_lib functions
 In this exercise, we coded string-related functions included in the C library "string.h". Furthermore, we also included stack-manager functions.
 
-### P2: mini-shell
+### P2: mini shell
 This is the main project, where we implemented a shell that can manage internal commands (jobs, fg, bg...) and external commands on a bash terminal. Each level includes the specified functions and their debug messages. The final version of my_shell works perfectly and properly manages different threads.
 
 ### P3: threads and mutual exclusion
