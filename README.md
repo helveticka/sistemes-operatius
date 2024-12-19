@@ -1,6 +1,7 @@
 # Sistemes Operatius I
 
 ## Content
+In this repository there are three directorys, where we store each one of the subject assigned practices.
 ### P1: my_lib
 In this exercise, we coded string-related functions included in the C library "string.h". Furthermore, we also included stack-manager functions.
 
