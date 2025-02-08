@@ -1,0 +1,55 @@
+# Archivos de compiladores
+*.o
+*.obj
+*.a
+*.lo
+*.la
+*.dll
+*.exe
+*.out
+*.app
+*.dSYM/
+
+# Archivos de configuración del compilador
+*.log
+*.vscode/
+*.idea/
+
+# Archivos generados por Makefiles
+Makefile*
+cmake-build-/
+CMakeFiles/
+CMakeCache.txt
+Makefile.config
+
+# Archivos temporales de editores
+*~
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Archivos de caché de editores
+.vscode/
+.idea/
+
+# Archivos del sistema operativo
+.DS_Store   # macOS
+Thumbs.db   # Windows
+desktop.ini # Windows
+
+# Archivos de configuración de entorno
+*.env
+
+# Archivos de debug
+*.gdb
+*.pdb
+
+# Archivos de dependencias de librerías (si usas herramientas como vcpkg, Conan, etc.)
+/vcpkg/
+conan*
+
+# Archivos generados por herramientas de análisis estático o de cobertura
+*.gcda
+*.gcno
+*.gcov
