@@ -1,14 +1,17 @@
-# Sistemes Operatius I
+# Sistemes Operatius
 
 ## Content
-In this repository there are three directorys, where we store each one of the subject assigned practices.
-### P1: my_lib functions
+In this repository there are two directorys, each one storing the projects of the differents parts of the subject (SO I & SO II).
+
+### SO_I
+
+#### P1: my_lib functions
 In this exercise, we coded string-related functions included in the C library "string.h". Furthermore, we also included stack-manager functions.
 
-### P2: mini shell
+#### P2: mini shell
 This is the main project, where we implemented a shell that can manage internal commands (jobs, fg, bg...) and external commands on a bash terminal. Each level includes the specified functions and their debug messages. The final version of my_shell works perfectly and properly manages different threads.
 
-### P3: threads and mutual exclusion
+#### P3: threads and mutual exclusion
 The final exercise's purpose is to access a stack with different threads and manipulate its elements while adhering to concurrency principles. In stack_counters we manage the stacks, and with reader.c we can print the stack information.
 
 ## Authors
