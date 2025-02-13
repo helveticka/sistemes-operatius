@@ -4,15 +4,15 @@
 
 int bmount(const char *camino){
     descriptor = open(camino,O_RDWR|O_CREAT,0666);
-    if(descriptor == -1){
-        return -1;
+    if(descriptor == FALLO){
+        return FALLO;
     }
     return descriptor;
 }
 
 int bumount(){
-    if(close(descriptor) == -1){
-        return -1;
+    if(close(descriptor) == -FALLO){
+        return FALLO;
     }
     return 0;
 }
@@ -20,7 +20,7 @@ int bumount(){
 int bwrite(unsigned int nbloque, const void *buf){
     lseek(descriptor,nbloque*BLOCKSIZE,SEEK_SET);
     if(write(descriptor,buf,BLOCKSIZE) == -1){
-        return -1;
+        return FALLO;
     }
     return BLOCKSIZE;
 }
