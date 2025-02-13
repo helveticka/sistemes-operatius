@@ -16,7 +16,6 @@
 *.idea/
 
 # Archivos generados por Makefiles
-Makefile*
 cmake-build-/
 CMakeFiles/
 CMakeCache.txt
