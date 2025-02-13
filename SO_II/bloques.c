@@ -11,7 +11,7 @@ int bmount(const char *camino){
 }
 
 int bumount(){
-    if(close(descriptor) == -FALLO){
+    if(close(descriptor) == FALLO){
         return FALLO;
     }
     return 0;
