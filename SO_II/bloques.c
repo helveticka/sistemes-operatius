@@ -26,5 +26,10 @@ int bwrite(unsigned int nbloque, const void *buf){
 }
 
 int bread(unsigned int nbloque, void *buf){
-
+    lseek(descriptor,nbloque*BLOCKSIZE,SEEK_SET);
+    size_t bytes_leidos = read(descriptor, buf, BLOCKSIZE);
+    if(bytes_leidos==-1){
+        return FALLO;
+    }
+    return bytes_leidos;
 }
