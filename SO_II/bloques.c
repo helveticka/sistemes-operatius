@@ -1,7 +1,11 @@
 // Autores: Xavier Campos, Pedro Félix, Harpo Joan
-
 #include "bloques.h"
-
+// Variables globales
+static int descriptor = 0;
+/**
+ * @brief Monta el dispositivo virtual
+ * @param camino Ruta del dispositivo virtual
+ */
 int bmount(const char *camino){
     descriptor = open(camino,O_RDWR|O_CREAT,0666);
     if(descriptor == FALLO){
@@ -9,14 +13,22 @@ int bmount(const char *camino){
     }
     return descriptor;
 }
-
+/**
+ * @brief Desmonta el dispositivo virtual
+ * @return 0 si se ha desmontado correctamente, -1 si ha habido un error
+ */
 int bumount(){
     if(close(descriptor) == FALLO){
         return FALLO;
     }
     return 0;
 }
-
+/**
+ * @brief Escribe un bloque en el dispositivo virtual
+ * @param nbloque Número de bloque
+ * @param buf Buffer con los datos a escribir
+ * @return Número de bytes escritos en el bloque, -1 si ha habido un error
+ */
 int bwrite(unsigned int nbloque, const void *buf){
     lseek(descriptor,nbloque*BLOCKSIZE,SEEK_SET);
     if(write(descriptor,buf,BLOCKSIZE) == -1){
@@ -24,7 +36,11 @@ int bwrite(unsigned int nbloque, const void *buf){
     }
     return BLOCKSIZE;
 }
-
+/**
+ * @brief Lee un bloque del dispositivo virtual
+ * @param nbloque Número de bloque
+ * @param buf Buffer donde se almacenarán los datos leídos
+ */
 int bread(unsigned int nbloque, void *buf){
     lseek(descriptor,nbloque*BLOCKSIZE,SEEK_SET);
     size_t bytes_leidos = read(descriptor, buf, BLOCKSIZE);

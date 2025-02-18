@@ -8,7 +8,7 @@
 int main(int argc, char**argv) {
     int nbloques = atoi(argv[2]);
     unsigned char buffer[BLOCKSIZE];
-    memset(buffer, '0', BLOCKSIZE);
+    memset(buffer, 0, BLOCKSIZE);
     // Montamos el dispositivo virtual 
     if (bmount(argv[1]) == FALLO) {
         perror(RED "Error en bmount()\n");

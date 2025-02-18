@@ -49,9 +49,6 @@
 #define ENTREGA_2 0
 #define ENTREGA_3 0
 
-// Variables
-static int descriptor = 0;
-
 // Funciones
 int bmount(const char *camino);
 int bumount();
