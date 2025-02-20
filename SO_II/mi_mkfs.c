@@ -1,5 +1,5 @@
 // Autores: Xavier Campos, Pedro Félix, Harpo Joan
-#include "bloques.h"
+#include "ficheros_basico.h"
 /**
  * @brief Crea un fichero de bloques con todos los bloques a 0
  * @param argc Número de argumentos
@@ -29,4 +29,7 @@ int main(int argc, char**argv) {
         printf(RESET);
         return FALLO;
     }
+    initSB();
+    initMB();
+    initAI();
 }
