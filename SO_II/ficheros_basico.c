@@ -14,3 +14,15 @@ int tamMB(unsigned int nbloques){
     }
     return tamMB;
 }
+/**
+ * @brief Calcula el tamaño en bloques del array de inodos.
+ * @param ninodos Cantidad de inodos
+ * @return Tamaño en bloques del array de inodos
+ */
+int tamAI(unsigned int ninodos){
+    int tam = ninodos / (BLOCKSIZE / INODOSIZE);
+    if (ninodos % (BLOCKSIZE / INODOSIZE) != 0) {
+        tam++; // Agregar un bloque extra si hay restos
+    }
+    return tam;
+}
