@@ -23,13 +23,14 @@ int main(int argc, char**argv) {
             return FALLO;
         }
     }
+    initSB();
+    initMB();
+    initAI();
     // Desmontamos el dispositivo virtual
     if (bumount() == FALLO) {
         perror(RED "Error en bumount()\n");
         printf(RESET);
         return FALLO;
     }
-    initSB();
-    initMB();
-    initAI();
+    
 }
