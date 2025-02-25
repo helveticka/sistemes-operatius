@@ -16,7 +16,7 @@ int tamMB(unsigned int nbloques){
 }
 /**
  * @brief Calcula el tamaño en bloques del array de inodos.
- * @param ninodos Cantidad de inodos
+ * @param ninodos Número de inodos
  * @return Tamaño en bloques del array de inodos
  */
 int tamAI(unsigned int ninodos){
@@ -25,4 +25,40 @@ int tamAI(unsigned int ninodos){
         tam++; // Agregar un bloque extra si hay restos
     }
     return tam;
+}
+/**
+ *  @brief Inicializa los datos del superbloque
+ *  @param nbloques Número de bloques
+ *  @param ninodos Número de inodos
+ *  @return FALLO si ha habido error al escribir la estructura, EXITO en caso contrario
+ */
+int initSB(unsigned int nbloques, unsigned int ninodos){
+    struct superbloque SB;
+
+    // Inicialización de las posiciones del superbloque
+    SB.posPrimerBloqueMB = posSB + tamSB; // posSB = 0, tamSB = 1
+    SB.posUltimoBloqueMB = SB.posPrimerBloqueMB + tamMB(nbloques) - 1;
+
+    SB.posPrimerBloqueAI = SB.posUltimoBloqueMB + 1;
+    SB.posUltimoBloqueAI = SB.posPrimerBloqueAI + tamAI(ninodos) - 1;
+
+    SB.posPrimerBloqueDatos = SB.posUltimoBloqueAI + 1;
+    SB.posUltimoBloqueDatos = nbloques - 1;
+
+    // Inicialización de información sobre inodos
+    SB.posInodoRaiz = 0;
+    SB.posPrimerInodoLibre = 0;
+    SB.cantInodosLibres = ninodos;
+
+    // Inicialización de información sobre bloques
+    SB.cantBloquesLibres = nbloques;
+    SB.totBloques = nbloques;
+    SB.totInodos = ninodos;
+
+    // Escribir el superbloque en el bloque 0
+    if (bwrite(0, &SB) == FALLO) {
+        return FALLO; // Error en la escritura
+    }
+
+    return EXITO; // Éxito
 }
