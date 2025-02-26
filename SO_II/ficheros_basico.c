@@ -62,3 +62,109 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
 
     return EXITO; // Éxito
 }
+
+/**
+ * @brief Escribe el mapa de bits en el dispositivo virtual
+ * @param nbloque Número de bloque
+ * @param bit Bit a escribir
+ * @return FALLO si ha habido error al escribir el mapa de bits, EXITO en caso contrario
+ */
+int initMB() {
+    struct superbloque SB;
+    unsigned char bufferMB[BLOCKSIZE];
+    unsigned int size, blocks, bytes, sizeBits;
+    
+    //comprobamos que existe el superbloque
+    if(bread(posSB, &SB) == FALLO) {
+        perror(RED "Error InitMB()"RESET);
+        return FALLO;
+    }
+
+    blocks = tamMB(SB.totBloques);
+    bytes = tamAI(SB.totInodos);
+    size = tamSB+blocks+bytes;
+    sizeBits = size/8;
+
+    if(sizeBits/BLOCKSIZE > 1) {
+        for(int i =0; i<(sizeBits/BLOCKSIZE); i++) {
+            memset(bufferMB, 255, BLOCKSIZE);
+            if(bwrite(SB.posPrimerBloqueMB+i,bufferMB)==FALLO) {
+                perror(RED "Error initSB()");
+                printf(RESET);
+                return FALLO;
+            }
+        }
+    } else {
+        for(int i=0; i<sizeBits;i++) {
+            bufferMB[i]=255;
+        }
+    }
+    if(size%8 != 0) {
+        char ultimoByte=0;
+        for(int i =0; i<(size%8);i++) {
+            ultimoByte |= (1 << (7-i));
+        }
+        bufferMB[sizeBits]=ultimoByte;
+        sizeBits++;
+    }
+
+    for(int i = sizeBits;i<BLOCKSIZE;i++) bufferMB[i]=0;
+
+    if(bwrite(SB.posPrimerBloqueMB, bufferMB)==FALLO) {
+        perror(RED "Error initSB()");
+        printf(RESET);
+        return FALLO;
+    }
+
+    SB.cantBloquesLibres -= size;
+
+    if (bwrite(posSB, &SB) == FALLO) {
+        perror(RED"Error in initMB()"RESET);
+        return FALLO;
+    }
+
+    return EXITO;
+}
+
+
+/**
+ * @brief Inicializa el array de inodos en el dispositivo virtual
+ * @param nbloque Número de bloque
+ * @param bit Bit a escribir
+ * @return FALLO si ha habido error al escribir el array de inodos, EXITO en caso contrario
+ */
+int initAI() {
+    struct superbloque SB;
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    int contInodos;
+
+    if (bread(posSB, &SB) == FALLO) {
+        fprintf(stderr, RED"Nonexistan Superblock in initAI()\n"RESET);
+        return FALLO;
+    }
+
+    contInodos = SB.posPrimerInodoLibre + 1;
+    for(int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++) {
+        if(bread(i, &inodos)==FALLO){
+            fprintf(stderr, RED"Nonexistan Inodo in initAI\n"RESET);
+            return FALLO;
+        }
+        for(int j = 0; j < BLOCKSIZE/INODOSIZE; j++) {
+            inodos[j].tipo = 'l';   //'l' = libre
+
+            if(contInodos < SB.totInodos) {
+                inodos[j].punterosDirectos[0] = contInodos;
+                contInodos++;
+            } else { // es el ultimo inodo
+                inodos[j].punterosDirectos[0] = UINT_MAX;
+                break;
+            }
+        }
+
+        if (bwrite(i, &inodos) != BLOCKSIZE) return FALLO;
+    }
+    
+    if(bwrite(posSB, &SB)==FALLO) return FALLO;
+
+    return EXITO;
+}
