@@ -139,14 +139,14 @@ int initAI() {
     int contInodos;
 
     if (bread(posSB, &SB) == FALLO) {
-        fprintf(stderr, RED"Nonexistan Superblock in initAI()\n"RESET);
+        fprintf(stderr, RED"Error al leer el superbloque en initAI()\n"RESET);
         return FALLO;
     }
 
     contInodos = SB.posPrimerInodoLibre + 1;
     for(int i = SB.posPrimerBloqueAI; i <= SB.posUltimoBloqueAI; i++) {
         if(bread(i, &inodos)==FALLO){
-            fprintf(stderr, RED"Nonexistan Inodo in initAI\n"RESET);
+            fprintf(stderr, RED"Error al leer inodo en initAI\n"RESET);
             return FALLO;
         }
         for(int j = 0; j < BLOCKSIZE/INODOSIZE; j++) {
