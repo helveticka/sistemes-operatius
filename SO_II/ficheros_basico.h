@@ -63,4 +63,10 @@ struct superbloque {
     // Fijarse que también se resta lo que ocupen las variables de alineación utilizadas!!!
  };
  
+ // Funciones
+   int tamMB(unsigned int nbloques);
+   int tamAI(unsigned int ninodos);
+   int initSB(unsigned int nbloques, unsigned int ninodos);
+   int initMB();
+   int initAI();
  

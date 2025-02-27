@@ -23,7 +23,7 @@ int main(int argc, char**argv) {
             return FALLO;
         }
     }
-    initSB();
+    initSB(nbloques, nbloques/4);
     initMB();
     initAI();
     // Desmontamos el dispositivo virtual

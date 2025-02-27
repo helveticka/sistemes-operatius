@@ -9,8 +9,8 @@
  */
 int tamMB(unsigned int nbloques){
     int tamMB = (nbloques/8)/BLOCKSIZE;
-    if(nbloques%8 != 0){
-        tamMB++;
+    if(nbloques%BLOCKSIZE != 0){
+        return tamMB+1;
     }
     return tamMB;
 }
@@ -22,7 +22,7 @@ int tamMB(unsigned int nbloques){
 int tamAI(unsigned int ninodos){
     int tam = ninodos / (BLOCKSIZE / INODOSIZE);
     if (ninodos % (BLOCKSIZE / INODOSIZE) != 0) {
-        tam++; // Agregar un bloque extra si hay restos
+        return tam+1; // Agregar un bloque extra si hay restos
     }
     return tam;
 }

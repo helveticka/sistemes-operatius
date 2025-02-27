@@ -25,13 +25,24 @@ int main(int argc, char *argv[]) {
     printf("sizeof struct inodo: %lu\n", sizeof(struct inodo));
 
     printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
-    int inodoLibre = sb.posPrimerInodoLibre;
-    struct inodo in;
-    while (inodoLibre != UINT_MAX) {
-        printf("%d ", inodoLibre);
-        inodoLibre = in.punterosDirectos[0];
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    for(int i = sb.posPrimerBloqueAI; i <= sb.posUltimoBloqueAI; i++) {
+        if(bread(i, &inodos)==FALLO){
+            fprintf(stderr, RED"Error -/leer_sf\n"RESET);
+            return FALLO;
+        }
+        for(int j = 0; j < BLOCKSIZE/INODOSIZE; j++) {
+            inodos[j].tipo = 'l';   //'l' = libre
+
+            if(((i-sb.posPrimerBloqueAI)*BLOCKSIZE/INODOSIZE+j+1)==sb.totInodos) {
+                printf("-1 ");
+            } else { // es el ultimo inodo
+                printf("%d ", ((i-sb.posPrimerBloqueAI)*BLOCKSIZE/INODOSIZE+j+1));
+            }
+        }
+
+        if (bwrite(i, &inodos) != BLOCKSIZE) return FALLO;
     }
-    printf("\n");
 
     bumount();
     return EXIT_SUCCESS;
