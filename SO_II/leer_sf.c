@@ -25,24 +25,51 @@ int main(int argc, char *argv[]) {
     printf("sizeof struct inodo: %lu\n", sizeof(struct inodo));
 
     printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
+    // struct que contiene los inodos de un bloque
     struct inodo inodos[BLOCKSIZE/INODOSIZE];
-    for(int i = sb.posPrimerBloqueAI; i <= sb.posUltimoBloqueAI; i++) {
-        if(bread(i, &inodos)==FALLO){
-            fprintf(stderr, RED"Error -/leer_sf\n"RESET);
-            return FALLO;
-        }
-        for(int j = 0; j < BLOCKSIZE/INODOSIZE; j++) {
-            inodos[j].tipo = 'l';   //'l' = libre
+    // posición del bloque del inodo en el array de inodos
+    int posAI = sb.posPrimerBloqueAI+(sb.posPrimerInodoLibre)/(BLOCKSIZE/INODOSIZE);
+    // posición del inodo en el bloque (relativa)
+    int posInodo = (sb.posPrimerInodoLibre)%(BLOCKSIZE/INODOSIZE);
+    // posición del siguiente bloque de inodos en el array de inodos
+    int nextAI = 0;
+    // posición absoluta del próximo inodo
+    int nextInodo = 0;
 
-            if(((i-sb.posPrimerBloqueAI)*BLOCKSIZE/INODOSIZE+j+1)==sb.totInodos) {
-                printf("-1 ");
-            } else { // es el ultimo inodo
-                printf("%d ", ((i-sb.posPrimerBloqueAI)*BLOCKSIZE/INODOSIZE+j+1));
-            }
-        }
+    bread(posAI, &inodos);
 
-        if (bwrite(i, &inodos) != BLOCKSIZE) return FALLO;
+    // RECORRIDO DE LA LISTA ENLAZADA DE INODOS LIBRES
+    while(posAI <= sb.posUltimoBloqueAI && inodos[posInodo].punterosDirectos[0] != UINT_MAX) {
+        printf("%d ",((posAI-sb.posPrimerBloqueAI)*(BLOCKSIZE/INODOSIZE))+posInodo+1);
+        nextInodo = inodos[posInodo].punterosDirectos[0];
+        nextAI = sb.posPrimerBloqueAI+(nextInodo/(BLOCKSIZE/INODOSIZE));
+        posInodo = nextInodo%(BLOCKSIZE/INODOSIZE);
+        if(nextAI != posAI) {
+            posAI = nextAI;
+            bread(posAI, &inodos);
+        }        
     }
+    printf("-1 ");
+
+    // RECORRIDO DE TODOS LOS INODOS
+    //struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    //for(int i = sb.posPrimerBloqueAI; i <= sb.posUltimoBloqueAI; i++) {
+    //    if(bread(i, &inodos)==FALLO){
+    //        fprintf(stderr, RED"Error -/leer_sf\n"RESET);
+    //        return FALLO;
+    //    }
+    //    for(int j = 0; j < BLOCKSIZE/INODOSIZE; j++) {
+    //        inodos[j].tipo = 'l';   //'l' = libre
+    //
+    //        if(((i-sb.posPrimerBloqueAI)*BLOCKSIZE/INODOSIZE+j+1)==sb.totInodos) {
+    //            printf("-1 ");
+    //        } else { // es el ultimo inodo
+    //            printf("%d ", ((i-sb.posPrimerBloqueAI)*BLOCKSIZE/INODOSIZE+j+1));
+    //        }
+    //    }
+    //
+    //    if (bwrite(i, &inodos) != BLOCKSIZE) return FALLO;
+    //}
 
     bumount();
     return EXIT_SUCCESS;
