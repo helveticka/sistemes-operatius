@@ -168,3 +168,106 @@ int initAI() {
 
     return EXITO;
 }
+
+/**
+ * @brief Escribe un bit en el mapa de bits
+ * @param nbloque Número de bloque
+ * @param bit Bit a escribir
+ */
+int escribir_bit(unsigned int nbloque, unsigned int bit){
+    int posbyte, posbit, nbloqueMB, nbloqueabs;
+
+    // leer superbloque
+    struct superbloque SB;
+    if(bread(0, &SB) == FALLO){
+        printf(RED "Error al leer el superbloque en escribir_bit()\n" RESET);
+        return FALLO;
+    }
+
+    // calcular posición del byte y del bit
+    posbyte = nbloque / 8;
+    posbit = nbloque % 8;
+
+    // determinar el bloque del MB en el que se encuentra el byte
+    nbloqueMB = posbyte/BLOCKSIZE;
+
+    // determinar la posición absoluta del bloque del MB
+    nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB;
+
+    // leer el bloque del MB
+    unsigned char bufferMB[BLOCKSIZE];
+    bread(nbloqueabs, &bufferMB);
+
+    // calcular la posición del byte dentro del bloque
+    posbyte = posbyte % BLOCKSIZE;
+
+    // calcular la máscara
+    unsigned char mascara = 128; // 10000000
+    mascara >>= posbit; // desplazamiento de bits a la derecha
+
+    // escribir el bit
+    if (bit == 0) {
+        bufferMB[posbyte] &= ~mascara; // poner a 0 el bit correspondiente
+    } else {
+        bufferMB[posbyte] |= mascara; // poner a 1 el bit correspondiente
+    }
+    bwrite(nbloqueabs, &bufferMB); // escribir el bloque modificado
+    
+    return EXITO;
+}
+
+char leer_bit(unsigned int nbloque){
+
+}
+
+int reservar_bloque(){
+
+}
+
+int liberar_bloque(unsigned int nbloque){
+
+}
+
+/**
+ * @brief Escribe un inodo en el array de inodos
+ * @param ninodo Número de inodo
+ * @param inodo Inodo a escribir
+ */
+int escribir_inodo(unsigned int ninodo, struct inodo *inodo){
+    int nbloqueAI, nbloqueabs, posinodo;
+
+    // leer el superbloque
+    struct superbloque SB;
+    if(bread(0, &SB) == FALLO){
+        printf(RED "Error al leer el superbloque en escribir_inodo()\n" RESET);
+        return FALLO;
+    }
+
+    // calcular el bloque del array de inodos
+    nbloqueAI = (ninodo * INODOSIZE) / BLOCKSIZE;
+
+    // calcular la posición absoluta del bloque del array de inodos
+    nbloqueabs = nbloqueAI + SB.posPrimerBloqueAI;
+
+    // leer el bloque del array de inodos
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    bread(nbloqueabs, &inodos);
+
+    // calcular la posición del inodo dentro del bloque
+    posinodo = ninodo % (BLOCKSIZE/INODOSIZE);
+
+    // escribir el inodo
+    inodos[posinodo] = *inodo;
+    bwrite(nbloqueabs, &inodos);
+
+    return EXITO;
+
+}
+
+int leer_inodo(unsigned int ninodo, struct inodo *inodo){
+
+}
+
+int reservar_inodo(unsigned char tipo, unsigned char permisos){
+    
+}
