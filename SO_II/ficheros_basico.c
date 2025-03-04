@@ -225,12 +225,12 @@ char leer_bit(unsigned int nbloque){
     int posbyte, posbit, nbloqueMB, nbloqueabs;
     unsigned char bufferMB[BLOCKSIZE];
     unsigned char mascara = 128;
-
+    // Leer el superbloque
     if (bread(posSB, &SB) == FALLO) {
         printf(RED"Error en leer_bit()\n"RESET);
         return FALLO;
     }
-
+    // Calcular la posición del byte y del bit
     posbyte = nbloque / 8;
     posbit = nbloque % 8;
     nbloqueMB = posbyte / BLOCKSIZE;
@@ -238,25 +238,47 @@ char leer_bit(unsigned int nbloque){
 #if DEBUG_N3
     printf(GRAY "[leer_bit(%d)→ posbyte:%d, posbyte (ajustado): %d, posbit:%d, nbloqueMB:%d, nbloqueabs:%d)]\n" RESET, nbloque, posbyte, posbyte % BLOCKSIZE, posbit, nbloqueMB, nbloqueabs);
 #endif
+    // Leer el bloque del mapa de bits
     if (bread(nbloqueabs, bufferMB) == FALLO) {
         printf(RED"Error en leer_bit()\n"RESET);
         return FALLO;
     }
-
+    // Cálculo de la máscara mediante desplazamiento de bits
     posbyte = posbyte % BLOCKSIZE;
     mascara >>= posbit;
     mascara &= bufferMB[posbyte];
     mascara >>= (7 - posbit);
-
     return mascara;
 }
 
 int reservar_bloque(){
 
 }
-
+/**
+ * @brief Libera un bloque
+ * @param nbloque Número de bloque
+ * @return Número de bloque liberado
+ */
 int liberar_bloque(unsigned int nbloque){
-
+    struct superbloque SB;
+    // Escritura del bit en el mapa de bits
+    if (escribir_bit(nbloque, 0) == FALLO) {
+        printf(RED"Error al escribir bit en liberar_bloque()\n"RESET);
+        return FALLO;
+    }
+    // Lectura del superbloque
+    if (bread(posSB, &SB) == FALLO) {
+        printf(RED"Error al leer bloque en liberar_bloque()\n"RESET);
+        return FALLO;
+    }
+    // Actualización de la cantidad de bloques libres
+    SB.cantBloquesLibres++;
+    if (bwrite(posSB, &SB) == FALLO) {
+        printf(RED"Error al aumentar SB.cantBloquesLibres en liberar_bloque()\n"RESET);
+        return FALLO;
+    }
+    // Devolución del número de bloque liberado
+    return nbloque;
 }
 
 /**
