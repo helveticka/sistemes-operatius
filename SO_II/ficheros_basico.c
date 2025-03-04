@@ -215,9 +215,40 @@ int escribir_bit(unsigned int nbloque, unsigned int bit){
     
     return EXITO;
 }
-
+/**
+ * @brief Lee un bit del mapa de bits
+ * @param nbloque Número de bloque
+ * @return Valor del bit leído
+ */
 char leer_bit(unsigned int nbloque){
+    struct superbloque SB;
+    int posbyte, posbit, nbloqueMB, nbloqueabs;
+    unsigned char bufferMB[BLOCKSIZE];
+    unsigned char mascara = 128;
 
+    if (bread(posSB, &SB) == FALLO) {
+        printf(RED"Error en leer_bit()\n"RESET);
+        return FALLO;
+    }
+
+    posbyte = nbloque / 8;
+    posbit = nbloque % 8;
+    nbloqueMB = posbyte / BLOCKSIZE;
+    nbloqueabs = SB.posPrimerBloqueMB + nbloqueMB;
+#if DEBUG_N3
+    printf(GRAY "[leer_bit(%d)→ posbyte:%d, posbyte (ajustado): %d, posbit:%d, nbloqueMB:%d, nbloqueabs:%d)]\n" RESET, nbloque, posbyte, posbyte % BLOCKSIZE, posbit, nbloqueMB, nbloqueabs);
+#endif
+    if (bread(nbloqueabs, bufferMB) == FALLO) {
+        printf(RED"Error en leer_bit()\n"RESET);
+        return FALLO;
+    }
+
+    posbyte = posbyte % BLOCKSIZE;
+    mascara >>= posbit;
+    mascara &= bufferMB[posbyte];
+    mascara >>= (7 - posbit);
+
+    return mascara;
 }
 
 int reservar_bloque(){
