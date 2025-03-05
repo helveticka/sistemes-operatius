@@ -322,5 +322,52 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo){
 }
 
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
-    
+    int posInodoReservado, posAI, posInodo;
+    struct inodo inodos[BLOCKSIZE/INODOSIZE];
+    struct inodo inodo;
+
+    // Comprobar si hay inodos libres
+    struct superbloque SB;
+    if (bread(posSB, &SB) == FALLO) {
+        printf(RED"Error al leer el superbloque en reservar_inodo()\n"RESET);
+        return FALLO;
+    }
+    if (SB.cantInodosLibres == 0) {
+        printf(RED"No hay inodos libres en reservar_inodo()\n"RESET);
+        return FALLO;
+    }
+
+    // Guardar posición del primer inodo libre
+    posInodoReservado = SB.posPrimerInodoLibre;
+
+    // Actualizar el primer inodo libre del superbloque
+    posAI = SB.posPrimerBloqueAI + posInodoReservado;
+    posInodo = (posInodoReservado) / (BLOCKSIZE / INODOSIZE);
+    bread(posAI, &inodos);
+    SB.posPrimerInodoLibre = inodos[posInodo].punterosDirectos[0];
+
+    // Inicializar el inodo
+    inodo.tipo = tipo;
+    inodo.permisos = permisos;    
+    inodo.nlinks = 1;
+    inodo.tamEnBytesLog = 0;
+    inodo.btime = time(NULL);
+    inodo.numBloquesOcupados = 0;
+    for (int i = 0; i < 12; i++) {
+        inodo.punterosDirectos[i] = 0;
+    }
+    for (int i = 0; i < 3; i++) {
+        inodo.punterosIndirectos[i] = 0;
+    }
+
+    // Escribir el inodo en el array de inodos
+    if (escribir_inodo(posInodoReservado, &inodo) == FALLO) {
+        printf(RED"Error al escribir el inodo en reservar_inodo()\n"RESET);
+        return FALLO;
+    }
+
+    // Actualizar la cantidad de inodos libres
+    SB.cantInodosLibres--;
+
+    return posInodoReservado;
 }
