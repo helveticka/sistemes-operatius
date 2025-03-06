@@ -250,9 +250,80 @@ char leer_bit(unsigned int nbloque){
     mascara >>= (7 - posbit);
     return mascara;
 }
-
+/** 
+ * @brief Encuentra el primer bloque libre, lo ocupa y devuelve su posición
+ * @return La posición del primer bolque libre, FALLO si ha habido algún error
+ */
 int reservar_bloque(){
+    struct superbloque SB;
 
+    // Leer el superbloque
+    if (bread(0, &SB) == FALLO) {
+        return FALLO; // Error al leer el superbloque
+    }
+    // Comprobar si quedan bloques libres
+    if (SB.cantBloquesLibres == 0) {
+        return FALLO; // No hay bloques disponibles
+    }
+
+    unsigned char bufferMB[BLOCKSIZE];
+    unsigned char bufferAux[BLOCKSIZE];
+    memset(bufferAux, 255, BLOCKSIZE); // Llenar bufferAux con bits a 1
+
+    int nbloqueMB, posbyte, posbit, nbloque;
+
+    // Buscar el primer bloque del MB con al menos un bit a 0
+    for (nbloqueMB = 0; nbloqueMB < tamMB(SB.totBloques); nbloqueMB++) {
+        if (bread(nbloqueMB + SB.posPrimerBloqueMB, bufferMB) == -1) {
+            return FALLO; // Error al leer el MB
+        }
+
+        if (memcmp(bufferMB, bufferAux, BLOCKSIZE) != 0) {
+            // Encontramos un bloque con al menos un bit a 0
+            break;
+        }
+    }
+
+    // Buscar el primer byte con un bit a 0 dentro del bloque encontrado
+    for (posbyte = 0; posbyte < BLOCKSIZE; posbyte++) {
+        if (bufferMB[posbyte] != 255) {
+            // Encontramos un byte con al menos un bit a 0
+            break;
+        }
+    }
+
+    // Buscar el primer bit a 0 dentro del byte encontrado
+    unsigned char mascara = 128; // 10000000
+    posbit = 0;
+    while (bufferMB[posbyte] & mascara) { // AND binario
+        bufferMB[posbyte] <<= 1; // Desplazamiento de bits a la izquierda
+        posbit++;
+    }
+
+    // Calcular el número de bloque a reservar
+    nbloque = (nbloqueMB * BLOCKSIZE * 8) + (posbyte * 8) + posbit;
+
+    // Reservar el bloque (poner el bit a 1)
+    if (escribir_bit(nbloque, 1) == FALLO) {
+        return FALLO; // Error al escribir el bit
+    }
+
+    // Actualizar el superbloque
+    SB.cantBloquesLibres--;
+
+    if (bwrite(0, &SB) == FALLO) {
+        return FALLO; // Error al escribir el superbloque actualizado
+    }
+
+    // Limpiar el bloque de datos con ceros
+    unsigned char bufferCero[BLOCKSIZE];
+    memset(bufferCero, 0, BLOCKSIZE);
+
+    if (bwrite(nbloque, bufferCero) == FALLO) {
+        return FALLO; // Error al limpiar el bloque de datos
+    }
+
+    return nbloque; // Devolver el número del bloque reservado
 }
 /**
  * @brief Libera un bloque
@@ -316,9 +387,35 @@ int escribir_inodo(unsigned int ninodo, struct inodo *inodo){
     return EXITO;
 
 }
-
+/**
+ * @brief Lee un determinado inodo del array de inodos para volcarlo en una variable de tipo struct inodo pasada por referencia.
+ * @param ninodo Número de inodo
+ * @param inodo Inodo a escribir
+ * @return EXITO si se ha leido correctamente, FALLO en caso contrario
+ */
 int leer_inodo(unsigned int ninodo, struct inodo *inodo){
+    struct superbloque SB;
 
+    // Leer el superbloque para obtener la posición del array de inodos
+    if (bread(0, &SB) == FALLO) {
+        return FALLO; // Error al leer el superbloque
+    }
+
+    // Calcular el número de bloque del array de inodos donde está el inodo
+    unsigned int nbloqueAI = SB.posPrimerBloqueAI + (ninodo / (BLOCKSIZE / INODOSIZE));
+
+    // Buffer para leer un bloque de inodos
+    struct inodo inodos[BLOCKSIZE / INODOSIZE];
+
+    // Leer el bloque de inodos correspondiente
+    if (bread(nbloqueAI, inodos) == FALLO) {
+        return FALLO; // Error al leer el bloque de inodos
+    }
+
+    // Copiar el inodo solicitado en la variable pasada por referencia
+    *inodo = inodos[ninodo % (BLOCKSIZE / INODOSIZE)];
+
+    return EXITO; // Éxito
 }
 
 int reservar_inodo(unsigned char tipo, unsigned char permisos){

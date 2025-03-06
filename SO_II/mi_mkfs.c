@@ -26,6 +26,7 @@ int main(int argc, char**argv) {
     initSB(nbloques, nbloques/4);
     initMB();
     initAI();
+    reservar_inodo ('d', 7);
     // Desmontamos el dispositivo virtual
     if (bumount() == FALLO) {
         perror(RED "Error en bumount()\n");
