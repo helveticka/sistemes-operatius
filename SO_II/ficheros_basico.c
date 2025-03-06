@@ -438,8 +438,8 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     posInodoReservado = SB.posPrimerInodoLibre;
 
     // Actualizar el primer inodo libre del superbloque
-    posAI = SB.posPrimerBloqueAI + posInodoReservado;
-    posInodo = (posInodoReservado) / (BLOCKSIZE / INODOSIZE);
+    posAI = SB.posPrimerBloqueAI + (posInodoReservado)/(BLOCKSIZE/INODOSIZE);
+    posInodo = (posInodoReservado) % (BLOCKSIZE / INODOSIZE);
     bread(posAI, &inodos);
     SB.posPrimerInodoLibre = inodos[posInodo].punterosDirectos[0];
 
@@ -478,5 +478,5 @@ int obtener_nRangoBL(struct inodo *inodo, unsigned int nblogico, unsigned int *p
 }
 
 int obtener_indice(unsigned int nblogico, int nivel_punteros){
-    
+
 }
