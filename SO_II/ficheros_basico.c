@@ -438,10 +438,11 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     posInodoReservado = SB.posPrimerInodoLibre;
 
     // Actualizar el primer inodo libre del superbloque
-    posAI = SB.posPrimerBloqueAI + (posInodoReservado)/(BLOCKSIZE/INODOSIZE);
+    posAI = (SB.posPrimerBloqueAI) + ((posInodoReservado*INODOSIZE)/BLOCKSIZE);
     posInodo = (posInodoReservado) % (BLOCKSIZE / INODOSIZE);
     bread(posAI, &inodos);
     SB.posPrimerInodoLibre = inodos[posInodo].punterosDirectos[0];
+    bwrite(posSB, &SB);
 
     // Inicializar el inodo
     inodo.tipo = tipo;
