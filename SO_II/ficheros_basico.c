@@ -470,8 +470,71 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     return posInodoReservado;
 }
 
-int traducir_bloque_inodo(unsigned int inodo, unsigned int nblogico, unsigned char reservar){
+int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned char reservar){
+    unsigned int ptr, ptr_ant, salvar_inodo;
+    int nRangoBL, nivel_punteros, indice;
+    unsigned int buffer[NPUNTEROS];
+    struct inodo inodo;
 
+    ptr = 0;
+    ptr_ant = 0;
+    salvar_inodo = 0;
+    indice = 0;
+
+    // Leer el inodo
+    leer_inodo(ninodo, &inodo);
+    nRangoBL = obtener_nRangoBL(&inodo, nblogico, &ptr);
+    nivel_punteros = nRangoBL;
+    while (nivel_punteros > 0) {
+        if (ptr == 0) {
+            // No hay bloque asignado
+            if (reservar == 0) {
+                return FALLO; // Error
+            } else {
+                // Reservar un bloque
+                ptr = reservar_bloque();
+                inodo.numBloquesOcupados++;
+                inodo.ctime = time(NULL);
+                salvar_inodo = 1;
+                if(nivel_punteros == nRangoBL) {
+                    inodo.punterosIndirectos[nRangoBL - 1] = ptr;
+                } else {
+                    buffer[indice] = ptr;
+                    bwrite(ptr_ant, buffer);
+                }
+                memset(buffer, 0, BLOCKSIZE);
+            }
+        } else {
+            // Leer el bloque de punteros
+            bread(ptr, buffer);
+        }
+        
+        // Calcular el índice
+        indice = obtener_indice(nblogico, nivel_punteros);
+        ptr_ant = ptr;
+        ptr = buffer[indice];
+        nivel_punteros--;
+    }
+    if(ptr == 0) {
+        if(reservar == 0) {
+            return FALLO;
+        } else {
+            ptr = reservar_bloque();
+            inodo.numBloquesOcupados++;
+            inodo.ctime = time(NULL);
+            salvar_inodo = 1;
+            if(nRangoBL == 0) {
+                inodo.punterosDirectos[nblogico] = ptr;
+            } else {
+                buffer[indice] = ptr;
+                bwrite(ptr_ant, buffer);
+            }
+        }
+    }
+    if(salvar_inodo == 1) {
+        escribir_inodo(ninodo, &inodo);
+    }
+    return ptr;
 }
 
 int obtener_nRangoBL(struct inodo *inodo, unsigned int nblogico, unsigned int *ptr){
