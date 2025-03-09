@@ -4,22 +4,23 @@ int main(int argc, char *argv[]) {
 
     const char *nombre_dispositivo = argv[1];
     bmount(nombre_dispositivo);
-    struct superbloque sb;
-    bread(0, &sb);
+    struct superbloque SB;
+    bread(0, &SB);
 
     printf("DATOS DEL SUPERBLOQUE\n");
-    printf("posPrimerBloqueMB = %d\n", sb.posPrimerBloqueMB);
-    printf("posUltimoBloqueMB = %d\n", sb.posUltimoBloqueMB);
-    printf("posPrimerBloqueAI = %d\n", sb.posPrimerBloqueAI);
-    printf("posUltimoBloqueAI = %d\n", sb.posUltimoBloqueAI);
-    printf("posPrimerBloqueDatos = %d\n", sb.posPrimerBloqueDatos);
-    printf("posUltimoBloqueDatos = %d\n", sb.posUltimoBloqueDatos);
-    printf("posInodoRaiz = %d\n", sb.posInodoRaiz);
-    printf("posPrimerInodoLibre = %d\n", sb.posPrimerInodoLibre);
-    printf("cantBloquesLibres = %d\n", sb.cantBloquesLibres);
-    printf("cantInodosLibres = %d\n", sb.cantInodosLibres);
-    printf("totBloques = %d\n", sb.totBloques);
-    printf("totInodos = %d\n", sb.totInodos);
+    printf("posPrimerBloqueMB = %d\n", SB.posPrimerBloqueMB);
+    printf("posUltimoBloqueMB = %d\n", SB.posUltimoBloqueMB);
+    printf("posPrimerBloqueAI = %d\n", SB.posPrimerBloqueAI);
+    printf("posUltimoBloqueAI = %d\n", SB.posUltimoBloqueAI);
+    printf("posPrimerBloqueDatos = %d\n", SB.posPrimerBloqueDatos);
+    printf("posUltimoBloqueDatos = %d\n", SB.posUltimoBloqueDatos);
+    printf("posInodoRaiz = %d\n", SB.posInodoRaiz);
+    printf("posPrimerInodoLibre = %d\n", SB.posPrimerInodoLibre);
+    printf("cantBloquesLibres = %d\n", SB.cantBloquesLibres);
+    printf("cantInodosLibres = %d\n", SB.cantInodosLibres);
+    printf("totBloques = %d\n", SB.totBloques);
+    printf("totInodos = %d\n", SB.totInodos);
+#if DEBUGN2
     
     printf("\nsizeof struct superbloque: %lu\n", sizeof(struct superbloque));
     printf("sizeof struct inodo: %lu\n", sizeof(struct inodo));
@@ -28,9 +29,9 @@ int main(int argc, char *argv[]) {
     // struct que contiene los inodos de un bloque
     struct inodo inodos[BLOCKSIZE/INODOSIZE];
     // posición del bloque del inodo en el array de inodos
-    int posAI = sb.posPrimerBloqueAI+(sb.posPrimerInodoLibre)/(BLOCKSIZE/INODOSIZE);
+    int posAI = SB.posPrimerBloqueAI+(SB.posPrimerInodoLibre)/(BLOCKSIZE/INODOSIZE);
     // posición del inodo en el bloque (relativa)
-    int posInodo = (sb.posPrimerInodoLibre)%(BLOCKSIZE/INODOSIZE);
+    int posInodo = (SB.posPrimerInodoLibre)%(BLOCKSIZE/INODOSIZE);
     // posición del siguiente bloque de inodos en el array de inodos
     int nextAI = 0;
     // posición absoluta del próximo inodo
@@ -39,10 +40,10 @@ int main(int argc, char *argv[]) {
     bread(posAI, &inodos);
 
     // RECORRIDO DE LA LISTA ENLAZADA DE INODOS LIBRES
-    while(posAI <= sb.posUltimoBloqueAI && inodos[posInodo].punterosDirectos[0] != UINT_MAX) {
-        printf("%d ",((posAI-sb.posPrimerBloqueAI)*(BLOCKSIZE/INODOSIZE))+posInodo+1);
+    while(posAI <= SB.posUltimoBloqueAI && inodos[posInodo].punterosDirectos[0] != UINT_MAX) {
+        printf("%d ",((posAI-SB.posPrimerBloqueAI)*(BLOCKSIZE/INODOSIZE))+posInodo+1);
         nextInodo = inodos[posInodo].punterosDirectos[0];
-        nextAI = sb.posPrimerBloqueAI+(nextInodo/(BLOCKSIZE/INODOSIZE));
+        nextAI = SB.posPrimerBloqueAI+(nextInodo/(BLOCKSIZE/INODOSIZE));
         posInodo = nextInodo%(BLOCKSIZE/INODOSIZE);
         if(nextAI != posAI) {
             posAI = nextAI;
@@ -50,6 +51,7 @@ int main(int argc, char *argv[]) {
         }        
     }
     printf("-1 ");
+#endif
 
     // RECORRIDO DE TODOS LOS INODOS
     //struct inodo inodos[BLOCKSIZE/INODOSIZE];
@@ -71,7 +73,79 @@ int main(int argc, char *argv[]) {
     //    if (bwrite(i, &inodos) != BLOCKSIZE) return FALLO;
     //}
 
+#if DEBUGN3
+    printf("\nRESERVAMOS UN BLOQUE Y LUEGO LO LIBERAMOS\n");
+    int nBloque = reservar_bloque();
+
+    if (nBloque == FALLO) {
+        perror(RED "Error ./leer_sf()");
+        printf(RESET);
+        return FALLO;
+    }
+
+    printf("Se ha reservado el bloque físico nº %d que era el 1º libre indicado por el MB\n", nBloque);
+    
+    if (bread(posSB, &SB) == FALLO) {
+        perror(RED "Error ./leer_sf()");
+        printf(RESET);
+        return FALLO;
+    }
+
+    printf("SB.cantBloquesLibres: %d\n", SB.cantBloquesLibres);
+    
+    if (liberar_bloque(nBloque) == FALLO) {
+        perror(RED "Error ./leer_sf()");
+        printf(RESET);
+        return FALLO;
+    }
+
+    if (bread(posSB, &SB) == FALLO) {
+            perror(RED "Error ./leer_sf()");
+            printf(RESET);
+            return FALLO;
+        }
+
+    printf("Liberamos ese bloque y después SB.cantBloquesLibres = %d\n", SB.cantBloquesLibres);
+
+    printf("\n\nMAPA DE BITS CON BLOQUES DE METADATOS OCUPADOS\n");
+    printf("posSB: %d → leer_bit(%d) = %d\n", posSB, posSB, leer_bit(posSB));
+    printf("SB.posPrimerBloqueMB: %d → leer_bit(%d) = %d\n", SB.posPrimerBloqueMB, SB.posPrimerBloqueMB, leer_bit(SB.posPrimerBloqueMB));
+    printf("SB.posUltimoBloqueMB: %d → leer_bit(%d) = %d\n", SB.posUltimoBloqueMB, SB.posUltimoBloqueMB, leer_bit(SB.posUltimoBloqueMB));
+    printf("SB.posPrimerBloqueAI: %d → leer_bit(%d) = %d\n", SB.posPrimerBloqueAI, SB.posPrimerBloqueAI, leer_bit(SB.posPrimerBloqueAI));
+    printf("SB.posUltimoBloqueAI: %d → leer_bit(%d) = %d\n", SB.posUltimoBloqueAI, SB.posUltimoBloqueAI, leer_bit(SB.posUltimoBloqueAI));
+    printf("SB.posPrimerBloqueDatos: %d → leer_bit(%d) = %d\n", SB.posPrimerBloqueDatos, SB.posPrimerBloqueDatos, leer_bit(SB.posPrimerBloqueDatos));
+    printf("SB.posUltimoBloqueDatos: %d → leer_bit(%d) = %d\n", SB.posUltimoBloqueDatos, SB.posUltimoBloqueDatos, leer_bit(SB.posUltimoBloqueDatos));
+    
+    printf("\n\nDATOS DEL DIRECTORIO RAIZ\n");
+    struct inodo inodo;
+    char atime[80];
+    char ctime[80];
+    char mtime[80];
+
+    if (leer_inodo(SB.posInodoRaiz, &inodo) == FALLO) {
+        perror(RED "Error ./leer_sf()");
+        printf(RESET);
+        return FALLO;
+    }
+
+    printf("tipo: %c\n", inodo.tipo);
+    printf("permisos: %d\n", inodo.permisos);
+    
+    
+    strftime(atime, sizeof(atime), "%a %Y-%m-%d %H:%M:%S", localtime(&inodo.atime));
+    strftime(ctime, sizeof(ctime), "%a %Y-%m-%d %H:%M:%S", localtime(&inodo.ctime));
+    strftime(mtime, sizeof(mtime), "%a %Y-%m-%d %H:%M:%S", localtime(&inodo.mtime));
+    
+    printf("atime: %s\n", atime);
+    printf("ctime: %s\n", ctime);
+    printf("mtime: %s\n", mtime);
+
+    printf("nlinks: %d\n", inodo.nlinks);
+    printf("tamEnBytesLog: %d\n", inodo.tamEnBytesLog);
+    printf("numBloquesOcupados: %d\n", inodo.numBloquesOcupados);
+#endif
     bumount();
     return EXIT_SUCCESS;
 }
+
 
