@@ -536,9 +536,31 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
     }
     return ptr;
 }
-
+/**
+ * @brief Obtiene el rango de bloques lógicos
+ * @param inodo Inodo
+ * @param nblogico Número de bloque lógico
+ * @param ptr Puntero
+ * @return Rango de bloques lógicos
+ */
 int obtener_nRangoBL(struct inodo *inodo, unsigned int nblogico, unsigned int *ptr){
-
+    if(nblogico < DIRECTOS) {
+        *ptr = inodo->punterosDirectos[nblogico];
+        return 0;
+    } else if(nblogico < INDIRECTOS0) {
+        *ptr = inodo->punterosIndirectos[0];
+        return 1;
+    } else if(nblogico < INDIRECTOS1) {
+        *ptr = inodo->punterosIndirectos[1];
+        return 2;
+    } else if(nblogico < INDIRECTOS2) {
+        *ptr = inodo->punterosIndirectos[2];
+        return 3;
+    } else {
+        *ptr = 0;
+        fprintf(stderr, RED"Bloque lógico fuera de rango\n"RESET);
+        return FALLO;
+    }
 }
 
 int obtener_indice(unsigned int nblogico, int nivel_punteros){
