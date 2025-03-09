@@ -144,7 +144,73 @@ int main(int argc, char *argv[]) {
     printf("tamEnBytesLog: %d\n", inodo.tamEnBytesLog);
     printf("numBloquesOcupados: %d\n", inodo.numBloquesOcupados);
 #endif
-    bumount();
+
+#if DEBUGN4
+    struct inodo inodo;
+    
+    printf("\nINODO 1. TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n");
+    int nblogicos[5] = {8, 204, 30004, 400004, 468750};
+    int ninodo = reservar_inodo('f', 6);
+    if (ninodo == FALLO) {
+        fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
+        return FALLO;
+    }
+
+    if (leer_inodo(ninodo, &inodo) == FALLO) {
+        fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
+        return FALLO;
+    }
+    
+    for (int i=0; i<sizeof(nblogicos)/sizeof(int); i++) {
+        if (traducir_bloque_inodo(&inodo, nblogicos[i], 1) == FALLO) {
+            fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
+            return FALLO;
+        }
+        printf("\n");
+    }
+
+    if (escribir_inodo(ninodo, &inodo) == FALLO) {
+        fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
+        return FALLO;
+    }
+    printf("\nDATOS DEL INODO RESERVADO 1\n");
+    if (leer_inodo(ninodo, &inodo) == FALLO) {
+        fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
+        return FALLO;
+    }
+
+    printf("tipo: %c\n", inodo.tipo);
+    printf("permisos: %d\n", inodo.permisos);
+    
+    char atime[80];
+    char ctime[80];
+    char mtime[80];
+    
+    strftime(atime, sizeof(atime), "%a %Y-%m-%d %H:%M:%S", localtime(&inodo.atime));
+    strftime(ctime, sizeof(ctime), "%a %Y-%m-%d %H:%M:%S", localtime(&inodo.ctime));
+    strftime(mtime, sizeof(mtime), "%a %Y-%m-%d %H:%M:%S", localtime(&inodo.mtime));
+    
+    printf("atime: %s\n", atime);
+    printf("ctime: %s\n", ctime);
+    printf("mtime: %s\n", mtime);
+
+    printf("nlinks: %d\n", inodo.nlinks);
+    printf("tamEnBytesLog: %d\n", inodo.tamEnBytesLog);
+    printf("numBloquesOcupados: %d\n", inodo.numBloquesOcupados);
+
+    if (bread(posSB, &SB) == FALLO) {
+        fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
+        return FALLO;
+    }
+    printf("\nSB.posPrimerInodoLibre = %d\n", SB.posPrimerInodoLibre);
+#endif
+
+    if (bumount()) {
+        perror(RED "Error en bumount() al ./leer_sf()");
+        printf(RESET);
+        return FALLO;
+    }
+    
     return EXIT_SUCCESS;
 }
 
