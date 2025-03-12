@@ -573,7 +573,31 @@ int obtener_nRangoBL(struct inodo *inodo, unsigned int nblogico, unsigned int *p
         return FALLO;
     }
 }
-
+/**
+ * @brief Obtiene el índice del bloque de punteros
+ * @param nblogico Número de bloque lógico
+ * @param nivel_punteros Nivel en el que se encuentra el puntero
+ * @return Índice del bloque de punteros, FALLO en caso de error
+ */
 int obtener_indice(unsigned int nblogico, int nivel_punteros){
-
+    if (nblogico < DIRECTOS) {
+        return nblogico;
+    } else if (nblogico < INDIRECTOS0) {
+        return nblogico - DIRECTOS;
+    } else if (nblogico < INDIRECTOS1) {
+        if (nivel_punteros == 2) {
+            return (nblogico - INDIRECTOS0) / NPUNTEROS;
+        } else if (nivel_punteros == 1) {
+            return (nblogico - INDIRECTOS0) % NPUNTEROS;
+        }
+    } else if (nblogico < INDIRECTOS2) {
+        if (nivel_punteros == 3) {
+            return (nblogico - INDIRECTOS1) / (NPUNTEROS * NPUNTEROS);
+        } else if (nivel_punteros == 2) {
+            return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) / NPUNTEROS;
+        } else if (nivel_punteros == 1) {
+            return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) % NPUNTEROS;
+        }
+    }
+    return FALLO; // Caso de error o fuera de rango
 }
