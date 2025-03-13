@@ -451,6 +451,8 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     posInodo = (posInodoReservado) % (BLOCKSIZE / INODOSIZE);
     bread(posAI, &inodos);
     SB.posPrimerInodoLibre = inodos[posInodo].punterosDirectos[0];
+    // Actualizar la cantidad de inodos libres
+    SB.cantInodosLibres--;
     bwrite(posSB, &SB);
 
     // Inicializar el inodo
@@ -473,8 +475,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
         return FALLO;
     }
 
-    // Actualizar la cantidad de inodos libres
-    SB.cantInodosLibres--;
+    
 
     return posInodoReservado;
 }
