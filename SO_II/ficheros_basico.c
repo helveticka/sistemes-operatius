@@ -72,7 +72,7 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
 int initMB() {
     struct superbloque SB;
     unsigned char bufferMB[BLOCKSIZE];
-    unsigned int size, blocks, bytes, sizeBits;
+    unsigned int metaBlocks, MBBlocks, AIBlocks, metaBytes;
     
     //comprobamos que existe el superbloque
     if(bread(posSB, &SB) == FALLO) {
@@ -81,16 +81,16 @@ int initMB() {
     }
 
     // Calcular el tamaño del mapa de bits
-    blocks = tamMB(SB.totBloques);
-    bytes = tamAI(SB.totInodos);
-    size = tamSB+blocks+bytes; // Tamaño total de los bloques ocupados por el superbloque, mapa de bits y array de inodos
-    sizeBits = size/8; // Tamaño en bytes del mapa de bits
+    MBBlocks = tamMB(SB.totBloques); // tamaño en bloques del mapa de bits
+    AIBlocks = tamAI(SB.totInodos); // tamaño en bloques del array de inodos
+    metaBlocks = tamSB+MBBlocks+AIBlocks; // Tamaño total de los bloques ocupados por el superbloque, mapa de bits y array de inodos
+    metaBytes = metaBlocks/8; // Tamaño en bytes del mapa de bits
     
-    if(sizeBits/BLOCKSIZE > 1) { // Si el tamaño del mapa de bits es mayor que un bloque
+    if(metaBytes/BLOCKSIZE > 1) { // Si el tamaño del mapa de bits es mayor que un bloque
         // Rellenar los bloques de mapa de bits con 1
-        for(int i =0; i<(sizeBits/BLOCKSIZE); i++) {
-            memset(bufferMB, 255, BLOCKSIZE);
-            if(bwrite(SB.posPrimerBloqueMB+i,bufferMB)==FALLO) {
+        for(int i =0; i<(metaBytes/BLOCKSIZE); i++) {
+            memset(bufferMB, 255, BLOCKSIZE); // Rellenar el buffer con 1
+            if(bwrite(SB.posPrimerBloqueMB+i,bufferMB)==FALLO) { // Escribir el buffer en el dispositivo virtual
                 perror(RED "Error initSB()");
                 printf(RESET);
                 return FALLO;
@@ -98,23 +98,23 @@ int initMB() {
         }
     } else { // Si el tamaño del mapa de bits es menor que un bloque
         // Rellenar el bloque con la cantidad de 1 correspondientes
-        for(int i=0; i<sizeBits;i++) {
+        for(int i=0; i<metaBytes;i++) {
             bufferMB[i]=255;
         }
     }
 
     // Rellenar el último byte con los 1 correspondientes
-    if(size%8 != 0) {
+    if(metaBlocks%8 != 0) {
         char ultimoByte=0;
-        for(int i =0; i<(size%8);i++) {
+        for(int i =0; i<(metaBlocks%8);i++) {
             ultimoByte |= (1 << (7-i));
         }
-        bufferMB[sizeBits]=ultimoByte;
-        sizeBits++;
+        bufferMB[metaBytes]=ultimoByte;
+        metaBytes++;
     }
 
     // Rellenar el resto del bloque con 0
-    for(int i = sizeBits;i<BLOCKSIZE;i++) bufferMB[i]=0;
+    for(int i = metaBytes;i<BLOCKSIZE;i++) bufferMB[i]=0;
 
     // Escribir el mapa de bits en el dispositivo virtual
     if(bwrite(SB.posPrimerBloqueMB, bufferMB)==FALLO) {
@@ -124,7 +124,7 @@ int initMB() {
     }
 
     // Actualizar la cantidad de bloques libres
-    SB.cantBloquesLibres -= size;
+    SB.cantBloquesLibres -= metaBlocks;
 
     // Actualizar el superbloque
     if (bwrite(posSB, &SB) == FALLO) {
@@ -320,7 +320,7 @@ int reservar_bloque(){
     // Actualizar el superbloque
     SB.cantBloquesLibres--;
 
-    if (bwrite(0, &SB) == FALLO) {
+    if (bwrite(posSB, &SB) == FALLO) {
         return FALLO; // Error al escribir el superbloque actualizado
     }
 
@@ -474,8 +474,6 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
         printf(RED"Error al escribir el inodo en reservar_inodo()\n"RESET);
         return FALLO;
     }
-
-    
 
     return posInodoReservado;
 }
