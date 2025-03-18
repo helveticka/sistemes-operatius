@@ -108,12 +108,19 @@ int main(int argc, char *argv[]) {
     printf("Liberamos ese bloque y después SB.cantBloquesLibres = %d\n", SB.cantBloquesLibres);
 
     printf("\n\nMAPA DE BITS CON BLOQUES DE METADATOS OCUPADOS\n");
+    printf(GRAY"[leer_bit(%d) -> posbyte:%d, posbyte(ajustado): %d, posbit:%d, nBloqueMB:%d, nbloqueabs:%d]\n" RESET, posSB, (posSB/8), ((posSB/8) % BLOCKSIZE), (posSB%8), (posSB/8/1024), (posSB/8/1024)+1);
     printf("posSB: %d → leer_bit(%d) = %d\n", posSB, posSB, leer_bit(posSB));
+    printf(GRAY"[leer_bit(%d) -> posbyte:%d, posbyte(ajustado): %d, posbit:%d, nBloqueMB:%d, nbloqueabs:%d]\n" RESET, SB.posPrimerBloqueMB, (SB.posPrimerBloqueMB/8), ((SB.posPrimerBloqueMB/8) % BLOCKSIZE), (SB.posPrimerBloqueMB%8), (SB.posPrimerBloqueMB/8/1024), (SB.posPrimerBloqueMB/8/1024)+1);
     printf("SB.posPrimerBloqueMB: %d → leer_bit(%d) = %d\n", SB.posPrimerBloqueMB, SB.posPrimerBloqueMB, leer_bit(SB.posPrimerBloqueMB));
+    printf(GRAY"[leer_bit(%d) -> posbyte:%d, posbyte(ajustado): %d, posbit:%d, nBloqueMB:%d, nbloqueabs:%d]\n" RESET, SB.posUltimoBloqueMB, (SB.posUltimoBloqueMB/8), ((SB.posUltimoBloqueMB/8) % BLOCKSIZE), (SB.posUltimoBloqueMB%8), (SB.posUltimoBloqueMB/8/1024), (SB.posUltimoBloqueMB/8/1024)+1);
     printf("SB.posUltimoBloqueMB: %d → leer_bit(%d) = %d\n", SB.posUltimoBloqueMB, SB.posUltimoBloqueMB, leer_bit(SB.posUltimoBloqueMB));
+    printf(GRAY"[leer_bit(%d) -> posbyte:%d, posbyte(ajustado): %d, posbit:%d, nBloqueMB:%d, nbloqueabs:%d]\n" RESET, SB.posPrimerBloqueAI, (SB.posPrimerBloqueAI/8), ((SB.posPrimerBloqueAI/8) % BLOCKSIZE), (SB.posPrimerBloqueAI%8), (SB.posPrimerBloqueAI/8/1024), (SB.posPrimerBloqueAI/8/1024)+1);
     printf("SB.posPrimerBloqueAI: %d → leer_bit(%d) = %d\n", SB.posPrimerBloqueAI, SB.posPrimerBloqueAI, leer_bit(SB.posPrimerBloqueAI));
+    printf(GRAY"[leer_bit(%d) -> posbyte:%d, posbyte(ajustado): %d, posbit:%d, nBloqueMB:%d, nbloqueabs:%d]\n" RESET, SB.posUltimoBloqueAI, (SB.posUltimoBloqueAI/8), ((SB.posUltimoBloqueAI/8) % BLOCKSIZE), (SB.posUltimoBloqueAI%8), (SB.posUltimoBloqueAI/8/1024), (SB.posUltimoBloqueAI/8/1024)+1);
     printf("SB.posUltimoBloqueAI: %d → leer_bit(%d) = %d\n", SB.posUltimoBloqueAI, SB.posUltimoBloqueAI, leer_bit(SB.posUltimoBloqueAI));
+    printf(GRAY"[leer_bit(%d) -> posbyte:%d, posbyte(ajustado): %d, posbit:%d, nBloqueMB:%d, nbloqueabs:%d]\n" RESET, SB.posPrimerBloqueDatos, (SB.posPrimerBloqueDatos/8), ((SB.posPrimerBloqueDatos/8) % BLOCKSIZE), (SB.posPrimerBloqueDatos%8), (SB.posPrimerBloqueDatos/8/1024), (SB.posPrimerBloqueDatos/8/1024)+1);
     printf("SB.posPrimerBloqueDatos: %d → leer_bit(%d) = %d\n", SB.posPrimerBloqueDatos, SB.posPrimerBloqueDatos, leer_bit(SB.posPrimerBloqueDatos));
+    printf(GRAY"[leer_bit(%d) -> posbyte:%d, posbyte(ajustado): %d, posbit:%d, nBloqueMB:%d, nbloqueabs:%d]\n" RESET, SB.posUltimoBloqueDatos, (SB.posUltimoBloqueDatos/8), ((SB.posUltimoBloqueDatos/8) % BLOCKSIZE), (SB.posUltimoBloqueDatos%8), (SB.posUltimoBloqueDatos/8/1024), (SB.posUltimoBloqueDatos/8/1024)+1);
     printf("SB.posUltimoBloqueDatos: %d → leer_bit(%d) = %d\n", SB.posUltimoBloqueDatos, SB.posUltimoBloqueDatos, leer_bit(SB.posUltimoBloqueDatos));
     
     printf("\n\nDATOS DEL DIRECTORIO RAIZ\n");

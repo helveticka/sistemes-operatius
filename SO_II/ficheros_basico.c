@@ -282,7 +282,7 @@ int reservar_bloque(){
     int nbloqueMB, posbyte, posbit, nbloque;
 
     // Buscar el primer bloque del MB con al menos un bit a 0
-    for (nbloqueMB = 0; nbloqueMB < tamMB(SB.totBloques); nbloqueMB++) {
+    for (nbloqueMB = SB.posPrimerBloqueDatos; nbloqueMB < tamMB(SB.totBloques); nbloqueMB++) {
         if (bread(nbloqueMB + SB.posPrimerBloqueMB, bufferMB) == -1) {
             return FALLO; // Error al leer el MB
         }
@@ -331,8 +331,8 @@ int reservar_bloque(){
     if (bwrite(nbloque, bufferCero) == FALLO) {
         return FALLO; // Error al limpiar el bloque de datos
     }
-
-    return nbloque; // Devolver el número del bloque reservado
+    printf("nbloque: %d\n", nbloque);
+    return (nbloque/8/1024); // Devolver el número del bloque reservado
 }
 /**
  * @brief Libera un bloque
