@@ -600,3 +600,11 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
     }
     return FALLO; // Caso de error o fuera de rango
 }
+
+int liberar_inodo(unsigned int ninodo){
+
+}
+
+int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
+
+}

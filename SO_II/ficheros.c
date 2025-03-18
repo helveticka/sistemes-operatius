@@ -62,3 +62,7 @@ int mi_chmod_f(unsigned int ninodo, unsigned char permisos){
     }
     return EXITO;
 }
+
+int mi_truncar_f(unsigned int ninodo, unsigned int nbytes){
+
+}
