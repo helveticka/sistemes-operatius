@@ -1,6 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include "ficheros.h"
+    #include "ficheros.h"
 
 int main(int argc, char **argv) {
     if (argc != 4) {
