@@ -4,8 +4,127 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
 }
 
-int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes){
+int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes) {
+    struct inodo inodo;
+    unsigned int primerBL, ultimoBL;
+    unsigned int bytesEscritos = 0;
+    unsigned int bytesEscribiendo = 0;
+    int desp1, desp2;
 
+    if (leer_inodo(ninodo, &inodo) == FALLO){
+        perror(RED "mi_read_f(): error leyendo el inodo"RESET);
+        return FALLO;
+    }
+
+    if ((inodo.permisos & 4) != 4) {
+       perror(RED "No hay permisos de lectura\n" RESET);
+       return FALLO;
+    }
+
+    if ((offset + nbytes) >= inodo.tamEnBytesLog){ 
+        nbytes = inodo.tamEnBytesLog - offset;
+    }
+
+    primerBL = offset / BLOCKSIZE;
+    ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
+    desp1 = offset % BLOCKSIZE;
+    desp2 = (offset + nbytes - 1) % BLOCKSIZE;
+
+    unsigned int bloqueFisico = traducir_bloque_inodo(&inodo, primerBL, 1);
+
+    if (bloqueFisico == FALLO){ 
+        perror(RED "mi_write_f(): error al pasar bloque físico a lógico\n" RESET);
+        return FALLO;
+    }
+
+    char unsigned bufBloque[BLOCKSIZE];
+    if (bread(bloqueFisico, bufBloque) == FALLO){
+        perror(RED "mi_write_f(): error al leer el bloque físico\n" RESET);
+        return FALLO;
+    }
+
+    unsigned int bytesLeidos;
+
+    if (primerBL == ultimoBL) {
+        bytesLeidos = nbytes;
+    } else {
+        bytesLeidos = BLOCKSIZE - desp1;
+    }
+
+    if (memcpy(bufBloque + desp1, buf_original, bytesLeidos) == NULL) {
+        perror(RED "mi_write_f() error\n" RESET);
+        return FALLO;
+    }
+ 
+    bytesEscribiendo = bwrite(bloqueFisico, bufBloque);
+    if (bytesEscribiendo == FALLO) {
+        perror(RED "mi_write_f(): error al escribir bloques\n" RESET);
+        return FALLO;
+    }
+
+    if (primerBL == ultimoBL) {
+        bytesEscritos += nbytes;
+    } else { // primerBL < ultimoBL
+        bytesEscritos += bytesEscribiendo - desp1;
+    }
+    
+    if (primerBL < ultimoBL){
+        for (int bloque = 1 + primerBL; bloque < ultimoBL; bloque++){
+            bloqueFisico = traducir_bloque_inodo(&inodo, bloque, 1);
+            if (bloqueFisico == FALLO) {
+                perror(RED "mi_write_f(): error al traducir bloque inodo\n" RESET);
+                return FALLO;
+            }
+
+            bytesEscribiendo = bwrite(bloqueFisico, buf_original + (BLOCKSIZE - desp1) + (bloque - primerBL - 1) * BLOCKSIZE);
+            
+            if (bytesEscribiendo == FALLO) {
+                perror(RED "mi_write_f(): error al escribir bloques\n" RESET);
+                return FALLO;
+            }
+
+            bytesEscritos += bytesEscribiendo;
+        }
+
+        bloqueFisico = traducir_bloque_inodo(&inodo, ultimoBL, 1);
+
+        if (bloqueFisico == FALLO) {
+            perror(RED "mi_write_f: Error traduciendo el último bloque del inodo\n" RESET);
+            return FALLO;
+        }
+
+        if (bread(bloqueFisico, bufBloque) == FALLO) {
+            perror(RED "mi_write_f(): Error leyendo último bloque\n" RESET);
+            return FALLO;
+        }
+        
+        if(memcpy(bufBloque, buf_original + (nbytes - desp2 - 1), desp2 + 1) == NULL) {
+            perror(RED "mi_write_f(): Error\n" RESET);
+            return FALLO;
+        }
+
+        bytesEscribiendo = bwrite(bloqueFisico, bufBloque);
+
+        if (bytesEscribiendo == FALLO) {
+            perror(RED "mi_write_f(): error al escribir último bloque\n" RESET);
+            return FALLO;
+        }
+
+        bytesEscritos += desp2 + 1;
+    }
+
+    if ((offset + nbytes) > inodo.tamEnBytesLog) { 
+        inodo.tamEnBytesLog = nbytes + offset;
+        inodo.ctime = time(NULL);
+    }
+
+    inodo.mtime = time(NULL);
+    if (escribir_inodo(ninodo, &inodo) == FALLO){
+        fprintf(stderr, RED "mi_write_f(): error al escribir inodo %i" RESET, ninodo);
+        return FALLO;
+    }
+
+    return bytesEscritos;
 }
 
 /**
