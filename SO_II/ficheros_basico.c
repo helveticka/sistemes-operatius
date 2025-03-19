@@ -56,7 +56,7 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
     SB.totInodos = ninodos;
 
     // Escribir el superbloque en el bloque 0
-    if (bwrite(0, &SB) == FALLO) {
+    if (bwrite(posSB, &SB) == FALLO) {
         return FALLO; // Error en la escritura
     }
 
@@ -65,81 +65,69 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
 
 /**
  * @brief Escribe el mapa de bits en el dispositivo virtual
- * @param nbloque Número de bloque
- * @param bit Bit a escribir
  * @return FALLO si ha habido error al escribir el mapa de bits, EXITO en caso contrario
  */
 int initMB() {
     struct superbloque SB;
+    int tamMD, bloques, bytes, bloqueMB;
     unsigned char bufferMB[BLOCKSIZE];
-    unsigned int metaBlocks, MBBlocks, AIBlocks, metaBytes;
-    
-    //comprobamos que existe el superbloque
-    if(bread(posSB, &SB) == FALLO) {
-        perror(RED "Error InitMB()"RESET);
+    // Comprobar si se ha leído el superbloque
+    if (bread(posSB, &SB) == FALLO) {
+        fprintf(stderr, RED"Error en initMB()\n"RESET);
         return FALLO;
     }
-
-    // Calcular el tamaño del mapa de bits
-    MBBlocks = tamMB(SB.totBloques); // tamaño en bloques del mapa de bits
-    AIBlocks = tamAI(SB.totInodos); // tamaño en bloques del array de inodos
-    metaBlocks = tamSB+MBBlocks+AIBlocks; // Tamaño total de los bloques ocupados por el superbloque, mapa de bits y array de inodos
-    metaBytes = metaBlocks/8; // Tamaño en bytes del mapa de bits
-    
-    if(metaBytes/BLOCKSIZE > 1) { // Si el tamaño del mapa de bits es mayor que un bloque
-        // Rellenar los bloques de mapa de bits con 1
-        for(int i =0; i<(metaBytes/BLOCKSIZE); i++) {
-            memset(bufferMB, 255, BLOCKSIZE); // Rellenar el buffer con 1
-            if(bwrite(SB.posPrimerBloqueMB+i,bufferMB)==FALLO) { // Escribir el buffer en el dispositivo virtual
-                perror(RED "Error initSB()");
-                printf(RESET);
-                return FALLO;
+    // Calcular el tamaño del mapa de bits en bloques y bytes
+    tamMD = SB.posPrimerBloqueDatos;
+    bloques = (tamMD/8)/BLOCKSIZE;
+    bytes = (tamMD/8)%BLOCKSIZE;
+    // Inicializar el mapa de bits a 1's
+    memset(bufferMB, 255, BLOCKSIZE);
+    // Poner a 1 los bloques de los metadatos
+    for (bloqueMB = SB.posPrimerBloqueMB; bloqueMB <= bloques; bloqueMB++) {
+        if (bwrite(bloqueMB, bufferMB) == FALLO) {
+            fprintf(stderr, RED"Error en initMB()\n"RESET);
+            return FALLO;
+        }
+    }
+    // Poner a 1 los bytes restantes
+    if (bytes != 0) {
+        memset(bufferMB, 0, BLOCKSIZE);
+        for (int i = 0; i<bytes; i++) {
+            bufferMB[i] = 255;
+        }
+        // Poner a 1 los bits restantes
+        if (tamMD % 8 != 0) {
+            int res = 0;
+            // Calcular el valor del byte
+            for (int j = 0; j < (tamMD % 8); j++) {
+                int potencia = 1;
+                // Calcular la potencia de 2
+                for (int n = 0; n < (7-j); n++) {
+                    potencia *= 2;
+                }
+                res += potencia;
             }
+            // Poner a 1 el bit restante
+            bufferMB[bytes] = res;
         }
-    } else { // Si el tamaño del mapa de bits es menor que un bloque
-        // Rellenar el bloque con la cantidad de 1 correspondientes
-        for(int i=0; i<metaBytes;i++) {
-            bufferMB[i]=255;
+        // Escribir el bloque de mapa de bits
+        if (bwrite(bloqueMB, bufferMB) == FALLO) {
+            fprintf(stderr, RED"Error en initMB()\n"RESET);
+            return FALLO;
         }
     }
-
-    // Rellenar el último byte con los 1 correspondientes
-    if(metaBlocks%8 != 0) {
-        char ultimoByte=0;
-        for(int i =0; i<(metaBlocks%8);i++) {
-            ultimoByte |= (1 << (7-i));
-        }
-        bufferMB[metaBytes]=ultimoByte;
-        metaBytes++;
-    }
-
-    // Rellenar el resto del bloque con 0
-    for(int i = metaBytes;i<BLOCKSIZE;i++) bufferMB[i]=0;
-
-    // Escribir el mapa de bits en el dispositivo virtual
-    if(bwrite(SB.posPrimerBloqueMB, bufferMB)==FALLO) {
-        perror(RED "Error initSB()");
-        printf(RESET);
-        return FALLO;
-    }
-
-    // Actualizar la cantidad de bloques libres
-    SB.cantBloquesLibres -= metaBlocks;
-
     // Actualizar el superbloque
+    SB.cantBloquesLibres -= tamMD;
     if (bwrite(posSB, &SB) == FALLO) {
-        perror(RED"Error in initMB()"RESET);
+        fprintf(stderr, RED"Error en initMB()\n"RESET);
         return FALLO;
     }
-
     return EXITO;
 }
 
 
 /**
  * @brief Inicializa el array de inodos en el dispositivo virtual
- * @param nbloque Número de bloque
- * @param bit Bit a escribir
  * @return FALLO si ha habido error al escribir el array de inodos, EXITO en caso contrario
  */
 int initAI() {
@@ -331,7 +319,6 @@ int reservar_bloque(){
     if (bwrite(nbloque, bufferCero) == FALLO) {
         return FALLO; // Error al limpiar el bloque de datos
     }
-    printf("nbloque: %d\n", nbloque);
     return (nbloque/8/1024); // Devolver el número del bloque reservado
 }
 /**
