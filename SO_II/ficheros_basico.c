@@ -492,8 +492,14 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
 
                 if(nivel_punteros == nRangoBL) { // el bloque cuelga directamente del inodo
                     inodo.punterosIndirectos[nRangoBL - 1] = ptr;
+#if DEBUGN4
+                    fprintf(stderr, GRAY"[traducir_bloque_inodo()→ inodo.punterosIndirectos[%d] = %d (reservado BF %d para punteros_nivel%d)]\n"RESET, nRangoBL-1, ptr, ptr, nRangoBL);
+#endif
                 } else { // el bloque cuelga de otro bloque de punteros
                     buffer[indice] = ptr; // salvar el puntero del bloque reservado
+#if DEBUGN4
+                    fprintf(stderr, GRAY"[traducir_bloque_inodo()→ inodo.punteros_nivel%d[%d] = %d (reservado BF %d para punteros_nivel%d)]\n"RESET, nRangoBL, indice, ptr, ptr, nRangoBL-1);
+#endif
                     bwrite(ptr_ant, buffer); // salvar el bloque de punteros modificado
                 }
                 memset(buffer, 0, BLOCKSIZE); // llenar de ceros el buffer de punteros
@@ -521,8 +527,14 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
 
             if(nRangoBL == 0) { // si era un puntero directo
                 inodo.punterosDirectos[nblogico] = ptr; // actualizar puntero directo
+#if DEBUGN4 
+                fprintf(stderr, GRAY"[traducir_bloque_inodo()→ inodo.punterosDirectos[%d] = %d (reservado BF %d para BL %d)]\n"RESET, nblogico, ptr, ptr, nblogico);
+#endif
             } else {
                 buffer[indice] = ptr; // guardamos puntero al bloque de datos
+#if DEBUGN4 
+                fprintf(stderr, GRAY"[traducir_bloque_inodo()→ inodo.punteros_nivel1[%d] = %d (reservado BF %d para BL %d)]\n"RESET, indice, ptr, ptr, nblogico);
+#endif
                 bwrite(ptr_ant, buffer); // escribimos el bloque de punteros
             }
         }
