@@ -255,11 +255,11 @@ int reservar_bloque(){
     struct superbloque SB;
 
     // Leer el superbloque
-    if (bread(0, &SB) == FALLO) {
+    if (bread(posSB, &SB) == FALLO) {
         return FALLO; // Error al leer el superbloque
     }
     // Comprobar si quedan bloques libres
-    if (SB.cantBloquesLibres == 0) {
+    if (SB.cantBloquesLibres <= 0) {
         return FALLO; // No hay bloques disponibles
     }
 
@@ -267,11 +267,30 @@ int reservar_bloque(){
     unsigned char bufferAux[BLOCKSIZE];
     memset(bufferAux, 255, BLOCKSIZE); // Llenar bufferAux con bits a 1
 
-    int nbloqueMB, posbyte, posbit, nbloque;
+    int posbyte, posbit, nbloque, nbloqueabs;
+    nbloqueabs = SB.posPrimerBloqueMB;
+
+    while (nbloqueabs <= SB.posUltimoBloqueMB) {
+        // Leer el bloque del MB
+        if (bread(nbloqueabs, bufferMB) == -1) {
+            return FALLO; // Error al leer el MB
+        }
+
+        // Comparar el bloque del MB con bufferAux
+        if (memcmp(bufferMB, bufferAux, BLOCKSIZE) != 0) {
+            // Encontramos un bloque con al menos un bit a 0
+            break;
+        }
+        nbloqueabs++;
+    }
+
+
+
 
     // Buscar el primer bloque del MB con al menos un bit a 0
-    for (nbloqueMB = SB.posPrimerBloqueDatos; nbloqueMB < tamMB(SB.totBloques); nbloqueMB++) {
-        if (bread(nbloqueMB + SB.posPrimerBloqueMB, bufferMB) == -1) {
+    /**
+     * for (nbloqueMB = SB.posPrimerBloqueDatos; nbloqueabs < SB.posUltimoBloqueMB; nbloqueabs++) {
+        if (bread(nbloqueabs, bufferMB) == -1) {
             return FALLO; // Error al leer el MB
         }
 
@@ -280,6 +299,9 @@ int reservar_bloque(){
             break;
         }
     }
+     */
+    
+
 
     // Buscar el primer byte con un bit a 0 dentro del bloque encontrado
     for (posbyte = 0; posbyte < BLOCKSIZE; posbyte++) {
@@ -298,7 +320,7 @@ int reservar_bloque(){
     }
 
     // Calcular el número de bloque a reservar
-    nbloque = (nbloqueMB * BLOCKSIZE * 8) + (posbyte * 8) + posbit;
+    nbloque = (((nbloqueabs - SB.posPrimerBloqueMB) * BLOCKSIZE + posbyte) * 8) + posbit;
 
     // Reservar el bloque (poner el bit a 1)
     if (escribir_bit(nbloque, 1) == FALLO) {
@@ -319,7 +341,7 @@ int reservar_bloque(){
     if (bwrite(nbloque, bufferCero) == FALLO) {
         return FALLO; // Error al limpiar el bloque de datos
     }
-    return (nbloque/8/1024); // Devolver el número del bloque reservado
+    return nbloque; // Devolver el número del bloque reservado
 }
 /**
  * @brief Libera un bloque
@@ -489,7 +511,6 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
                 inodo.numBloquesOcupados++;
                 inodo.ctime = time(NULL); // fecha actual
                 salvar_inodo = 1;
-
                 if(nivel_punteros == nRangoBL) { // el bloque cuelga directamente del inodo
                     inodo.punterosIndirectos[nRangoBL - 1] = ptr;
 #if DEBUGN4
@@ -600,10 +621,10 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
     return FALLO; // Caso de error o fuera de rango
 }
 
-int liberar_inodo(unsigned int ninodo){
+//int liberar_inodo(unsigned int ninodo){
 
-}
+//}
 
-int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
+// int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
 
-}
+//}
