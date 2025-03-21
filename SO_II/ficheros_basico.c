@@ -519,7 +519,7 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
                 } else { // el bloque cuelga de otro bloque de punteros
                     buffer[indice] = ptr; // salvar el puntero del bloque reservado
 #if DEBUGN4
-                    fprintf(stderr, GRAY"[traducir_bloque_inodo()→ inodo.punteros_nivel%d[%d] = %d (reservado BF %d para punteros_nivel%d)]\n"RESET, nRangoBL, indice, ptr, ptr, nRangoBL-1);
+                    fprintf(stderr, GRAY"[traducir_bloque_inodo()→ inodo.punteros_nivel%d[%d] = %d (reservado BF %d para punteros_nivel%d)]\n"RESET, nivel_punteros+1, indice, ptr, ptr, nRangoBL-1);
 #endif
                     bwrite(ptr_ant, buffer); // salvar el bloque de punteros modificado
                 }
