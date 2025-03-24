@@ -175,11 +175,7 @@ int main(int argc, char *argv[]) {
         }
         printf("\n");
     }
-
-    if (escribir_inodo(ninodo, &inodo) == FALLO) {
-        fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
-        return FALLO;
-    }
+    
     printf("\nDATOS DEL INODO RESERVADO 1\n");
     if (leer_inodo(ninodo, &inodo) == FALLO) {
         fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
