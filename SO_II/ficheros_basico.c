@@ -486,8 +486,8 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 
     return posInodoReservado;
 }
-/**
- * int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned char reservar){
+
+int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned char reservar){
     unsigned int ptr, ptr_ant, salvar_inodo;
     int nRangoBL, nivel_punteros, indice;
     unsigned int buffer[NPUNTEROS];
@@ -566,128 +566,6 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     }
     return ptr; // devolver el número de bloque de datos lógico
 }
-
- */
-
- int traducir_bloque_inodo(struct inodo *inodo, unsigned int nblogico, unsigned char reservar)
-{
-    unsigned int ptr = 0, ptr_ant = 0, buffer[NPUNTEROS];
-    int nRangoBL, nivel_punteros, indice;
-
-    nRangoBL = obtener_nRangoBL(inodo, nblogico, &ptr);
-    if (nRangoBL == FALLO)
-    {
-        fprintf(stderr, RED"ERROR EN traducir_bloque_inodo()\n"RESET);
-        return FALLO;
-    }
-    nivel_punteros = nRangoBL;
-
-    while (nivel_punteros > 0)
-    {
-        if (ptr == 0)
-        {
-            if (reservar == 0)
-            {
-                //fprintf(stderr,ROJO_T"ERROR EN traducir_bloque_inodo()\n"RESET);
-                return FALLO;
-            }
-
-            ptr = reservar_bloque();
-            if (ptr == FALLO)
-            {
-                fprintf(stderr, RED"ERROR EN traducir_bloque_inodo()\n"RESET);
-                return FALLO;
-            }
-            inodo->numBloquesOcupados++;
-            inodo->ctime = time(NULL);
-
-            if (nivel_punteros == nRangoBL)
-            {
-                inodo->punterosIndirectos[nRangoBL-1] = ptr;
-                #if DEBUGN4 || DEBUG_NIVEL5 || DEBUG_NIVEL6 || DEBUG_ENTREGA1
-                    fprintf(stderr, GRAY"[traducir_bloque_inodo()→  inodo.punterosIndirectos[%d] = %d (reservado BF %d para punteros_nivel%d)]\n"RESET, nRangoBL-1, ptr, ptr, nRangoBL);
-                #endif
-            }
-            else
-            {
-                buffer[indice] = ptr;
-                #if DEBUGN4 || DEBUG_NIVEL5 || DEBUG_NIVEL6 || DEBUG_ENTREGA1
-                    fprintf(stderr, GRAY"[traducir_bloque_inodo()→  inodo.punteros_nivel%d[%d] = %d (reservado BF %d para punteros_nivel%d)]\n"RESET, nRangoBL, indice, ptr, ptr, nRangoBL-1);
-                #endif
-                
-                if (bwrite(ptr_ant, buffer) == FALLO)
-                {
-                    fprintf(stderr, RED"ERROR EN traducir_bloque_inodo()\n"RESET);
-                    return FALLO;
-                }
-            }
-
-            memset(buffer, 0, BLOCKSIZE);
-        }
-        else
-        {
-            if (bread(ptr, buffer) == FALLO)
-            {
-                fprintf(stderr, RED"ERROR EN traducir_bloque_inodo()\n"RESET);
-                return FALLO;
-            }
-        }
-
-        indice = obtener_indice(nblogico, nivel_punteros);
-        if (indice == FALLO)
-        {
-            fprintf(stderr, RED"ERROR EN traducir_bloque_inodo()\n"RESET);
-            return FALLO;
-        }
-
-        ptr_ant = ptr;
-        ptr = buffer[indice];
-        nivel_punteros--;
-    }
-
-    
-    if (ptr == 0)
-    {
-        if (reservar == 0)
-        {
-            //fprintf(stderr,ROJO_T"ERROR EN traducir_bloque_inodo()\n"RESET);
-            return FALLO;
-        }
-    
-        ptr = reservar_bloque();
-        if (ptr == FALLO)
-        {
-            fprintf(stderr, RED"ERROR EN traducir_bloque_inodo()\n"RESET);
-            return FALLO;
-        }
-        inodo->numBloquesOcupados++;
-        inodo->ctime = time(NULL);
-
-        if (nRangoBL == 0)
-        {
-            inodo->punterosDirectos[nblogico] = ptr;
-            #if DEBUGN4 || DEBUG_NIVEL5 || DEBUG_NIVEL6 || DEBUG_ENTREGA1
-                fprintf(stderr, GRAY"[traducir_bloque_inodo()→  inodo.punterosDirectos[%d] = %d (reservado BF %d para BL %d)]\n"RESET, nblogico, ptr, ptr, nblogico);
-            #endif
-        }
-        else
-        {
-            buffer[indice] = ptr;
-            #if DEBUGN4 || DEBUG_NIVEL5 || DEBUG_NIVEL6 || DEBUG_ENTREGA1
-                fprintf(stderr, GRAY"[traducir_bloque_inodo()→  inodo.punteros_nivel1[%d] = %d (reservado BF %d para BL %d)]\n"RESET, indice, ptr, ptr, nblogico);
-            #endif
-            
-            if (bwrite(ptr_ant, buffer) == FALLO)
-            {
-                fprintf(stderr, RED"ERROR EN traducir_bloque_inodo()\n"RESET);
-                return FALLO;
-            }
-        }
-    }
-
-    return ptr;
-}
-
 /**
  * @brief Obtiene el rango de bloques lógicos
  * @param inodo Inodo

@@ -169,7 +169,7 @@ int main(int argc, char *argv[]) {
     }
     
     for (int i=0; i<sizeof(nblogicos)/sizeof(int); i++) {
-        if (traducir_bloque_inodo(&inodo, nblogicos[i], 1) == FALLO) {
+        if (traducir_bloque_inodo(ninodo, nblogicos[i], 1) == FALLO) {
             fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
             return FALLO;
         }
