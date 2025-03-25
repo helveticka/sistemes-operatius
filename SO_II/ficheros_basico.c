@@ -626,10 +626,10 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
 //}
 
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
-    int nivel_punteros, ptr = 0;
+    unsigned int nivel_punteros = 0, ptr = 0;
     unsigned int nBL = primerBL;
     unsigned int ultimoBL;
-    int nRangoBL, liberados, eof = 0;
+    int nRangoBL = 0, liberados = 0, eof = 0;
 
     if(inodo->tamEnBytesLog == 0) return 0; // el fichero está vacío
 
