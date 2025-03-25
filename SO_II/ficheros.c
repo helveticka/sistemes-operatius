@@ -1,18 +1,26 @@
 #include "ficheros.h"
 
+/**
+ * @brief Escribe el contenido procedente de un buffer de memoria en un fichero/directorio
+ * @param ninodo Nº de inodo del fichero en el que se escribirá
+ * @param buf_original Buffer de memoria con el contenido a escribir
+ * @param offset Posición de escritura inicial, en bytes lógicos, con respecto al inodo
+ * @param nbytes Nº de bytes a escribir
+ * @return Cantidad de bytes escritos, FALLO en caso de error
+ */
 int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offset, unsigned int nbytes){
     struct inodo inodo;
     
     // Leer el inodo
     if (leer_inodo(ninodo, &inodo) == -1) {
         fprintf(stderr, "Error al leer el inodo\n");
-        return -1;
+        return FALLO;
     }
 
     // Verificar permisos de escritura
     if ((inodo.permisos & 2) != 2) {
         fprintf(stderr, "No hay permisos de escritura\n");
-        return -1;
+        return FALLO;
     }
 
     // Cálculo de bloques y desplazamientos
