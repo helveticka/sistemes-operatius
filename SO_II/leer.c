@@ -42,6 +42,10 @@ int main(int argc, char **argv) {
         }
     }
     fprintf(stderr, "\n");
+    if (mi_stat_f(ninodo, &p_stat) == FALLO) {
+        fprintf(stderr, RED"ERROR EN ./leer\n"RESET);
+        return FALLO;
+    }
 
 #if DEBUGN5 
     fprintf(stderr, "total_leidos: %d\n", total_leidos);

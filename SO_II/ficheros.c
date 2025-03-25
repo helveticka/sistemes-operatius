@@ -116,7 +116,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     desp1 = offset % BLOCKSIZE;
     desp2 = (offset + nbytes - 1) % BLOCKSIZE;
 
-    unsigned int bloqueFisico = traducir_bloque_inodo(&inodo, primerBL, 1);
+    unsigned int bloqueFisico = traducir_bloque_inodo(ninodo, primerBL, 1);
 
     if (bloqueFisico == FALLO){ 
         perror(RED "mi_write_f(): error al pasar bloque físico a lógico\n" RESET);
@@ -156,7 +156,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
     
     if (primerBL < ultimoBL){
         for (int bloque = 1 + primerBL; bloque < ultimoBL; bloque++){
-            bloqueFisico = traducir_bloque_inodo(&inodo, bloque, 1);
+            bloqueFisico = traducir_bloque_inodo(ninodo, bloque, 1);
             if (bloqueFisico == FALLO) {
                 perror(RED "mi_write_f(): error al traducir bloque inodo\n" RESET);
                 return FALLO;
@@ -172,7 +172,7 @@ int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsi
             bytesEscritos += bytesEscribiendo;
         }
 
-        bloqueFisico = traducir_bloque_inodo(&inodo, ultimoBL, 1);
+        bloqueFisico = traducir_bloque_inodo(ninodo, ultimoBL, 1);
 
         if (bloqueFisico == FALLO) {
             perror(RED "mi_write_f: Error traduciendo el último bloque del inodo\n" RESET);
