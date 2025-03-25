@@ -28,35 +28,41 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     // Caso donde todo cabe en un solo bloque lógico
     if (primerBL == ultimoBL) {
         nbfisico = traducir_bloque_inodo(ninodo, primerBL, 1);
-        if (nbfisico == -1) return -1;
+        if (nbfisico == FALLO) return FALLO;
 
         // Leer bloque del dispositivo
-        if (bread(nbfisico, buf_bloque) == -1) return -1;
+        if (bread(nbfisico, buf_bloque) == FALLO) return FALLO;
 
         // Copiar solo la parte necesaria desde buf_original a buf_bloque
         memcpy(buf_bloque + desp1, buf_original, nbytes);
 
         // Escribir el bloque modificado
-        if (bwrite(nbfisico, buf_bloque) == -1) return -1;
+        if (bwrite(nbfisico, buf_bloque) == FALLO) return FALLO;
 
         bytes_escritos += nbytes;
     } else {
         // 1. Primer bloque lógico (parcial)
         nbfisico = traducir_bloque_inodo(ninodo, primerBL, 1);
-        if (nbfisico == -1) return -1;
+        if (nbfisico == FALLO) return FALLO;
 
-        if (bread(nbfisico, buf_bloque) == -1) return -1;
+        inodo.numBloquesOcupados++;
+
+        if (bread(nbfisico, buf_bloque) == FALLO) return FALLO;
 
         unsigned int bytes_a_escribir = BLOCKSIZE - desp1;
         memcpy(buf_bloque + desp1, buf_original, bytes_a_escribir);
-        if (bwrite(nbfisico, buf_bloque) == -1) return -1;
+        if (bwrite(nbfisico, buf_bloque) == FALLO) return FALLO;
 
         bytes_escritos += bytes_a_escribir;
 
         // 2. Bloques intermedios (completos)
         for (unsigned int bl = primerBL + 1; bl < ultimoBL; bl++) {
             nbfisico = traducir_bloque_inodo(ninodo, bl, 1);
-            if (nbfisico == -1) return -1;
+            if (nbfisico == FALLO) return FALLO;
+            
+            if (nbfisico == 0) {
+                inodo.numBloquesOcupados++;
+            }
 
             if (bwrite(nbfisico, buf_original + bytes_escritos) == -1) return -1;
 
@@ -65,12 +71,14 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
         // 3. Último bloque lógico (parcial)
         nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 1);
-        if (nbfisico == -1) return -1;
+        if (nbfisico == FALLO) return FALLO;
 
-        if (bread(nbfisico, buf_bloque) == -1) return -1;
+        inodo.numBloquesOcupados++;
+
+        if (bread(nbfisico, buf_bloque) == FALLO) return FALLO;
 
         memcpy(buf_bloque, buf_original + bytes_escritos, desp2 + 1);
-        if (bwrite(nbfisico, buf_bloque) == -1) return -1;
+        if (bwrite(nbfisico, buf_bloque) == FALLO) return FALLO;
 
         bytes_escritos += desp2 + 1;
     }
@@ -82,8 +90,10 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
     inodo.ctime = time(NULL);
     inodo.mtime = time(NULL);
+    
+    //inodo.numBloquesOcupados = (inodo.tamEnBytesLog + BLOCKSIZE - 1) / BLOCKSIZE;
 
-    if (escribir_inodo(ninodo, &inodo) == -1) return -1;
+    if (escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
 
     return bytes_escritos;
 }
@@ -231,8 +241,8 @@ int mi_stat_f(unsigned int ninodo, struct STAT *p_stat){
     p_stat->nlinks = inodo.nlinks;
     p_stat->tamEnBytesLog = inodo.tamEnBytesLog;
     p_stat->atime = inodo.atime;
-    p_stat->ctime = inodo.mtime;
-    p_stat->mtime = inodo.ctime;
+    p_stat->ctime = inodo.ctime;
+    p_stat->mtime = inodo.mtime;
     p_stat->btime = inodo.btime;
     p_stat->numBloquesOcupados = inodo.numBloquesOcupados;
 

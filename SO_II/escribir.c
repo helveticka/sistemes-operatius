@@ -31,8 +31,14 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < NUM_OFFSETS; i++) {
         if (diferentes_inodos || i == 0) {
             ninodo = reservar_inodo('f', 6);
-            printf("\nNº inodo reservado: %d\n", ninodo);
+            if (ninodo == FALLO) {  
+                fprintf(stderr, "Error al reservar inodo\n");  
+                bumount();  
+                return FALLO; 
+            }
         }
+
+        printf("\nNº inodo reservado: %d\n", ninodo);
 
         printf("offset: %u\n", offsets[i]);
 
