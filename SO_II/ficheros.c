@@ -45,8 +45,6 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         nbfisico = traducir_bloque_inodo(ninodo, primerBL, 1);
         if (nbfisico == FALLO) return FALLO;
 
-        inodo.numBloquesOcupados++;
-
         if (bread(nbfisico, buf_bloque) == FALLO) return FALLO;
 
         unsigned int bytes_a_escribir = BLOCKSIZE - desp1;
@@ -59,10 +57,6 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         for (unsigned int bl = primerBL + 1; bl < ultimoBL; bl++) {
             nbfisico = traducir_bloque_inodo(ninodo, bl, 1);
             if (nbfisico == FALLO) return FALLO;
-            
-            if (nbfisico == 0) {
-                inodo.numBloquesOcupados++;
-            }
 
             if (bwrite(nbfisico, buf_original + bytes_escritos) == -1) return -1;
 
@@ -72,8 +66,6 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         // 3. Último bloque lógico (parcial)
         nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 1);
         if (nbfisico == FALLO) return FALLO;
-
-        inodo.numBloquesOcupados++;
 
         if (bread(nbfisico, buf_bloque) == FALLO) return FALLO;
 
