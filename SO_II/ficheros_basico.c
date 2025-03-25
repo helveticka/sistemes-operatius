@@ -62,7 +62,6 @@ int initSB(unsigned int nbloques, unsigned int ninodos){
 
     return EXITO; // Éxito
 }
-
 /**
  * @brief Escribe el mapa de bits en el dispositivo virtual
  * @return FALLO si ha habido error al escribir el mapa de bits, EXITO en caso contrario
@@ -124,8 +123,6 @@ int initMB() {
     }
     return EXITO;
 }
-
-
 /**
  * @brief Inicializa el array de inodos en el dispositivo virtual
  * @return FALLO si ha habido error al escribir el array de inodos, EXITO en caso contrario
@@ -165,7 +162,6 @@ int initAI() {
 
     return EXITO;
 }
-
 /**
  * @brief Escribe un bit en el mapa de bits
  * @param nbloque Número de bloque
@@ -369,7 +365,6 @@ int liberar_bloque(unsigned int nbloque){
     // Devolución del número de bloque liberado
     return nbloque;
 }
-
 /**
  * @brief Escribe un inodo en el array de inodos
  * @param ninodo Número de inodo
@@ -435,7 +430,12 @@ int leer_inodo(unsigned int ninodo, struct inodo *inodo){
 
     return EXITO; // Éxito
 }
-
+/**
+ * @brief Encuentra el primer inodo libre, lo reserva, devuelve su número y actualiza la lista enlazada de inodos libres
+ * @param tipo Tipo de inodo
+ * @param permisos Permisos del inodo
+ * @return Posición del inodo reservado, FALLO en caso de error
+ */
 int reservar_inodo(unsigned char tipo, unsigned char permisos){
     int posInodoReservado, posAI, posInodo;
     struct inodo inodos[BLOCKSIZE/INODOSIZE];
@@ -486,7 +486,13 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
 
     return posInodoReservado;
 }
-
+/**
+ * @brief Obtiene el nº de bloque físico correspondiente a un bloque lógico determinado del inodo indicado
+ * @param ninodo Nº de inodo en el que se encuentra el bloque
+ * @param nblogico Nº de bloque lógico
+ * @param reservar 0 para únicamente consultar, 1 para consultar y reservar en caso de que no exista bloque físico
+ * @return Posición del bloque físico, FALLO en caso de que no exista
+ */
 int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned char reservar){
     unsigned int ptr, ptr_ant, salvar_inodo;
     int nRangoBL, nivel_punteros, indice;
@@ -620,7 +626,11 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
     }
     return FALLO; // Caso de error o fuera de rango
 }
-
+/**
+ * @brief Libera un inodo
+ * @param ninodo Inodo a liberar
+ * @return FALLO si ha habido error, el nº de inodo liberado en caso contrario
+ */
 int liberar_inodo(unsigned int ninodo){
     struct inodo inodo;
     struct superbloque SB;
