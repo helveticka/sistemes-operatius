@@ -621,9 +621,47 @@ int obtener_indice(unsigned int nblogico, int nivel_punteros){
     return FALLO; // Caso de error o fuera de rango
 }
 
-//int liberar_inodo(unsigned int ninodo){
-
-//}
+int liberar_inodo(unsigned int ninodo){
+    struct inodo inodo;
+    struct superbloque SB;
+    int bloques_liberados;
+    
+    // Leer el inodo
+    if (leer_inodo(ninodo, &inodo) == FALLO) {
+        return FALLO;
+    }
+    
+    // Liberar todos los bloques del inodo
+    bloques_liberados = liberar_bloques_inodo(0, &inodo);
+    inodo.numBloquesOcupados -= bloques_liberados;
+    
+    // Marcar el inodo como libre
+    inodo.tipo = 'l';
+    inodo.tamEnBytesLog = 0;
+    inodo.ctime = time(NULL);
+    
+    // Leer el superbloque
+    if (bread(posSB, &SB) == FALLO) {
+        return FALLO;
+    }
+    
+    // Actualizar la lista enlazada de inodos libres
+    inodo.punterosDirectos[0] = SB.posPrimerInodoLibre;
+    SB.posPrimerInodoLibre = ninodo;
+    SB.cantInodosLibres++;
+    
+    // Escribir el inodo actualizado
+    if (escribir_inodo(ninodo, &inodo) == FALLO) {
+        return FALLO;
+    }
+    
+    // Escribir el superbloque actualizado
+    if (bwrite(posSB, &SB) == FALLO) {
+        return FALLO;
+    }
+    
+    return ninodo;
+}
 
 int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     int nivel_punteros, ptr = 0;
