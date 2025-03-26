@@ -123,125 +123,85 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
 int mi_read_f(unsigned int ninodo, void *buf_original, unsigned int offset, unsigned int nbytes) {
     struct inodo inodo;
-    unsigned int primerBL, ultimoBL;
-    unsigned int bytesEscritos = 0;
-    unsigned int bytesEscribiendo = 0;
-    int desp1, desp2;
+    int leidos = 0;
+    int nbfisico;
+    char buf_bloque[BLOCKSIZE];
 
     if (leer_inodo(ninodo, &inodo) == FALLO){
         perror(RED "mi_read_f(): error leyendo el inodo"RESET);
         return FALLO;
     }
 
+    inodo.atime = time(NULL);
+    if (escribir_inodo(ninodo, &inodo) == FALLO){
+        perror(RED "mi_read_f(): error escribiendo el inodo"RESET);
+        return FALLO;
+    }
+
     if ((inodo.permisos & 4) != 4) {
-       perror(RED "No hay permisos de lectura\n" RESET);
+       fprintf(stderr, RED "No hay permisos de lectura\n" RESET);
        return FALLO;
     }
 
-    if ((offset + nbytes) >= inodo.tamEnBytesLog){ 
+    if (offset >= inodo.tamEnBytesLog) {
+        leidos = 0;
+        return leidos;
+    }
+    if ((offset + nbytes) >= inodo.tamEnBytesLog) {
         nbytes = inodo.tamEnBytesLog - offset;
     }
 
-    primerBL = offset / BLOCKSIZE;
-    ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
-    desp1 = offset % BLOCKSIZE;
-    desp2 = (offset + nbytes - 1) % BLOCKSIZE;
-
-    unsigned int bloqueFisico = traducir_bloque_inodo(ninodo, primerBL, 1);
-
-    if (bloqueFisico == FALLO){ 
-        perror(RED "mi_write_f(): error al pasar bloque físico a lógico\n" RESET);
-        return FALLO;
-    }
-
-    char unsigned bufBloque[BLOCKSIZE];
-    if (bread(bloqueFisico, bufBloque) == FALLO){
-        perror(RED "mi_write_f(): error al leer el bloque físico\n" RESET);
-        return FALLO;
-    }
-
-    unsigned int bytesLeidos;
+    unsigned int primerBL = offset / BLOCKSIZE;
+    unsigned int ultimoBL = (offset + nbytes - 1) / BLOCKSIZE;
+    unsigned int desp1 = offset % BLOCKSIZE;
+    unsigned int desp2 = (offset + nbytes - 1) % BLOCKSIZE;
 
     if (primerBL == ultimoBL) {
-        bytesLeidos = nbytes;
+        nbfisico = traducir_bloque_inodo(ninodo, primerBL, 0);
+        if (nbfisico != FALLO) {
+            if (bread(nbfisico, buf_bloque) == FALLO) {
+                perror(RED "mi_read_f(): error al leer el bloque\n" RESET);
+                return FALLO;
+            }
+            memcpy(buf_original, buf_bloque + desp1, nbytes);
+        }
+        leidos += nbytes;
     } else {
-        bytesLeidos = BLOCKSIZE - desp1;
-    }
-
-    if (memcpy(bufBloque + desp1, buf_original, bytesLeidos) == NULL) {
-        perror(RED "mi_write_f() error\n" RESET);
-        return FALLO;
-    }
- 
-    bytesEscribiendo = bwrite(bloqueFisico, bufBloque);
-    if (bytesEscribiendo == FALLO) {
-        perror(RED "mi_write_f(): error al escribir bloques\n" RESET);
-        return FALLO;
-    }
-
-    if (primerBL == ultimoBL) {
-        bytesEscritos += nbytes;
-    } else { // primerBL < ultimoBL
-        bytesEscritos += bytesEscribiendo - desp1;
-    }
-    
-    if (primerBL < ultimoBL){
-        for (int bloque = 1 + primerBL; bloque < ultimoBL; bloque++){
-            bloqueFisico = traducir_bloque_inodo(ninodo, bloque, 1);
-            if (bloqueFisico == FALLO) {
-                perror(RED "mi_write_f(): error al traducir bloque inodo\n" RESET);
+        nbfisico = traducir_bloque_inodo(ninodo, primerBL, 0);
+        if (nbfisico != FALLO) {
+            if (bread(nbfisico, buf_bloque) == FALLO) {
+                perror(RED "mi_read_f(): error al leer el bloque\n" RESET);
                 return FALLO;
             }
-
-            bytesEscribiendo = bwrite(bloqueFisico, buf_original + (BLOCKSIZE - desp1) + (bloque - primerBL - 1) * BLOCKSIZE);
-            
-            if (bytesEscribiendo == FALLO) {
-                perror(RED "mi_write_f(): error al escribir bloques\n" RESET);
+            memcpy(buf_original, buf_bloque + desp1, BLOCKSIZE - desp1);
+        }
+        leidos += BLOCKSIZE - desp1;
+        for (int i = (primerBL + 1); i < ultimoBL; i++) {
+            nbfisico = traducir_bloque_inodo(ninodo, i, 0);
+            if (nbfisico != FALLO) {
+                if (bread(nbfisico, buf_bloque) == FALLO) {
+                    perror(RED "mi_read_f(): error al leer el bloque\n" RESET);
+                    return FALLO;
+                }
+                memcpy((buf_original+(BLOCKSIZE-desp1)+(i-primerBL-1)*BLOCKSIZE), buf_bloque, BLOCKSIZE);
+            }
+            leidos += BLOCKSIZE;
+        }
+        nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 0);
+        if (nbfisico != FALLO) {
+            if (bread(nbfisico, buf_bloque) == FALLO) {
+                perror(RED "mi_read_f(): error al leer el bloque\n" RESET);
                 return FALLO;
             }
-
-            bytesEscritos += bytesEscribiendo;
+            memcpy((buf_original+(nbytes-desp2-1)), buf_bloque, desp2+1);
         }
-
-        bloqueFisico = traducir_bloque_inodo(ninodo, ultimoBL, 1);
-
-        if (bloqueFisico == FALLO) {
-            perror(RED "mi_write_f: Error traduciendo el último bloque del inodo\n" RESET);
-            return FALLO;
-        }
-
-        if (bread(bloqueFisico, bufBloque) == FALLO) {
-            perror(RED "mi_write_f(): Error leyendo último bloque\n" RESET);
-            return FALLO;
-        }
-        
-        if(memcpy(bufBloque, buf_original + (nbytes - desp2 - 1), desp2 + 1) == NULL) {
-            perror(RED "mi_write_f(): Error\n" RESET);
-            return FALLO;
-        }
-
-        bytesEscribiendo = bwrite(bloqueFisico, bufBloque);
-
-        if (bytesEscribiendo == FALLO) {
-            perror(RED "mi_write_f(): error al escribir último bloque\n" RESET);
-            return FALLO;
-        }
-
-        bytesEscritos += desp2 + 1;
+        leidos += desp2 + 1;
     }
-
-    if ((offset + nbytes) > inodo.tamEnBytesLog) { 
-        inodo.tamEnBytesLog = nbytes + offset;
-        inodo.ctime = time(NULL);
-    }
-
-    inodo.mtime = time(NULL);
-    if (escribir_inodo(ninodo, &inodo) == FALLO){
-        fprintf(stderr, RED "mi_write_f(): error al escribir inodo %i" RESET, ninodo);
+    if (leidos != nbytes) {
+        perror(RED "mi_read_f(): error al leer el inodo\n" RESET);
         return FALLO;
     }
-
-    return bytesEscritos;
+    return leidos;
 }
 
 /**
