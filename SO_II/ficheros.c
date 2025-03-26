@@ -36,6 +36,12 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     // Caso donde todo cabe en un solo bloque lógico
     if (primerBL == ultimoBL) {
         nbfisico = traducir_bloque_inodo(ninodo, primerBL, 1);
+
+        if (leer_inodo(ninodo, &inodo) == FALLO){
+            perror(RED "mi_write_f(): error leer inodo"RESET);
+            return FALLO;
+        }
+
         if (nbfisico == FALLO) return FALLO;
 
         // Leer bloque del dispositivo
@@ -51,8 +57,13 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     } else {
         // 1. Primer bloque lógico (parcial)
         nbfisico = traducir_bloque_inodo(ninodo, primerBL, 1);
+
         if (nbfisico == FALLO) return FALLO;
 
+        if (leer_inodo(ninodo, &inodo) == FALLO){
+            perror(RED "mi_write_f(): error leer inodo"RESET);
+            return FALLO;
+        }
         if (bread(nbfisico, buf_bloque) == FALLO) return FALLO;
 
         unsigned int bytes_a_escribir = BLOCKSIZE - desp1;
@@ -64,6 +75,12 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         // 2. Bloques intermedios (completos)
         for (unsigned int bl = primerBL + 1; bl < ultimoBL; bl++) {
             nbfisico = traducir_bloque_inodo(ninodo, bl, 1);
+
+            if (leer_inodo(ninodo, &inodo) == FALLO){
+                perror(RED "mi_write_f(): error leer inodo"RESET);
+                return FALLO;
+            }
+
             if (nbfisico == FALLO) return FALLO;
 
             if (bwrite(nbfisico, buf_original + bytes_escritos) == -1) return -1;
@@ -73,6 +90,12 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
 
         // 3. Último bloque lógico (parcial)
         nbfisico = traducir_bloque_inodo(ninodo, ultimoBL, 1);
+
+        if (leer_inodo(ninodo, &inodo) == FALLO){
+            perror(RED "mi_write_f(): error leer inodo"RESET);
+            return FALLO;
+        }
+
         if (nbfisico == FALLO) return FALLO;
 
         if (bread(nbfisico, buf_bloque) == FALLO) return FALLO;
