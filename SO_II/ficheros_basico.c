@@ -640,11 +640,11 @@ int liberar_inodo(unsigned int ninodo){
     if (leer_inodo(ninodo, &inodo) == FALLO) {
         return FALLO;
     }
-    
+    printf("Liberar inodo: soy el primer print\n");
     // Liberar todos los bloques del inodo
     bloques_liberados = liberar_bloques_inodo(0, &inodo);
     inodo.numBloquesOcupados -= bloques_liberados;
-    
+    printf("Liberar inodo: soy el segundo print\n");
     // Marcar el inodo como libre
     inodo.tipo = 'l';
     inodo.tamEnBytesLog = 0;
@@ -692,19 +692,29 @@ int liberar_bloques_inodo(unsigned int primerBL, struct inodo *inodo){
     if(nRangoBL == 0){
         liberados += liberar_directos(&nBL, ultimoBL, inodo, &eof);
     }
+    printf("Liberar bloques inodo: soy el primer print\n");
     while(!eof){
         nRangoBL = obtener_nRangoBL(inodo, nBL, &ptr); // 0:D, 1:I0, 2:I1, 3:I2
         nivel_punteros = nRangoBL;
         liberados += liberar_indirectos_recursivo(&nBL, primerBL, ultimoBL, inodo, nRangoBL, nivel_punteros, &ptr, &eof);
         // hace una llamada a la función recursiva para cada rama de indirectos
     }
+    printf("Liberar bloques inodo: soy el segundo print\n");
     return liberados;
 }
 
+/**
+ * @brief Libera los bloques directos de un inodo
+ * @param nBL Número de bloque lógico
+ * @param ultimoBL Último bloque lógico
+ * @param inodo Inodo
+ * @param eof Fin de fichero
+ * @return Número de bloques liberados
+ */
 int liberar_directos(unsigned int *nBL, unsigned int ultimoBL, struct inodo *inodo, int *eof){
     int liberados = 0;
-
-    for (int d = *nBL; d < (DIRECTOS-1 || *eof); d++){
+    printf("Liberar directos: soy el primer print\n");
+    for (int d = *nBL; d < DIRECTOS && !(*eof); d++){
         if(inodo->punterosDirectos[*nBL] != 0){
             liberar_bloque(inodo->punterosDirectos[*nBL]);
             inodo->punterosDirectos[*nBL] = 0;
@@ -713,6 +723,7 @@ int liberar_directos(unsigned int *nBL, unsigned int ultimoBL, struct inodo *ino
         (*nBL)++;
         if(*nBL > ultimoBL) *eof = 1; // fin de fichero
     }
+    printf("Liberar inodo: soy el segundo print\n");
     return liberados;
 }
 
@@ -722,16 +733,18 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
     unsigned int bloquePunteros[NPUNTEROS], bloquePunteros_Aux[NPUNTEROS], bufferCeros[NPUNTEROS];
 
     memset(bufferCeros, 0, BLOCKSIZE);
-
+    printf("Liberar indirectos recursivo: soy el primer print\n");
     if(*ptr){
         indice_inicial = obtener_indice(*nBL, nivel_punteros);
+        printf("Liberar indirectos recursivo: soy el segundo print\n");
         if(indice_inicial == 0 || *nBL == primerBL){ // solo leemos bloque si no estaba cargado
             if(bread(*ptr, bloquePunteros) == -1) return FALLO;
             // guardamos copia del bloque para ver si hay cambios
             memcpy(bloquePunteros_Aux, bloquePunteros, BLOCKSIZE);
         }
+        printf("Liberar indirectos recursivo: soy el tercer print\n");
         //exploramos el bloque de punteros iterando el índice
-        for (int i = indice_inicial; i < (NPUNTEROS-1 || *eof); i++){
+        for (int i = indice_inicial; i < NPUNTEROS && !(*eof); i++){
             if(bloquePunteros[i] != 0){
                 if(nivel_punteros == 1){
                     liberar_bloque(bloquePunteros[i]); // de datos
@@ -755,6 +768,7 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
             }
             if(*nBL > ultimoBL) *eof = 1; // fin de fichero
         }
+        printf("Liberar indirectos recursivo: soy el cuarto print\n");
         // Si el bloque de punteros es distinto al original
         if(memcmp(bloquePunteros, bloquePunteros_Aux, BLOCKSIZE) != 0){
             // si quedan punteros != 0 en el bloque lo salvamos
@@ -768,6 +782,7 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
             }
         } 
     } else{ // *ptr == 0
+        printf("Liberar indirectos recursivo: soy el quinto print\n");
         // solo entrará si un puntero del inodo valía 0, resto de casos sólo se llama recursivamente con *ptr!=0
         switch(nRangoBL){ // Saltos al valer 0 un puntero del inodo según el nivel
             case 1:
