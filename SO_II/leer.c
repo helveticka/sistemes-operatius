@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv) {
     struct STAT p_stat;
-    int ninodo, leidos, total_leidos = 0, offset = 0, tambuffer = BLOCKSIZE;
+    int ninodo, leidos, total_leidos = 0, offset = 0, tambuffer = 4000;
     char *path, buffer_texto[tambuffer];
     // Comprobamos que el número de argumentos sea el correcto
     if (argc != 3) {
@@ -24,10 +24,10 @@ int main(int argc, char **argv) {
      
     memset(buffer_texto, 0, tambuffer);
     leidos = mi_read_f(ninodo, buffer_texto, offset, tambuffer);
-    if (leidos == FALLO) {
-         fprintf(stderr, RED"ERROR EN ./leer\n"RESET);
-         return FALLO;
-     }
+    //if (leidos == FALLO) {
+    //     fprintf(stderr, RED"ERROR EN ./leer\n"RESET);
+    //     return FALLO;
+    //}
  
     while (leidos > 0) {
         write(1, buffer_texto, leidos);
