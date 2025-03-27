@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv) {
     if (argc != 4) {
-        fprintf(stderr, "Sintaxis: permitir <nombre_dispositivo> <ninodo> <permisos>\n");
+        fprintf(stderr, RED"Sintaxis: permitir <nombre_dispositivo> <ninodo> <permisos>\n" RESET);
         return FALLO;
     }
 
