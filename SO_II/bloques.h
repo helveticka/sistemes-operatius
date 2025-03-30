@@ -35,7 +35,7 @@
 #define DEBUG_3 0
 #define DEBUG_4 0
 #define DEBUG_5 0
-#define DEBUG_6 1
+#define DEBUG_6 0
 #define DEBUG_7 0
 #define DEBUG_8 0
 #define DEBUG_9 0
@@ -43,7 +43,7 @@
 #define DEBUG_11 0
 #define DEBUG_12 0
 #define DEBUG_13 0
-#define ENTREGA_1 0
+#define ENTREGA_1 1
 #define ENTREGA_2 0
 #define ENTREGA_3 0
 // Funciones

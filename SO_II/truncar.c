@@ -31,15 +31,13 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    printf("Bloques liberados: %d\n", bloques_liberados);
-
     if (mi_stat_f(ninodo, &stat) == -1) {
         fprintf(stderr, "Error obteniendo información del inodo\n");
         bumount();
         return EXIT_FAILURE;
     }
 
-    printf("DATOS INODO %d:\n", ninodo);
+    printf("\nDATOS INODO %d:\n", ninodo);
     printf("tipo=%c\n", stat.tipo);
     printf("permisos=%d\n", stat.permisos);
     printf("atime: %s", ctime(&stat.atime));

@@ -7,15 +7,24 @@
 #define NUM_OFFSETS 5
 
 int main(int argc, char *argv[]) {
+    unsigned int offsets[NUM_OFFSETS] = {9000, 209000, 30725000, 409605000, 480000000};
     if (argc != 4) {
-        fprintf(stderr, "Sintaxis: ./escribir <nombre_dispositivo> <texto> <diferentes_inodos>\n");
+        fprintf(stderr, RED"Sintaxis: ./escribir <nombre_dispositivo> <\"$(cat fichero)\"> <diferentes_inodos>\n"RESET);
+        fprintf(stderr, RED"Offsets: "RESET);
+        for (int i = 0; i < NUM_OFFSETS; i++) {
+            fprintf(stderr, RED"%u"RESET, offsets[i]);
+            if (i < NUM_OFFSETS - 1) {
+                fprintf(stderr, RED", "RESET);
+            }
+        }
+        fprintf(stderr, RED"\nSi diferentes_inodos=0 se reserva un solo inodo para todos los offsets\n"RESET);
         return FALLO;
     }
 
     char *nombre_dispositivo = argv[1];
     char *texto = argv[2];
     int diferentes_inodos = atoi(argv[3]);
-    unsigned int offsets[NUM_OFFSETS] = {9000, 209000, 30725000, 409605000, 480000000};
+    
 
     unsigned int ninodo;
     int bytes_escritos, total_bytes = strlen(texto);

@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
         return FALLO;
     }
 
-#if DEBUGN5 
+#if DEBUGN5 || ENTREGA_1
     fprintf(stderr, "total_leidos: %d\n", total_leidos);
     fprintf(stderr, "tamEnBytesLog: %d\n", p_stat.tamEnBytesLog);
 #endif
