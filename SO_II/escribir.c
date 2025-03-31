@@ -1,5 +1,5 @@
 /**
- * @file bloques.h
+ * @file escribir.c
  * @author Xavier Campos, Pedro Félix, Harpo Joan
  */
 #include "ficheros.h"
@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
     if (argc != 4) {
         fprintf(stderr, RED"Sintaxis: ./escribir <nombre_dispositivo> <\"$(cat fichero)\"> <diferentes_inodos>\n"RESET);
         fprintf(stderr, RED"Offsets: "RESET);
+        // Mostrar los offsets
         for (int i = 0; i < NUM_OFFSETS; i++) {
             fprintf(stderr, RED"%u"RESET, offsets[i]);
             if (i < NUM_OFFSETS - 1) {
@@ -28,37 +29,29 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, RED"\nSi diferentes_inodos=0 se reserva un solo inodo para todos los offsets\n"RESET);
         return FALLO;
     }
-
     char *nombre_dispositivo = argv[1];
     char *texto = argv[2];
     int diferentes_inodos = atoi(argv[3]);
-    
-
     unsigned int ninodo;
     int bytes_escritos, total_bytes = strlen(texto);
-
     printf("longitud texto: %d\n", total_bytes);
-
     // Montar el sistema de archivos
     if (bmount(nombre_dispositivo) == FALLO) {
-        fprintf(stderr, RED"Error montando el dispositivo"RESET);
+        fprintf(stderr, RED"Error montando el dispositivo virtual en ./escribir"RESET);
         return FALLO;
     }
-
+    // Reservar inodo
     for (int i = 0; i < NUM_OFFSETS; i++) {
         if (diferentes_inodos || i == 0) {
             ninodo = reservar_inodo('f', 6);
             if (ninodo == FALLO) {  
-                fprintf(stderr, RED "Error al reservar inodo\n" RESET);  
+                fprintf(stderr, RED "Error al reservar inodo en ./escribir\n" RESET);  
                 bumount();  
                 return FALLO; 
             }
         }
-
         printf("\nNº inodo reservado: %d\n", ninodo);
-
         printf("offset: %u\n", offsets[i]);
-
         // Escribir en el inodo
         bytes_escritos = mi_write_f(ninodo, texto, offsets[i], total_bytes);
         if (bytes_escritos < 0) {
@@ -67,7 +60,6 @@ int main(int argc, char *argv[]) {
             return FALLO;
         }
         printf("Bytes escritos: %d\n", bytes_escritos);
-
         // Obtener información del inodo
         struct STAT stat;
         if (mi_stat_f(ninodo, &stat) < 0) {
@@ -75,16 +67,13 @@ int main(int argc, char *argv[]) {
             bumount();
             return FALLO;
         }
-
         printf("stat.tamEnBytesLog=%d\n", stat.tamEnBytesLog);
         printf("stat.numBloquesOcupados=%d\n", stat.numBloquesOcupados);
     }
-
     // Desmontar el sistema de archivos
     if (bumount() == FALLO) {
         fprintf(stderr, RED"Error desmontando el dispositivo\n"RESET);
         return FALLO;
     }
-
     return EXITO;
 }

@@ -1,5 +1,14 @@
- #include "ficheros.h"
-
+/**
+ * @file leer.c
+ * @author Xavier Campos, Pedro Félix, Harpo Joan
+ */
+#include "ficheros.h"
+/**
+ * @brief Función principal que lee un fichero
+ * @param argc Cantidad de argumentos
+ * @param argv Argumentos
+ * @return EXITO si no hay errores, FALLO en caso contrario
+ */
 int main(int argc, char **argv) {
     struct STAT p_stat;
     int ninodo, leidos, total_leidos = 0, offset = 0, tambuffer = 4000;
@@ -15,16 +24,16 @@ int main(int argc, char **argv) {
         fprintf(stderr, RED "ERROR: La entrada de 'ninodo' no es válida\n" RESET);
         return FALLO;
     }
-     
+    // Montamos el dispositivo virtual
     path = argv[1];
     if (bmount(path) == FALLO) {
         fprintf(stderr, RED "Error al montar el dispositivo virtual en ./leer" RESET);
         return FALLO;
     }
-     
+    // Leemos el inodo
     memset(buffer_texto, 0, tambuffer);
     leidos = mi_read_f(ninodo, buffer_texto, offset, tambuffer);
- 
+    // Leemos el contenido del inodo
     while (leidos > 0) {
         write(1, buffer_texto, leidos);
         total_leidos += leidos;
@@ -38,16 +47,15 @@ int main(int argc, char **argv) {
         }
     }
     printf("\n");
+    // Obtenemos los metadatos del inodo
     if (mi_stat_f(ninodo, &p_stat) == FALLO) {
         fprintf(stderr, RED "Error en mi_stat_f en ./leer" RESET);
         return FALLO;
     }
-
 #if DEBUGN5 || ENTREGA_1
     fprintf(stderr, "total_leidos: %d\n", total_leidos);
     fprintf(stderr, "tamEnBytesLog: %d\n", p_stat.tamEnBytesLog);
 #endif
-
     if (bumount() == FALLO){
         fprintf(stderr, RED "Error al desmontar el dispositivo virtual en ./leer" RESET);
         return FALLO;

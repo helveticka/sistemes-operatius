@@ -1,9 +1,11 @@
-// Autores: Xavier Campos, Pedro Félix, Harpo Joan
-
+/**
+ * @file ficheros_basico.h
+ * @author Xavier Campos, Pedro Félix, Harpo Joan
+ */
 #include "bloques.h"
 #include <time.h>
 #include <limits.h>
-
+// Constantes
 #define posSB 0 // el superbloque se escribe en el primer bloque de nuestro FS
 #define tamSB 1
 #define NPUNTEROS (BLOCKSIZE / sizeof(unsigned int))   // 256 punteros por bloque
@@ -11,9 +13,8 @@
 #define INDIRECTOS0 (NPUNTEROS + DIRECTOS)    // 268
 #define INDIRECTOS1 (NPUNTEROS * NPUNTEROS + INDIRECTOS0)    // 65.804
 #define INDIRECTOS2 (NPUNTEROS * NPUNTEROS * NPUNTEROS + INDIRECTOS1) // 16.843.020
-
 #define INODOSIZE 128 // tamaño en bytes de un inodo
-
+// Estructuras
 struct superbloque {
     unsigned int posPrimerBloqueMB;          // Posición absoluta del primer bloque del mapa de bits
     unsigned int posUltimoBloqueMB;          // Posición absoluta del último bloque del mapa de bits
@@ -29,7 +30,6 @@ struct superbloque {
     unsigned int totInodos;                            // Cantidad total de inodos (heurística)
     char padding[BLOCKSIZE - 12 * sizeof(unsigned int)]; // Relleno para ocupar el bloque completo
  };
-
  struct inodo {     // comprobar que ocupa 128 bytes haciendo un sizeof(inodo)!!!
     unsigned char tipo;     // Tipo ('l':libre, 'd':directorio o 'f':fichero)
     unsigned char permisos; // Permisos (lectura y/o escritura y/o ejecución)

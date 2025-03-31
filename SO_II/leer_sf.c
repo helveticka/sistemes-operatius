@@ -38,15 +38,15 @@ int main(int argc, char *argv[]) {
     printf("\nsizeof struct superbloque: %lu\n", sizeof(struct superbloque));
     printf("sizeof struct inodo: %lu\n", sizeof(struct inodo));
     printf("\nRECORRIDO LISTA ENLAZADA DE INODOS LIBRES\n");
-    // struct que contiene los inodos de un bloque
+    // Struct que contiene los inodos de un bloque
     struct inodo inodos[BLOCKSIZE/INODOSIZE];
-    // posición del bloque del inodo en el array de inodos
+    // Posición del bloque del inodo en el array de inodos
     int posAI = SB.posPrimerBloqueAI+(SB.posPrimerInodoLibre)/(BLOCKSIZE/INODOSIZE);
-    // posición del inodo en el bloque (relativa)
+    // Posición del inodo en el bloque (relativa)
     int posInodo = (SB.posPrimerInodoLibre)%(BLOCKSIZE/INODOSIZE);
-    // posición del siguiente bloque de inodos en el array de inodos
+    // Posición del siguiente bloque de inodos en el array de inodos
     int nextAI = 0;
-    // posición absoluta del próximo inodo
+    // Posición absoluta del próximo inodo
     int nextInodo = 0;
     // Lectura del primer bloque de inodos
     bread(posAI, &inodos);
