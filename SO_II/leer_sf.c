@@ -12,7 +12,10 @@
  */
 int main(int argc, char *argv[]) {
     const char *nombre_dispositivo = argv[1];
-    bmount(nombre_dispositivo);
+    if (bmount(nombre_dispositivo) == FALLO) {
+        fprintf(stderr, RED "Error al montar el dispositivo virtual en ./leer_sf" RESET);
+        return FALLO;
+    }
     struct superbloque SB;
     bread(0, &SB);
     // Información del superbloque
@@ -30,7 +33,7 @@ int main(int argc, char *argv[]) {
     printf("totBloques = %d\n", SB.totBloques);
     printf("totInodos = %d\n", SB.totInodos);
 // Debug de la semana 2
-#if DEBUG_2
+#if DEBUGN2
     // Información de los bloques de metadatos
     printf("\nsizeof struct superbloque: %lu\n", sizeof(struct superbloque));
     printf("sizeof struct inodo: %lu\n", sizeof(struct inodo));
@@ -61,34 +64,30 @@ int main(int argc, char *argv[]) {
     printf("-1 ");
 #endif
 // Debug de la semana 3
-#if DEBUG_3
+#if DEBUGN3
     printf("\nRESERVAMOS UN BLOQUE Y LUEGO LO LIBERAMOS\n");
     int nBloque = reservar_bloque();
     // Comprobamos que se ha reservado un bloque
     if (nBloque == FALLO) {
-        perror(RED "Error ./leer_sf()");
-        printf(RESET);
+        fprintf(stderr, RED "Error al reservar bloque en ./leer_sf" RESET);
         return FALLO;
     }
     printf("Se ha reservado el bloque físico nº %d que era el 1º libre indicado por el MB\n", nBloque);
     // Leemos el SB para comprobar que se ha actualizado la cantidad de bloques libres
     if (bread(posSB, &SB) == FALLO) {
-        perror(RED "Error ./leer_sf()");
-        printf(RESET);
+        fprintf(stderr, RED "Error al leer bloque en ./leer_sf" RESET);
         return FALLO;
     }
     printf("SB.cantBloquesLibres: %d\n", SB.cantBloquesLibres);
     // Liberamos el bloque
     if (liberar_bloque(nBloque) == FALLO) {
-        perror(RED "Error ./leer_sf()");
-        printf(RESET);
+        fprintf(stderr, RED "Error al liberar bloque en ./leer_sf" RESET);
         return FALLO;
     }
     // Leemos el SB para comprobar que se ha actualizado la cantidad de bloques libres
     if (bread(posSB, &SB) == FALLO) {
-            perror(RED "Error ./leer_sf()");
-            printf(RESET);
-            return FALLO;
+        fprintf(stderr, RED "Error al leer bloque en ./leer_sf" RESET);
+        return FALLO;
     }
     // Imprimimos el mapa de bits para comprobar que se ha liberado el bloque
     printf("Liberamos ese bloque y después SB.cantBloquesLibres = %d\n", SB.cantBloquesLibres);
@@ -114,8 +113,7 @@ int main(int argc, char *argv[]) {
     char mtime[80];
     // Leemos el inodo del directorio raíz
     if (leer_inodo(SB.posInodoRaiz, &inodo) == FALLO) {
-        perror(RED "Error ./leer_sf()");
-        printf(RESET);
+        fprintf(stderr, RED "Error al leer inodo en ./leer_sf" RESET);
         return FALLO;
     }
     // Imprimimos los datos del inodo
@@ -132,25 +130,25 @@ int main(int argc, char *argv[]) {
     printf("numBloquesOcupados: %d\n", inodo.numBloquesOcupados);
 #endif
 // Debug de la semana 4
-#if DEBUG_4
+#if DEBUGN4
     struct inodo inodo;
     printf("\nINODO 1. TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n");
     int nblogicos[5] = {8, 204, 30004, 400004, 468750};
     int ninodo = reservar_inodo('f', 6);
     // Comprobamos que se ha reservado un inodo
     if (ninodo == FALLO) {
-        fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
+        fprintf(stderr, RED "Error al reservar inodo en ./leer_sf" RESET);
         return FALLO;
     }
     // Leemos el inodo
     if (leer_inodo(ninodo, &inodo) == FALLO) {
-        fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
+        fprintf(stderr, RED "Error al leer inodo en ./leer_sf" RESET);
         return FALLO;
     }
     // Traducimos los bloques lógicos
     for (int i=0; i<sizeof(nblogicos)/sizeof(int); i++) {
         if (traducir_bloque_inodo(ninodo, nblogicos[i], 1) == FALLO) {
-            fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
+            fprintf(stderr, RED "Error al traducir el bloque del inodo en ./leer_sf" RESET);
             return FALLO;
         }
         printf("\n");
@@ -158,7 +156,7 @@ int main(int argc, char *argv[]) {
     // Imprimimos los datos del inodo
     printf("\nDATOS DEL INODO RESERVADO 1\n");
     if (leer_inodo(ninodo, &inodo) == FALLO) {
-        fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
+        fprintf(stderr, RED "Error al leer inodo en ./leer_sf" RESET);
         return FALLO;
     }
     printf("tipo: %c\n", inodo.tipo);
@@ -177,15 +175,14 @@ int main(int argc, char *argv[]) {
     printf("numBloquesOcupados: %d\n", inodo.numBloquesOcupados);
     // Leemos el SB para comprobar que se ha actualizado la cantidad de inodos libres
     if (bread(posSB, &SB) == FALLO) {
-        fprintf(stderr, RED"ERROR EN ./leer_sf\n"RESET);
+        fprintf(stderr, RED "Error al leer bloque en ./leer_sf" RESET);
         return FALLO;
     }
     printf("\nSB.posPrimerInodoLibre = %d\n", SB.posPrimerInodoLibre);
 #endif
     // Desmontamos el dispositivo virtual
     if (bumount()) {
-        perror(RED "Error en bumount() al ./leer_sf()");
-        printf(RESET);
+        fprintf(stderr, RED "Error al desmontar el dispositivo virtual en ./leer_sf" RESET);
         return FALLO;
     }
     return EXITO;

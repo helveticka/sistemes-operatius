@@ -1,4 +1,4 @@
-    #include "ficheros.h"
+#include "ficheros.h"
 
 int main(int argc, char **argv) {
     if (argc != 4) {
@@ -13,17 +13,20 @@ int main(int argc, char **argv) {
 
     // Montar el dispositivo
     if (bmount(nombre_dispositivo) == -1) {
+        fprintf(stderr, RED "Error al montar el dispositivo virtual en ./permitir\n");
         return FALLO;
     }
 
     // Cambiar permisos
     if (mi_chmod_f(ninodo, permisos) == -1) {
+        fprintf(stderr, RED "Error en mi_chmod_f() en ./permitir\n");
         bumount();
         return FALLO;
     }
 
     // Desmontar el dispositivo
     if (bumount() == -1) {
+        fprintf(stderr, RED "Error al desmontar el dispositivo virtual en ./permitir\n");
         return FALLO;
     }
 

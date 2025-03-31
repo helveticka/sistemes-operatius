@@ -10,13 +10,13 @@ int main(int argc, char **argv) {
     // Validación de sintaxis
     if (argc != 4) {
         fprintf(stderr, "Uso: %s <nombre_dispositivo> <ninodo> <nbytes>\n", argv[0]);
-        return EXIT_FAILURE;
+        return FALLO;
     }
 
     // Montar el dispositivo virtual
     if (bmount(nombre_dispositivo) == -1) {
-        fprintf(stderr, "Error montando el dispositivo virtual\n");
-        return EXIT_FAILURE;
+        fprintf(stderr, "Error al montar el dispositivo virtual en ./truncar\n");
+        return FALLO;
     }
     
     if (nbytes == 0) {
@@ -28,13 +28,13 @@ int main(int argc, char **argv) {
     if (bloques_liberados < 0) {
         fprintf(stderr, "Error al truncar o liberar el inodo\n");
         bumount();
-        return EXIT_FAILURE;
+        return FALLO;
     }
 
     if (mi_stat_f(ninodo, &stat) == -1) {
         fprintf(stderr, "Error obteniendo información del inodo\n");
         bumount();
-        return EXIT_FAILURE;
+        return FALLO;
     }
 
     printf("\nDATOS INODO %d:\n", ninodo);
@@ -50,9 +50,9 @@ int main(int argc, char **argv) {
 
     // Desmontar el dispositivo virtual
     if (bumount() == -1) {
-        fprintf(stderr, "Error desmontando el dispositivo virtual\n");
-        return EXIT_FAILURE;
+        fprintf(stderr, "Error al desmontar el dispositivo virtual en ./truncar\n");
+        return FALLO;
     }
 
-    return EXIT_SUCCESS;
+    return EXITO;
 }

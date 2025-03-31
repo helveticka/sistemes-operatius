@@ -1,11 +1,19 @@
+/**
+ * @file bloques.h
+ * @author Xavier Campos, Pedro Félix, Harpo Joan
+ */
 #include "ficheros.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
 #define NUM_OFFSETS 5
-
+/**
+ * @brief Función principal que escribe en un inodo de un fichero
+ * @param argc Cantidad de argumentos
+ * @param argv Argumentos
+ * @return EXITO si no hay errores, FALLO en caso contrario
+ */
 int main(int argc, char *argv[]) {
     unsigned int offsets[NUM_OFFSETS] = {9000, 209000, 30725000, 409605000, 480000000};
     if (argc != 4) {
@@ -33,7 +41,7 @@ int main(int argc, char *argv[]) {
 
     // Montar el sistema de archivos
     if (bmount(nombre_dispositivo) == FALLO) {
-        perror("Error montando el dispositivo");
+        fprintf(stderr, RED"Error montando el dispositivo"RESET);
         return FALLO;
     }
 
@@ -41,7 +49,7 @@ int main(int argc, char *argv[]) {
         if (diferentes_inodos || i == 0) {
             ninodo = reservar_inodo('f', 6);
             if (ninodo == FALLO) {  
-                fprintf(stderr, "Error al reservar inodo\n");  
+                fprintf(stderr, RED "Error al reservar inodo\n" RESET);  
                 bumount();  
                 return FALLO; 
             }
@@ -54,7 +62,7 @@ int main(int argc, char *argv[]) {
         // Escribir en el inodo
         bytes_escritos = mi_write_f(ninodo, texto, offsets[i], total_bytes);
         if (bytes_escritos < 0) {
-            fprintf(stderr, "Error en la escritura\n");
+            fprintf(stderr, RED"Error en la escritura\n"RESET);
             bumount();
             return FALLO;
         }
@@ -63,7 +71,7 @@ int main(int argc, char *argv[]) {
         // Obtener información del inodo
         struct STAT stat;
         if (mi_stat_f(ninodo, &stat) < 0) {
-            fprintf(stderr, "Error obteniendo stat\n");
+            fprintf(stderr, RED "Error obteniendo stat\n"RESET);
             bumount();
             return FALLO;
         }
@@ -74,7 +82,7 @@ int main(int argc, char *argv[]) {
 
     // Desmontar el sistema de archivos
     if (bumount() == FALLO) {
-        perror("Error desmontando el dispositivo");
+        fprintf(stderr, RED"Error desmontando el dispositivo\n"RESET);
         return FALLO;
     }
 

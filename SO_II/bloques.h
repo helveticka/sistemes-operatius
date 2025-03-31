@@ -28,21 +28,21 @@
 #define LGREEN  "\x1B[38;2;17;245;120m"
 #define GRAY    "\x1B[38;2;176;174;174m"
 #define RESET   "\x1b[0m"
-// Mensajes de depuración
 #define NEGRITA "\x1b[1m"
-#define DEBUG_1 0
-#define DEBUG_2 0
-#define DEBUG_3 0
-#define DEBUG_4 0
-#define DEBUG_5 0
-#define DEBUG_6 0
-#define DEBUG_7 0
-#define DEBUG_8 0
-#define DEBUG_9 0
-#define DEBUG_10 0
-#define DEBUG_11 0
-#define DEBUG_12 0
-#define DEBUG_13 0
+// Mensajes de depuración
+#define DEBUGN1 0
+#define DEBUGN2 0
+#define DEBUGN3 0
+#define DEBUGN4 0
+#define DEBUGN5 0
+#define DEBUGN6 0
+#define DEBUGN7 0
+#define DEBUGN8 0
+#define DEBUGN9 0
+#define DEBUGN10 0
+#define DEBUGN11 0
+#define DEBUGN12 0
+#define DEBUGN13 0
 #define ENTREGA_1 1
 #define ENTREGA_2 0
 #define ENTREGA_3 0

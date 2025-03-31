@@ -11,15 +11,13 @@ int main(int argc, char**argv) {
     memset(buffer, 0, BLOCKSIZE);
     // Montamos el dispositivo virtual 
     if (bmount(argv[1]) == FALLO) {
-        perror(RED "Error en bmount()\n");
-        printf(RESET);
+        fprintf(stderr, RED "Error al montar el dispositivo virtual en ./mi_mkfs\n");
         return FALLO;
     }
     // Inicializamos a 0 todos los bytes del disco virtual
     for (int i = 0; i < nbloques; i++) {
         if (bwrite(i, buffer) == FALLO) {
-            perror(RED "Error en bwrite()\n");
-            printf(RESET);
+            fprintf(stderr, RED "Error en bwrite() en ./mi_mkfs\n");
             return FALLO;
         }
     }
@@ -29,9 +27,7 @@ int main(int argc, char**argv) {
     reservar_inodo ('d', 7);
     // Desmontamos el dispositivo virtual
     if (bumount() == FALLO) {
-        perror(RED "Error en bumount()\n");
-        printf(RESET);
+        fprintf(stderr, RED "Error al desmontar el dispositivo virtual en ./mi_mkfs\n");
         return FALLO;
     }
-    
 }

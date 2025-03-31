@@ -18,16 +18,12 @@ int main(int argc, char **argv) {
      
     path = argv[1];
     if (bmount(path) == FALLO) {
-        fprintf(stderr, RED "ERROR EN ./leer\n" RESET);
+        fprintf(stderr, RED "Error al montar el dispositivo virtual en ./leer" RESET);
         return FALLO;
     }
      
     memset(buffer_texto, 0, tambuffer);
     leidos = mi_read_f(ninodo, buffer_texto, offset, tambuffer);
-    //if (leidos == FALLO) {
-    //     fprintf(stderr, RED"ERROR EN ./leer\n"RESET);
-    //     return FALLO;
-    //}
  
     while (leidos > 0) {
         write(1, buffer_texto, leidos);
@@ -37,13 +33,13 @@ int main(int argc, char **argv) {
         memset(buffer_texto, 0, tambuffer);
         leidos = mi_read_f(ninodo, buffer_texto, offset, tambuffer);
         if (leidos == FALLO) {
-            fprintf(stderr, RED"ERROR EN ./leer\n"RESET);
+            fprintf(stderr, RED "Error en mi_read_f en ./leer" RESET);
             return FALLO;
         }
     }
-    fprintf(stderr, "\n");
+    printf("\n");
     if (mi_stat_f(ninodo, &p_stat) == FALLO) {
-        fprintf(stderr, RED"ERROR EN ./leer\n"RESET);
+        fprintf(stderr, RED "Error en mi_stat_f en ./leer" RESET);
         return FALLO;
     }
 
@@ -53,7 +49,7 @@ int main(int argc, char **argv) {
 #endif
 
     if (bumount() == FALLO){
-        fprintf(stderr, RED"ERROR EN ./leer\n"RESET);
+        fprintf(stderr, RED "Error al desmontar el dispositivo virtual en ./leer" RESET);
         return FALLO;
     }
     return EXITO;
