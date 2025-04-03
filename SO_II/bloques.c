@@ -1,6 +1,6 @@
 /**
  * @file bloques.c
- * @author Xavier Campos, Pedro Félix, Harpo Joan
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
  */
 #include "bloques.h"
 // Variables globales

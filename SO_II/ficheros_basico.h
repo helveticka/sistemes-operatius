@@ -1,6 +1,6 @@
 /**
  * @file ficheros_basico.h
- * @author Xavier Campos, Pedro Félix, Harpo Joan
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
  */
 #include "bloques.h"
 #include <time.h>

@@ -1,6 +1,6 @@
 /**
  * @file leer_sf.c
- * @author Xavier Campos, Pedro Félix, Harpo Joan
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
  */
 #include "ficheros_basico.h"
 /**

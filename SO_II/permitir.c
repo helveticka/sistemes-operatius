@@ -1,6 +1,6 @@
 /**
  * @file permitir.c
- * @author Xavier Campos, Pedro Félix, Harpo Joan
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
  */
 #include "ficheros.h"
 /**
