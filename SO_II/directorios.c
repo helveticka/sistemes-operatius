@@ -5,7 +5,29 @@
 #include "directorios.h"
 
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
+    // Validar que comience por '/'
+    if (camino[0] != '/') {
+        fprintf(stderr, "Error: el camino no comienza por '/'\n");
+        return -1;
+    }
 
+    const char *segundo_slash = strchr(camino + 1, '/');
+
+    if (segundo_slash == NULL) {
+        // Solo hay un componente => fichero
+        strcpy(inicial, camino + 1);  // omitimos el primer '/'
+        final[0] = '\0';              // cadena vacía
+        *tipo = 'f';
+    } else {
+        // Hay más de un componente => directorio
+        size_t len = segundo_slash - (camino + 1); // longitud de *inicial
+        strncpy(inicial, camino + 1, len);
+        inicial[len] = '\0'; // añadir terminador nulo
+        strcpy(final, segundo_slash); // incluye el segundo '/'
+        *tipo = 'd';
+    }
+
+    return 0;
 }
 
 int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos) {
@@ -116,5 +138,25 @@ void mostrar_error_buscar_entrada(int error) {
     case -7: fprintf(stderr, "Error: El archivo ya existe.\n"); break;
     case -8: fprintf(stderr, "Error: No es un directorio.\n"); break;
     }
+}
+
+int mi_stat(const char *camino, struct STAT *p_stat) {
+    struct entrada entrada;
+    unsigned int p_inodo, p_inodo_dir, p_entrada;
+
+    int resultado = buscar_entrada(camino, &entrada, &p_inodo, &p_inodo_dir, 0, 0);
+    if (resultado < 0) {
+        fprintf(stderr, "Error en buscar_entrada() para el camino '%s'\n", camino);
+        return resultado;
+    }
+
+    if (mi_stat_f(p_inodo, p_stat) == FALLO) {
+        fprintf(stderr, "Error en mi_stat_f() para el inodo %d\n", p_inodo);
+        return FALLO;
+    }
+
+    printf("Inodo: %d\n", p_inodo); // Mostrar número de inodo
+
+    return EXITO; // 0
 }
  
