@@ -53,27 +53,30 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 
     // Leer el inodo del directorio
     leer_inodo(*p_inodo_dir, &inodo_dir);
-    if (!inodo_dir.permisos_lectura) {
+    if ((inodo_dir.permisos & 4) != 4) {
         return ERROR_PERMISO_LECTURA;
     }
 
     // Inicializar el buffer de lectura
-    memset(&entrada_actual, 0, sizeof(entrada));
+    int TAMENTRADA = sizeof(struct entrada);
+    int NUMENTRADAS = BLOCKSIZE / TAMENTRADA;
+    struct entrada entradas [BLOCKSIZE / sizeof(struct entrada)];
+    memset(&entrada, 0, sizeof(entrada));
 
-    cant_entradas_inodo = inodo_dir.num_entradas;
+    cant_entradas_inodo = inodo_dir.tamEnBytesLog/sizeof(entrada);
     num_entrada_inodo = 0;
 
     if (cant_entradas_inodo > 0) {
         // Simulación de la lectura de entradas
-        while (num_entrada_inodo < cant_entradas_inodo && (strcmp(inicial, entrada_actual.nombre) != 0)) {
+        while (num_entrada_inodo < cant_entradas_inodo && (strcmp(inicial, entradas[num_entrada_inodo%NUMENTRADAS].nombre) != 0)) {
             num_entrada_inodo++;
             // Simulación de leer la siguiente entrada
-            memset(&entrada_actual, 0, sizeof(entrada)); // Inicializar nuevamente el buffer
+            memset(entradas, 0, sizeof(entrada)); // Inicializar nuevamente el buffer
         }
     }
 
     // Comprobar si la entrada existe o no
-    if ((strcmp(inicial, entrada_actual.nombre) != 0) && num_entrada_inodo == cant_entradas_inodo) {
+    if ((strcmp(inicial, entradas[num_entrada_inodo%NUMENTRADAS].nombre) != 0) && num_entrada_inodo == cant_entradas_inodo) {
         // La entrada no existe
         switch (reservar) {
             case 0: // Modo consulta
@@ -83,27 +86,27 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                     return ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO;
                 }
 
-                if (!inodo_dir.permisos_escritura) {
+                if ((inodo_dir.permisos & 2) != 2) {
                     return ERROR_PERMISO_ESCRITURA;
                 }
 
                 // Copiar el nombre de la entrada
-                strcpy(entrada_actual.nombre, inicial);
+                strcpy(entradas[num_entrada_inodo%NUMENTRADAS].nombre, inicial);
 
                 if (tipo == 'd') {
                     if (strcmp(final, "/") == 0) {
-                        reservar_inodo(p_inodo); // Reservamos un inodo como directorio
+                        reservar_inodo(p_inodo, permisos); // Reservamos un inodo como directorio
                     } else {
                         return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO;
                     }
                 } else {
-                    reservar_inodo(p_inodo); // Reservamos un inodo como fichero
+                    reservar_inodo(p_inodo, permisos); // Reservamos un inodo como fichero
                 }
 
                 // Escribir la entrada en el directorio
-                if (escribir_entrada(*p_inodo_dir, &entrada_actual) == FALLO) {
-                    if (entrada.inodo != -1) { // Si se había reservado un inodo
-                        liberar_inodo(entrada.inodo); // Liberar el inodo reservado 
+                if (mi_write_f(*p_inodo_dir, &entrada, num_entrada_inodo * TAMENTRADA, TAMENTRADA) == FALLO) {
+                    if (entrada.ninodo != -1) { // Si se había reservado un inodo
+                        liberar_inodo(entrada.ninodo); // Liberar el inodo reservado 
                     }
                     return FALLO;
                 }
@@ -116,12 +119,12 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
             return ERROR_ENTRADA_YA_EXISTENTE;
         }
 
-        *p_inodo = entrada_actual.inodo;
+        *p_inodo = entrada.ninodo;
         *p_entrada = num_entrada_inodo;
         return EXITO;
     } else {
         // Recursividad
-        *p_inodo_dir = entrada_actual.inodo;
+        *p_inodo_dir = entrada.ninodo;
         return buscar_entrada(final, p_inodo_dir, p_inodo, p_entrada, reservar, permisos);
     }
     return EXITO;
