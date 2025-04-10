@@ -147,7 +147,7 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
     struct entrada entrada;
     unsigned int p_inodo, p_inodo_dir, p_entrada;
 
-    int resultado = buscar_entrada(camino, &entrada, &p_inodo, &p_inodo_dir, 0, 0);
+    int resultado = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0);
     if (resultado < 0) {
         fprintf(stderr, "Error en buscar_entrada() para el camino '%s'\n", camino);
         return resultado;
