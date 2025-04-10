@@ -39,6 +39,11 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     char tipo;
     unsigned cant_entradas_inodo, num_entrada_inodo;
 
+    // Leer el superbloque
+    if (bread(0, &SB) == FALLO) {
+        fprintf(stderr, "Error al leer el superbloque\n");
+        return FALLO;
+    }
     // Caso especial para la raíz
     if (strcmp(camino_parcial, "/") == 0) {
         *p_inodo = SB.posInodoRaiz; // El inodo de la raíz
@@ -56,6 +61,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     if ((inodo_dir.permisos & 4) != 4) {
         return ERROR_PERMISO_LECTURA;
     }
+#if DEBUGN7
+    fprintf(stderr, GRAY "[buscar_entrada()→ inicial: %s, final: %s, reservar: %d]\n"RESET, inicial, final, reservar);
+#endif
 
     // Inicializar el buffer de lectura
     int TAMENTRADA = sizeof(struct entrada);
@@ -101,6 +109,10 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                     }
                 } else {
                     reservar_inodo(*p_inodo, permisos); // Reservamos un inodo como fichero
+#if DEBUGN7
+                    fprintf(stderr, GRAY"[buscar_entrada()→ reservado inodo %d tipo %c con permisos %d para %s]\n"RESET, entrada.ninodo, tipo, permisos, entrada.nombre);
+                    fprintf(stderr, GRAY"[buscar_entrada()→ creada entrada: %s, %d]\n"RESET, inicial, entrada.ninodo);
+#endif
                 }
 
                 // Escribir la entrada en el directorio
@@ -144,7 +156,6 @@ void mostrar_error_buscar_entrada(int error) {
 }
 
 int mi_stat(const char *camino, struct STAT *p_stat) {
-    struct entrada entrada;
     unsigned int p_inodo, p_inodo_dir, p_entrada;
 
     int resultado = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0);
