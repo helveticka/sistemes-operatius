@@ -102,8 +102,8 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 
                 // Escribir la entrada en el directorio
                 if (escribir_entrada(*p_inodo_dir, &entrada_actual) == FALLO) {
-                    if (entrada.inodo != -1) { // Si se había reservado un inodo
-                        liberar_inodo(entrada.inodo); // Liberar el inodo reservado 
+                    if (entrada.ninodo != -1) { // Si se había reservado un inodo
+                        liberar_inodo(leer_inodo(entrada.ninodo)); // Liberar el inodo reservado 
                     }
                     return FALLO;
                 }
