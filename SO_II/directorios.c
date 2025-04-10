@@ -34,9 +34,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     struct entrada entrada;
     struct inodo inodo_dir;
     struct superbloque SB;
-    unsigned char inicial[sizeof(entrada.nombre)];
-    unsigned char final[strlen(camino_parcial)];
-    unsigned char tipo;
+    char inicial[sizeof(entrada.nombre)];
+    char final[strlen(camino_parcial)];
+    char tipo;
     unsigned cant_entradas_inodo, num_entrada_inodo;
 
     // Caso especial para la raíz
@@ -95,12 +95,12 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
 
                 if (tipo == 'd') {
                     if (strcmp(final, "/") == 0) {
-                        reservar_inodo(p_inodo, permisos); // Reservamos un inodo como directorio
+                        reservar_inodo(*p_inodo, permisos); // Reservamos un inodo como directorio
                     } else {
                         return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO;
                     }
                 } else {
-                    reservar_inodo(p_inodo, permisos); // Reservamos un inodo como fichero
+                    reservar_inodo(*p_inodo, permisos); // Reservamos un inodo como fichero
                 }
 
                 // Escribir la entrada en el directorio

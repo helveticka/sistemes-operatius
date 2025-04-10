@@ -743,10 +743,15 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
                         old_nivel_punteros++;
                     }
                 }
+
+                if (salto) {
 #if DEBUGN6 || ENTREGA_1
-                if (salto) fprintf(stderr, CYAN"[liberar_bloques_inodo()\u2192 Estamos en el BL %ld y saltamos hasta el BL %d]\n"RESET, oldBL, *nBL-1);
-#endif
-                else salto = 1;
+                    fprintf(stderr, CYAN"[liberar_bloques_inodo()\u2192 Estamos en el BL %ld y saltamos hasta el BL %d]\n"RESET, oldBL, *nBL-1);
+#endif            
+                }
+                else {
+                    salto = 1;
+                }
                 oldBL = *nBL;
                 if (nivel_punteros == 1) {
                     freeBL = *nBL;
