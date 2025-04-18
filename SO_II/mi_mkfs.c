@@ -1,5 +1,8 @@
-// Autores: Xavier Campos, Pedro Félix, Harpo Joan
-#include "ficheros_basico.h"
+/**
+ * @file mi_mkfs
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
+ */
+#include "directorios.h"
 /**
  * @brief Crea un fichero de bloques con todos los bloques a 0
  * @param argc Número de argumentos

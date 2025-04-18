@@ -1,6 +1,6 @@
 /**
  * @file ficheros.h
- * @author Xavier Campos, Pedro Félix, Harpo Joan
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
  */
 #include "ficheros_basico.h"
 // Estructura para la función mi_stat_f
