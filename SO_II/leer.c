@@ -11,7 +11,7 @@
  */
 int main(int argc, char **argv) {
     struct STAT p_stat;
-    int ninodo, leidos, total_leidos = 0, offset = 0, tambuffer = 4000;
+    int ninodo, leidos, total_leidos = 0, offset = 0, tambuffer = 1500;
     char *path, buffer_texto[tambuffer];
     // Comprobamos que el número de argumentos sea el correcto
     if (argc != 3) {
@@ -46,7 +46,6 @@ int main(int argc, char **argv) {
             return FALLO;
         }
     }
-    printf("\n");
     // Obtenemos los metadatos del inodo
     if (mi_stat_f(ninodo, &p_stat) == FALLO) {
         fprintf(stderr, RED "Error en mi_stat_f en ./leer" RESET);

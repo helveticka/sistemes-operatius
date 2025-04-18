@@ -1,21 +1,34 @@
-Autores: Xavier Campos, Pedro Félix, Harpo Joan
+# README - SF capa de ficheros
 
-Para la implementación de la función de liberar_bloques_inodo se ha usado el pseudocódigo de la versión 2 (la versión recursiva), y se han añadido ciertas variables y fragmentos de código adicionales para los mensajes de depuración.
+## Autores:
+- Xavier Campos
+- Pedro Félix
+- Harpo Joan
 
-Debido a que al final de la ejecución de la función se deben indicar el total de breads y bwrites, a la función recursiva liberar_indirectos_recursivo se le han añadido los parámetros &b_reads y &b_writes (ambos punteros a enteros). De esta forma, solucionamos con un puntero el almacenamiento de la cantidad de lecturas y escrituras en la recursividad.
+## Mejoras y Modificaciones Implementadas
+A partir del pseudocódigo base, se han realizado las siguientes mejoras:
 
-También se presenta el problema de imprimir los saltos entre bloques lógicos, esto ocasiona la declaración de las variables oldsBL[], endBL[] y oldBL (todos tipo long). 
+### 1. **Gestión de `b_reads` y `b_writes` en la recursividad**
+Para calcular el total de lecturas (`b_reads`) y escrituras (`b_writes`) realizadas al final de la ejecución de `liberar_bloques_inodo()`, se ha modificado la función recursiva `liberar_indirectos_recursivo()`, añadiendo los parámetros `&b_reads` y `&b_writes`.
+Gracias a estos punteros, se logra un seguimiento eficiente de estas operaciones sin perder información entre llamadas recursivas.
 
-Por un lado, el propósito de oldBL es el de guardar el bloque lógico inicial del salto. De esta forma, al imprimir el salto solo deberemos llamar a oldBL y a nBL que será el final del salto.
+### 2. **Manejo de los saltos entre bloques lógicos**
+Se ha añadido la capacidad de imprimir los saltos entre bloques lógicos mediante la introducción de las siguientes variables estáticas (estáticas para conservar los valores en la recursividad):
 
-Por otro lado, asumiendo las condiciones de que cuando se acaben los bloques de punteros primero se deben imprimir las liberaciones de sus bloques físicos, y posteriormente los saltos de bloques lógicos (desde el bloque lógico donde se encontraba el último bloque físico tratado al último bloque lógico del bloque de punteros); hemos tenido que crear los arreglos oldsBL[] y endBL[] para guardar precisamente los bloques lógicos de estos saltos finales de los bloques de punteros. En oldsBL guardamos los bloques lógicos correspondientes a los últimos bloques físicos tratados, y en endBL[] los bloques lógicos finales de los bloques de punteros. Las posiciones de estos valores en los arreglos dependen del nivel de punteros en el que se encuentre el bloque de punteros. Además, cabe añadir que para solucionar que entre llamadas recursivas se pierda la información por ser variables locales, se han declarado como variables estáticas.
+- `oldsBL[]` → Guarda los bloques lógicos correspondientes a los últimos bloques físicos tratados.
+- `endBL[]` → Almacena los bloques lógicos finales de los bloques de punteros.
+- `oldBL` → Mantiene el bloque lógico inicial del salto, facilitando su impresión.
 
-Finalmente, también se han añadido las variables freeBL, old_nivel_punteros y salto.
+Estos arreglos permiten garantizar que los saltos se impriman en el orden adecuado:
+1. **Primero** se liberan e imprimen los bloques físicos.
+2. **Después** se imprimen los saltos de bloques lógicos.
 
-static long freeBL --> para guardar el valor del bloque lógico correspondiente al bloque de datos liberado. Es información necesaria para la impresión de la liberación del bloque de punteros
+La posición de cada valor en `oldsBL[]` y `endBL[]` depende del nivel de punteros en el que se encuentra el bloque de punteros.
 
-static int old_nivel_punteros --> guarda el nivel de punteros más bajo al que hemos tenido que acceder. Esto es importante para los mensajes de saltos finales de bloques de punteros. Como tenemos que imprimir estos saltos al final deberemos acordarnos cuantos niveles hemos bajado.
+### 3. **Variables adicionales para optimización**
+Se han añadido las siguientes variables estáticas para controlar el proceso de mensajes de liberación y saltos:
 
-int salto --> tiene el propósito de ser un booleano y controla la impresión de mensajes de salto. Esta variable es necesaria para no imprimir los saltos entre diferentes niveles de indirectos y cuando el salto es inmediato.
-
-
+- `static long freeBL` → Almacena el bloque lógico correspondiente al bloque de datos liberado.
+  - Esto es crucial para imprimir correctamente la liberación del bloque de punteros asociado.
+- `static int old_nivel_punteros` → Mantiene el nivel de punteros previo en la recursividad.
+- `int salto` → Controla si se debe imprimir un salto entre bloques o no.
