@@ -29,6 +29,16 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
     return 0;
 }
 
+/**
+ * @brief Busca una entrada en un directorio
+ * @param camino_parcial Camino parcial a buscar
+ * @param p_inodo_dir Puntero al inodo del directorio
+ * @param p_inodo Puntero al inodo de la entrada
+ * @param p_entrada Puntero a la entrada
+ * @param reservar Indica si se debe reservar un inodo
+ * @param permisos Permisos del inodo
+ * @return EXITO si se encuentra la entrada, ERROR_NO_EXISTE_ENTRADA_CONSULTA si no existe
+ */
 int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos) {
     struct entrada entrada;
     struct inodo inodo_dir;
@@ -166,6 +176,158 @@ void mostrar_error_buscar_entrada(int error) {
         fprintf(stderr, RED "Error: No es un directorio.\n" RESET);
         break;
     }
+}
+
+int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
+    struct entrada entrada;
+    struct inodo inodo;
+    int p_inodo;
+    int p_entrada;
+    int total = 0;
+    char tmp[100];
+    buffer[0] = '\0';  // vaciamos buffer
+
+    // Buscar la entrada
+    int error = buscar_entrada(camino, &p_inodo, &p_entrada, 0, 0, 0);
+    if (error < 0) return error;
+
+    // Leer el inodo de la entrada
+    if (leer_inodo(p_inodo, &inodo) < 0) return -1;
+
+    // Comprobación de sintaxis y tipo
+    if (tipo == 'd' && inodo.tipo != 'd') {
+        fprintf(stderr, "Error: la sintaxis no concuerda con el tipo (esperaba directorio)\n");
+        return -1;
+    }
+    if (tipo == 'f' && inodo.tipo != 'f') {
+        fprintf(stderr, "Error: la sintaxis no concuerda con el tipo (esperaba fichero)\n");
+        return -1;
+    }
+
+    // Comprobar permisos de lectura
+    if (!(inodo.permisos & 4)) {
+        fprintf(stderr, "Error: no tienes permisos de lectura\n");
+        return -1;
+    }
+
+    if (inodo.tipo == 'd') {  // Si es un directorio
+        int n_entradas = inodo.tamEnBytesLog / sizeof(struct entrada);
+        if (n_entradas == 0) return 0;
+
+        strcat(buffer, "Total: ");
+        sprintf(tmp, "%d\n", n_entradas);
+        strcat(buffer, tmp);
+
+        if (flag == 1) {  // Formato extendido estilo ls -l
+            strcat(buffer, "Tipo\tPermisos\tmTime\t\t\tTamaño\tNombre\n");
+            strcat(buffer, "-------------------------------------------------------------\n");
+        }
+
+        for (int i = 0; i < n_entradas; i++) {
+            if (mi_read_f(p_inodo, &entrada, i * sizeof(struct entrada), sizeof(struct entrada)) != sizeof(struct entrada)) {
+                fprintf(stderr, "Error al leer entrada %d\n", i);
+                return -1;
+            }
+
+            struct inodo inodo_aux;
+            int ninodo_aux = entrada.ninodo;
+
+            if (leer_inodo(ninodo_aux, &inodo_aux) < 0) return -1;
+
+            if (flag == 1) {  // Extendida
+                // Tipo
+                if (inodo_aux.tipo == 'd') strcat(buffer, "d\t");
+                else strcat(buffer, "f\t");
+
+                // Permisos
+                strcat(buffer, (inodo_aux.permisos & 4) ? "r" : "-");
+                strcat(buffer, (inodo_aux.permisos & 2) ? "w" : "-");
+                strcat(buffer, (inodo_aux.permisos & 1) ? "x\t" : "-\t");
+
+                // Fecha
+                struct tm *tm;
+                tm = localtime(&inodo_aux.mtime);
+                sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d\t",
+                    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+                    tm->tm_hour, tm->tm_min, tm->tm_sec);
+                strcat(buffer, tmp);
+
+                // Tamaño
+                sprintf(tmp, "%d\t", inodo_aux.tamEnBytesLog);
+                strcat(buffer, tmp);
+
+                // Nombre
+                strcat(buffer, entrada.nombre);
+                strcat(buffer, "\n");
+            } else {  // Simple
+                strcat(buffer, entrada.nombre);
+                strcat(buffer, "\n");
+            }
+            total++;
+        }
+        return total;
+    } else {  // Si es un fichero
+        if (flag == 1) {  // Formato extendido para fichero
+            strcat(buffer, "Tipo\tPermisos\tmTime\t\t\tTamaño\tNombre\n");
+            strcat(buffer, "-------------------------------------------------------------\n");
+
+            // Tipo
+            strcat(buffer, "f\t");
+
+            // Permisos
+            strcat(buffer, (inodo.permisos & 4) ? "r" : "-");
+            strcat(buffer, (inodo.permisos & 2) ? "w" : "-");
+            strcat(buffer, (inodo.permisos & 1) ? "x\t" : "-\t");
+
+            // Fecha
+            struct tm *tm;
+            tm = localtime(&inodo.mtime);
+            sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d\t",
+                tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+                tm->tm_hour, tm->tm_min, tm->tm_sec);
+            strcat(buffer, tmp);
+
+            // Tamaño
+            sprintf(tmp, "%d\t", inodo.tamEnBytesLog);
+            strcat(buffer, tmp);
+
+            // Nombre
+            if (mi_read_f(p_inodo, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) != sizeof(struct entrada)) {
+                fprintf(stderr, "Error al leer la entrada\n");
+                return -1;
+            }
+            strcat(buffer, entrada.nombre);
+            strcat(buffer, "\n");
+        } else {  // Simple
+            if (mi_read_f(p_inodo, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) != sizeof(struct entrada)) {
+                fprintf(stderr, "Error al leer la entrada\n");
+                return -1;
+            }
+            strcat(buffer, entrada.nombre);
+            strcat(buffer, "\n");
+        }
+        return 1;  // solo un fichero
+    }
+}
+
+
+int mi_chmod(const char *camino, unsigned char permisos) {
+    unsigned int p_inodo, p_inodo_dir, p_entrada;
+
+    // Buscar la entrada
+    int res = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0);
+    if (res < 0) {
+        fprintf(stderr, "Error en buscar_entrada() para el camino '%s'\n", camino);
+        return res;
+    }
+
+    // Cambiar los permisos del inodo
+    if (mi_chmod_f(p_inodo, permisos) == FALLO) {
+        fprintf(stderr, "Error en mi_chmod_f() para el inodo %d\n", p_inodo);
+        return FALLO;
+    }
+
+    return EXITO;
 }
 
 int mi_stat(const char *camino, struct STAT *p_stat) {
