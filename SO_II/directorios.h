@@ -6,6 +6,7 @@
 #include "ficheros.h"
 
 #define TAMNOMBRE 60 //tamaño del nombre de directorio o fichero, en Ext2 = 256
+#define TAMENTRADA sizeof(struct entrada) // tamaño de la entrada
 struct entrada {
   char nombre[TAMNOMBRE];
   unsigned int ninodo;
