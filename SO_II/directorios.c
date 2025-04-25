@@ -364,3 +364,22 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
 
     return EXITO; // 0
 } 
+
+int mi_creat(const char *camino, unsigned char permisos) {
+    struct superbloque SB;
+    unsigned int p_inodo, p_inodo_dir, p_entrada;
+    int error;
+    if (bread(posSB, &SB) == FALLO) {
+        fprintf(stderr, "mi_creat(): error al leer el superbloque\n");
+        return FALLO;
+    }
+    p_inodo_dir = SB.posInodoRaiz; 
+    p_inodo = SB.posInodoRaiz;
+    p_entrada = 0;
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos);
+    if (error < 0) {
+        return error;
+    } else {
+        return EXITO;
+    }
+}
