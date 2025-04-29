@@ -383,3 +383,12 @@ int mi_creat(const char *camino, unsigned char permisos) {
         return EXITO;
     }
 }
+
+int mi_read(const char *camino, char *buf, unsigned int offset, unsigned int nbytes) {
+    unsigned int p_inodo, p_inodo_dir, p_entrada;
+    int error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0);
+    if (error < 0) {
+        return FALLO;
+    }
+    return mi_read_f(p_inodo, buf, offset, nbytes);
+}

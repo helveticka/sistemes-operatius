@@ -28,3 +28,4 @@ void mostrar_buscar_entrada(char *camino, char reservar);
 void mostrar_error_buscar_entrada(int error);
 int mi_dir(const char *camino, char *buffer, char tipo, char flag);
 int mi_chmod_f(unsigned int ninodo, unsigned char permisos);
+int mi_read(const char *camino, char *buf, unsigned int offset, unsigned int nbytes);
