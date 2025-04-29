@@ -4,6 +4,8 @@
  */
 #include "directorios.h"
 
+static struct UltimaEntrada UltimaEntradaEscritura = {"", -1};
+
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
     // Validar que comience por '/'
     if (camino[0] != '/') {
@@ -382,6 +384,28 @@ int mi_creat(const char *camino, unsigned char permisos) {
     } else {
         return EXITO;
     }
+}
+
+int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes) {
+    unsigned int p_inodo;
+    unsigned int p_inodo_dir = 0;
+    unsigned int p_entrada;
+
+    // Comprobar si el camino está en caché
+    if (strcmp(UltimaEntradaEscritura.camino, camino) == 0) {
+        p_inodo = UltimaEntradaEscritura.p_inodo;
+    } else {
+        // No está en caché, buscar la entrada
+        int error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 2); // modo lectura+escritura
+        if (error < 0) return error;
+
+        // Actualizar la caché
+        strcpy(UltimaEntradaEscritura.camino, camino);
+        UltimaEntradaEscritura.p_inodo = p_inodo;
+    }
+
+    // Llamar a mi_write_f de la capa de ficheros
+    return mi_write_f(p_inodo, buf, offset, nbytes);
 }
 
 int mi_read(const char *camino, char *buf, unsigned int offset, unsigned int nbytes) {

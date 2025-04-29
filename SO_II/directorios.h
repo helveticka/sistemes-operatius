@@ -7,10 +7,16 @@
 
 #define TAMNOMBRE 60 //tamaño del nombre de directorio o fichero, en Ext2 = 256
 #define TAMENTRADA sizeof(struct entrada) // tamaño de la entrada
+#define PROFUNDIDAD 32 //profundidad máxima del árbol de directorios
 struct entrada {
   char nombre[TAMNOMBRE];
   unsigned int ninodo;
 };
+struct UltimaEntrada {
+  char camino[TAMNOMBRE * PROFUNDIDAD];
+  int p_inodo;
+};
+
 #define ERROR_CAMINO_INCORRECTO (-2)
 #define ERROR_PERMISO_LECTURA (-3)
 #define ERROR_NO_EXISTE_ENTRADA_CONSULTA (-4)
