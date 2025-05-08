@@ -25,13 +25,7 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
         strncpy(inicial, camino + 1, len);
         inicial[len] = '\0';  // terminador nulo
         strcpy(final, segundo_slash); // desde el segundo slash incluido
-
-        // Si el final es solo "/" => directorio final
-        if (strcmp(final, "/") == 0) {
-            *tipo = 'd';
-        } else {
-            *tipo = 'd'; // intermedio aún, pero sigue siendo directorio
-        }
+        *tipo = 'd';
     }
 
     return 0;
