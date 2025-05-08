@@ -15,17 +15,23 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
     const char *segundo_slash = strchr(camino + 1, '/');
 
     if (segundo_slash == NULL) {
-        // Solo hay un componente => fichero
+        // No hay segundo '/', es un fichero
         strcpy(inicial, camino + 1);  // omitimos el primer '/'
-        final[0] = '\0';              // cadena vacía
+        final[0] = '\0';
         *tipo = 'f';
     } else {
-        // Hay más de un componente => directorio
-        size_t len = segundo_slash - (camino + 1); // longitud de *inicial
+        // Hay al menos un segundo '/'
+        size_t len = segundo_slash - (camino + 1); // longitud de inicial
         strncpy(inicial, camino + 1, len);
-        inicial[len] = '\0'; // añadir terminador nulo
-        strcpy(final, segundo_slash); // incluye el segundo '/'
-        *tipo = 'd';
+        inicial[len] = '\0';  // terminador nulo
+        strcpy(final, segundo_slash); // desde el segundo slash incluido
+
+        // Si el final es solo "/" => directorio final
+        if (strcmp(final, "/") == 0) {
+            *tipo = 'd';
+        } else {
+            *tipo = 'd'; // intermedio aún, pero sigue siendo directorio
+        }
     }
 
     return 0;
