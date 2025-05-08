@@ -712,7 +712,9 @@ int liberar_directos(unsigned int *nBL, unsigned int ultimoBL, struct inodo *ino
 int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsigned int ultimoBL, struct inodo *inodo, int nRangoBL, int nivel_punteros, unsigned int *ptr, int *eof, int *b_reads, int *b_writes) {
     int liberados = 0, indice_inicial;
     unsigned int bloquePunteros[NPUNTEROS], bloquePunteros_Aux[NPUNTEROS], bufferCeros[NPUNTEROS];
+#if DEBUGN6 || ENTREGA_1
     static long freeBL = -1;
+#endif
     static long oldsBL[3];
     static long endBL[3];
     static int old_nivel_punteros = 4;
@@ -754,9 +756,9 @@ int liberar_indirectos_recursivo(unsigned int *nBL, unsigned int primerBL, unsig
                 }
                 oldBL = *nBL;
                 if (nivel_punteros == 1) {
+#if DEBUGN6 || ENTREGA_1
                     freeBL = *nBL;
                     oldBL = *nBL + 1;
-#if DEBUGN6 || ENTREGA_1
                     fprintf(stderr, GRAY"[liberar_bloques_inodo()\u2192 liberado BF %d de datos para BL %d]\n"RESET, bloquePunteros[i], *nBL);
 #endif
                     // Bloques de datos

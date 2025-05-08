@@ -199,8 +199,8 @@ void mostrar_error_buscar_entrada(int error) {
 int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
     struct entrada entrada;
     struct inodo inodo;
-    int p_inodo;
-    int p_entrada;
+    unsigned int p_inodo;
+    unsigned int p_entrada;
     int total = 0;
     char tmp[100];
     buffer[0] = '\0';  // vaciamos buffer
