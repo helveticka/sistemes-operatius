@@ -338,11 +338,12 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
 int mi_chmod(const char *camino, unsigned char permisos) {
     struct superbloque SB;
     unsigned int p_inodo, p_inodo_dir, p_entrada;
-    
+    printf("debug 1: mi_chmod() %s %d\n", camino, permisos);
     if (bread(posSB, &SB) == FALLO) {
         fprintf(stderr, "Error al leer el superbloque\n");
         return FALLO;
     }
+    printf("debug 2: mi_chmod() %s %d\n", camino, permisos);
 
     p_inodo_dir = SB.posInodoRaiz; // Directorio raíz
     p_inodo = SB.posInodoRaiz; // Inodo raíz

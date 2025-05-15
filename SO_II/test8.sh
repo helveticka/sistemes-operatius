@@ -43,17 +43,17 @@ echo -e "\x1B[38;2;17;245;120m./mi_chmod disco 2 /dir1/dir11/  #permiso escritur
 ./mi_chmod disco 2 /dir1/dir11/  
 echo
 echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/fic111   #Error: Permiso denegado de lectura.\x1b[0m"
-./mi_touch disco 6 /dir1/dir11/fic111  
+./mi_mkdir disco 6 /dir1/dir11/fic111  
 echo
 echo -e "\x1B[38;2;17;245;120m################################################################################\x1b[0m"
 echo -e "\x1B[38;2;17;245;120m$ ./mi_chmod disco 6 /dir1/dir11/   #permiso lectura/escritura: rw-\x1b[0m"
 ./mi_chmod disco 6 /dir1/dir11/   
 echo
 echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/fic111   #permiso lectura/escritura: rw-\x1b[0m"
-./mi_touch disco 6 /dir1/dir11/fic111  
+./mi_mkdir disco 6 /dir1/dir11/fic111  
 echo
 echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/fic112   #permiso lectura/escritura: rw-\x1b[0m"
-./mi_touch disco 6 /dir1/dir11/fic112  
+./mi_mkdir disco 6 /dir1/dir11/fic112  
 echo
 echo -e "\x1B[38;2;17;245;120m################################################################################\x1b[0m"
 echo -e "\x1B[38;2;17;245;120m$ ./mi_ls -l disco /\x1b[0m"
@@ -82,7 +82,7 @@ echo -e "\x1B[38;2;17;245;120m./mi_ls -l disco /dir1/dir12/ #Error: No existe el
 echo
 echo -e "\x1B[38;2;17;245;120m################################################################################\x1b[0m"
 echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/fic111 #Error: El archivo ya existe.\x1b[0m"
-./mi_touch disco 6 /dir1/dir11/fic111 
+./mi_mkdir disco 6 /dir1/dir11/fic111 
 echo 
 echo -e "\x1B[38;2;17;245;120m################################################################################\x1b[0m"
 echo -e "\x1B[38;2;17;245;120m$ ./mi_mkdir disco 6 /dir1/dir11/fic111/dir12/ #Error: No es un directorio.\x1b[0m"
@@ -90,7 +90,7 @@ echo -e "\x1B[38;2;17;245;120m$ ./mi_mkdir disco 6 /dir1/dir11/fic111/dir12/ #Er
 echo
 echo -e "\x1B[38;2;17;245;120m################################################################################\x1b[0m"
 echo -e "\x1B[38;2;17;245;120m$ ./mi_touch disco 6 /dir1/dir11/dir12/fic111 #Error: No existe algún directorio intermedio.\x1b[0m"
-./mi_touch disco 6 /dir1/dir11/dir12/fic111
+./mi_mkdir disco 6 /dir1/dir11/dir12/fic111
 echo
 echo -e "\x1B[38;2;17;245;120m################################################################################\x1b[0m"
 echo -e "\x1B[38;2;17;245;120m$ ./mi_mkdir disco 9 /dir2/ #Error: modo inválido: <<9>>\x1b[0m"

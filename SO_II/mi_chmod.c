@@ -13,11 +13,18 @@ int main(int argc, char *argv[]) {
 
     // Parseo de permisos (número octal)
     int permisos = atoi(argv[2]);
+
     
     // Verificamos si el valor de los permisos es válido (entre 0 y 7)
     if (permisos < 0 || permisos > 7) {
         fprintf(stderr, "Error: Valor de permisos inválido. Debe estar entre 0 y 7.\n");
-        return 1;
+        return FALLO;
+    }
+    
+    // Montamos el dispositivo
+    if (bmount(argv[1]) == FALLO) {
+        fprintf(stderr, "Error: No se pudo montar el disco '%s'.\n", argv[1]);
+        return FALLO;
     }
 
     // Obtenemos la ruta del archivo/directorio
@@ -28,6 +35,12 @@ int main(int argc, char *argv[]) {
     
     if (resultado != 0) {
         fprintf(stderr, "Error: No se pudo cambiar los permisos de '%s'.\n", path);
+        return FALLO;
+    }
+
+    // Desmontamos el dispositivo
+    if (bumount() == FALLO) {
+        fprintf(stderr, "Error: No se pudo desmontar el disco '%s'.\n", argv[1]);
         return FALLO;
     }
 
