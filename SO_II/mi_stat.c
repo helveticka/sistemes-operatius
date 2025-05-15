@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include "ficheros.h"     // Incluye struct STAT
-#include "directorios.h"  // Incluye mi_stat()
+#include "directorios.h"
 
 int main(int argc, char **argv) {
     if (argc != 3) {
