@@ -86,7 +86,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     if ((inodo_dir.permisos & 4) != 4) {
         return ERROR_PERMISO_LECTURA;
     }
-#if DEBUGN7
+#if DEBUGN7 || DEBUGN8
     fprintf(stderr, GRAY "[buscar_entrada()→ inicial: %s, final: %s, reservar: %d]\n"RESET, inicial, final, reservar);
 #endif
     cant_entradas_inodo = inodo_dir.tamEnBytesLog / TAMENTRADA;
@@ -144,7 +144,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                     } else {
                         entrada.ninodo = reservar_inodo('f', permisos); // Reservamos un inodo como fichero
                     }
-#if DEBUGN7
+#if DEBUGN7 || DEBUGN8
                     fprintf(stderr, GRAY"[buscar_entrada()→ reservado inodo %d tipo %c con permisos %d para %s]\n"RESET, entrada.ninodo, tipo, permisos, entrada.nombre);
                     fprintf(stderr, GRAY"[buscar_entrada()→ creada entrada: %s, %d]\n"RESET, inicial, entrada.ninodo);
 #endif               
