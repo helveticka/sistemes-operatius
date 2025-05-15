@@ -336,10 +336,20 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
 
 
 int mi_chmod(const char *camino, unsigned char permisos) {
+    struct superbloque SB;
     unsigned int p_inodo, p_inodo_dir, p_entrada;
+    
+    if (bread(posSB, &SB) == FALLO) {
+        fprintf(stderr, "Error al leer el superbloque\n");
+        return FALLO;
+    }
+
+    p_inodo_dir = SB.posInodoRaiz; // Directorio raíz
+    p_inodo = SB.posInodoRaiz; // Inodo raíz
+    p_entrada = 0; // Entrada raíz
 
     // Buscar la entrada
-    int res = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0);
+    int res = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos);
     if (res < 0) {
         fprintf(stderr, "Error en buscar_entrada() para el camino '%s'\n", camino);
         return res;
