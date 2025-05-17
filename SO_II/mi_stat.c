@@ -6,7 +6,7 @@
 
 int main(int argc, char **argv) {
     if (argc != 3) {
-        fprintf(stderr, "Sintaxis: %s <disco> </ruta>\n", argv[0]);
+        fprintf(stderr, RED "Sintaxis: %s <disco> </ruta>\n" RESET, argv[0]);
         return EXIT_FAILURE;
     }
 
@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     struct STAT stat;
     int resultado = mi_stat(argv[2], &stat);
     if (resultado < 0) {
-        mostrar_error_buscar_entrada(resultado);  // Si tienes esta función implementada
+        mostrar_error_buscar_entrada(resultado);
         bumount();
         return EXIT_FAILURE;
     }

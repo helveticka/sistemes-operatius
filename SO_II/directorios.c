@@ -197,6 +197,7 @@ void mostrar_error_buscar_entrada(int error) {
 int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
     struct entrada entrada;
     struct inodo inodo;
+    unsigned int p_inodo_dir;
     unsigned int p_inodo;
     unsigned int p_entrada;
     int total = 0;
@@ -204,7 +205,7 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
     buffer[0] = '\0';  // vaciamos buffer
 
     // Buscar la entrada
-    int error = buscar_entrada(camino, &p_inodo, &p_entrada, 0, 0, 0);
+    int error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
     if (error < 0) return error;
 
     // Leer el inodo de la entrada
@@ -258,7 +259,7 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
                 // Permisos
                 strcat(buffer, (inodo_aux.permisos & 4) ? "r" : "-");
                 strcat(buffer, (inodo_aux.permisos & 2) ? "w" : "-");
-                strcat(buffer, (inodo_aux.permisos & 1) ? "x\t" : "-\t");
+                strcat(buffer, (inodo_aux.permisos & 1) ? "x\t\t" : "-\t\t");
 
                 // Fecha
                 struct tm *tm;
@@ -273,11 +274,11 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
                 strcat(buffer, tmp);
 
                 // Nombre
-                strcat(buffer, entrada.nombre);
-                strcat(buffer, "\n");
+                sprintf(tmp, "%s%s%s\n", ORANGE, entrada.nombre, RESET);
+                strcat(buffer, tmp);
             } else {  // Simple
-                strcat(buffer, entrada.nombre);
-                strcat(buffer, "\n");
+                sprintf(tmp, "%s%s%s\n", ORANGE, entrada.nombre, RESET);
+                strcat(buffer, tmp);
             }
             total++;
         }
@@ -293,7 +294,7 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
             // Permisos
             strcat(buffer, (inodo.permisos & 4) ? "r" : "-");
             strcat(buffer, (inodo.permisos & 2) ? "w" : "-");
-            strcat(buffer, (inodo.permisos & 1) ? "x\t" : "-\t");
+            strcat(buffer, (inodo.permisos & 1) ? "x\t\t" : "-\t\t");
 
             // Fecha
             struct tm *tm;
@@ -312,15 +313,15 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
                 fprintf(stderr, "Error al leer la entrada\n");
                 return -1;
             }
-            strcat(buffer, entrada.nombre);
-            strcat(buffer, "\n");
+            sprintf(tmp, "%s%s%s\n", CYAN, entrada.nombre, RESET);
+            strcat(buffer, tmp);
         } else {  // Simple
             if (mi_read_f(p_inodo, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) != sizeof(struct entrada)) {
                 fprintf(stderr, "Error al leer la entrada\n");
                 return -1;
             }
-            strcat(buffer, entrada.nombre);
-            strcat(buffer, "\n");
+            sprintf(tmp, "%s%s%s\n", CYAN, entrada.nombre, RESET);
+            strcat(buffer, tmp);
         }
         return 1;  // solo un fichero
     }
