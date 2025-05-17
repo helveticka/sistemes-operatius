@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[]) {
     if (argc != 4) {
-        fprintf(stderr, "Uso: ./mi_chmod <disco> <permisos> </ruta>\n");
+        fprintf(stderr, RED "Sintaxis: ./mi_chmod <nombre_dispositivo> <permisos> </ruta>\n");
         return 1;
     }
 
@@ -17,13 +17,13 @@ int main(int argc, char *argv[]) {
     
     // Verificamos si el valor de los permisos es válido (entre 0 y 7)
     if (permisos < 0 || permisos > 7) {
-        fprintf(stderr, "Error: Valor de permisos inválido. Debe estar entre 0 y 7.\n");
+        fprintf(stderr, RED "Error: Valor de permisos inválido. Debe estar entre 0 y 7.\n");
         return FALLO;
     }
     
     // Montamos el dispositivo
     if (bmount(argv[1]) == FALLO) {
-        fprintf(stderr, "Error: No se pudo montar el disco '%s'.\n", argv[1]);
+        fprintf(stderr, RED "Error: No se pudo montar el disco '%s'.\n", argv[1]);
         return FALLO;
     }
 
@@ -34,16 +34,14 @@ int main(int argc, char *argv[]) {
     int resultado = mi_chmod(path, permisos);
     
     if (resultado != 0) {
-        fprintf(stderr, "Error: No se pudo cambiar los permisos de '%s'.\n", path);
+        fprintf(stderr, RED "Error: No se pudo cambiar los permisos de '%s'.\n", path);
         return FALLO;
     }
 
     // Desmontamos el dispositivo
     if (bumount() == FALLO) {
-        fprintf(stderr, "Error: No se pudo desmontar el disco '%s'.\n", argv[1]);
+        fprintf(stderr, RED "Error: No se pudo desmontar el disco '%s'.\n", argv[1]);
         return FALLO;
     }
-
-    printf("Los permisos de '%s' se cambiaron con éxito.\n", path);
     return EXITO;
 }

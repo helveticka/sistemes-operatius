@@ -20,18 +20,12 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
         final[0] = '\0';
         *tipo = 'f';
     } else {
-        // Hay al menos un segundo '/'
+        // Hay al menos un segundo '/', es un directorio
         size_t len = segundo_slash - (camino + 1); // longitud de inicial
         strncpy(inicial, camino + 1, len);
         inicial[len] = '\0';  // terminador nulo
         strcpy(final, segundo_slash); // desde el segundo slash incluido
-
-        // Si el final es solo "/" => directorio final
-        if (strcmp(final, "/") == 0) {
-            *tipo = 'd';
-        } else {
-            *tipo = 'd'; // intermedio aún, pero sigue siendo directorio
-        }
+        *tipo = 'd';
     }
 
     return 0;
@@ -81,14 +75,17 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         return ERROR_CAMINO_INCORRECTO;
     }
 
-    // Leer el inodo del directorio
-    leer_inodo(*p_inodo_dir, &inodo_dir);
-    if ((inodo_dir.permisos & 4) != 4) {
-        return ERROR_PERMISO_LECTURA;
-    }
 #if DEBUGN7 || DEBUGN8
     fprintf(stderr, GRAY "[buscar_entrada()→ inicial: %s, final: %s, reservar: %d]\n"RESET, inicial, final, reservar);
 #endif
+
+    // Leer el inodo del directorio
+    leer_inodo(*p_inodo_dir, &inodo_dir);
+    if ((inodo_dir.permisos & 4) != 4) {
+        fprintf(stderr, GRAY "El inodo %d no tiene permisos de lectura\n" RESET, *p_inodo_dir);
+        return ERROR_PERMISO_LECTURA;
+    }
+
     cant_entradas_inodo = inodo_dir.tamEnBytesLog / TAMENTRADA;
     num_entrada_inodo = 0;
     offset = 0;
@@ -96,9 +93,6 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     struct entrada entradas [BLOCKSIZE / TAMENTRADA];
     memset(&entrada, 0, TAMENTRADA);
     memset(entradas, 0, sizeof(entradas)); // Inicializar el buffer de entradas
-
-    cant_entradas_inodo = inodo_dir.tamEnBytesLog/sizeof(entrada);
-    num_entrada_inodo = 0;
 
     if (cant_entradas_inodo > 0) {
         if (mi_read_f(*p_inodo_dir, entradas, offset, BLOCKSIZE) < 0) {
@@ -114,7 +108,6 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                 if (mi_read_f(*p_inodo_dir, entradas, offset, BLOCKSIZE) == FALLO) {
                     return FALLO;
                 }
-            // Simulación de leer la siguiente entrada
             }
         }
         memcpy(&entrada, &entradas[num_entrada_inodo%(BLOCKSIZE/TAMENTRADA)], TAMENTRADA); // Copiar la entrada leída
@@ -125,7 +118,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         switch (reservar) {
             case 0: // Modo consulta
                 return ERROR_NO_EXISTE_ENTRADA_CONSULTA;
-            case 1: //modo escritua
+            case 1: //modo escritura
                 if (inodo_dir.tipo == 'f') {
                     return ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO;
                 }
@@ -139,7 +132,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                         if (strcmp(final, "/") == 0) {
                             entrada.ninodo = reservar_inodo('d', permisos); // Reservamos un inodo como directorio
                         } else {
-                            return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO;
+                            return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO; // No es el final de ruta
                         }
                     } else {
                         entrada.ninodo = reservar_inodo('f', permisos); // Reservamos un inodo como fichero
@@ -148,7 +141,6 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                     fprintf(stderr, GRAY"[buscar_entrada()→ reservado inodo %d tipo %c con permisos %d para %s]\n"RESET, entrada.ninodo, tipo, permisos, entrada.nombre);
                     fprintf(stderr, GRAY"[buscar_entrada()→ creada entrada: %s, %d]\n"RESET, inicial, entrada.ninodo);
 #endif               
-
                     // Escribir la entrada en el directorio
                     if (mi_write_f(*p_inodo_dir, &entrada, num_entrada_inodo * TAMENTRADA, TAMENTRADA) == FALLO) {
                         if (entrada.ninodo != FALLO) { // Si se había reservado un inodo
@@ -336,29 +328,18 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
 
 
 int mi_chmod(const char *camino, unsigned char permisos) {
-    struct superbloque SB;
-    unsigned int p_inodo, p_inodo_dir, p_entrada;
-    printf("debug 1: mi_chmod() %s %d\n", camino, permisos);
-    if (bread(posSB, &SB) == FALLO) {
-        fprintf(stderr, "Error al leer el superbloque\n");
-        return FALLO;
-    }
-    printf("debug 2: mi_chmod() %s %d\n", camino, permisos);
-
-    p_inodo_dir = SB.posInodoRaiz; // Directorio raíz
-    p_inodo = SB.posInodoRaiz; // Inodo raíz
-    p_entrada = 0; // Entrada raíz
+    unsigned int p_inodo, p_inodo_dir = 0, p_entrada;
 
     // Buscar la entrada
     int res = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, permisos);
     if (res < 0) {
-        fprintf(stderr, "Error en buscar_entrada() para el camino '%s'\n", camino);
+        fprintf(stderr, RED "Error en buscar_entrada() para el camino '%s'\n", camino);
         return res;
     }
 
     // Cambiar los permisos del inodo
     if (mi_chmod_f(p_inodo, permisos) == FALLO) {
-        fprintf(stderr, "Error en mi_chmod_f() para el inodo %d\n", p_inodo);
+        fprintf(stderr, RED "Error en mi_chmod_f() para el inodo %d\n", p_inodo);
         return FALLO;
     }
 
@@ -385,16 +366,9 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
 } 
 
 int mi_creat(const char *camino, unsigned char permisos) {
-    struct superbloque SB;
-    unsigned int p_inodo, p_inodo_dir, p_entrada;
+    unsigned int p_inodo = 0, p_inodo_dir = 0, p_entrada;
     int error;
-    if (bread(posSB, &SB) == FALLO) {
-        fprintf(stderr, "mi_creat(): error al leer el superbloque\n");
-        return FALLO;
-    }
-    p_inodo_dir = SB.posInodoRaiz; 
-    p_inodo = SB.posInodoRaiz;
-    p_entrada = 0;
+    p_inodo_dir = 0;
     error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos);
     if (error < 0) {
         return error;
