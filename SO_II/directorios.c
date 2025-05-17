@@ -82,7 +82,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     // Leer el inodo del directorio
     leer_inodo(*p_inodo_dir, &inodo_dir);
     if ((inodo_dir.permisos & 4) != 4) {
-        fprintf(stderr, GRAY "El inodo %d no tiene permisos de lectura\n" RESET, *p_inodo_dir);
+        fprintf(stderr, GRAY "[buscar_entrada()→ El inodo %d no tiene permisos de lectura]\n" RESET, *p_inodo_dir);
         return ERROR_PERMISO_LECTURA;
     }
 
@@ -274,10 +274,18 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
                 strcat(buffer, tmp);
 
                 // Nombre
-                sprintf(tmp, "%s%s%s\n", ORANGE, entrada.nombre, RESET);
+                if(inodo_aux.tipo == 'd') {
+                    sprintf(tmp, "%s%s%s\n", ORANGE, entrada.nombre, RESET);
+                } else {
+                    sprintf(tmp, "%s%s%s\n", CYAN, entrada.nombre, RESET);
+                }
                 strcat(buffer, tmp);
             } else {  // Simple
-                sprintf(tmp, "%s%s%s\n", ORANGE, entrada.nombre, RESET);
+                if(inodo_aux.tipo == 'd') {
+                    sprintf(tmp, "%s%s%s\t", ORANGE, entrada.nombre, RESET);
+                } else {
+                    sprintf(tmp, "%s%s%s\t", CYAN, entrada.nombre, RESET);
+                }
                 strcat(buffer, tmp);
             }
             total++;
@@ -309,10 +317,11 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
             strcat(buffer, tmp);
 
             // Nombre
-            if (mi_read_f(p_inodo, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) != sizeof(struct entrada)) {
+            if (mi_read_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) != sizeof(struct entrada)) {
                 fprintf(stderr, "Error al leer la entrada\n");
                 return -1;
             }
+            
             sprintf(tmp, "%s%s%s\n", CYAN, entrada.nombre, RESET);
             strcat(buffer, tmp);
         } else {  // Simple
@@ -320,7 +329,7 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
                 fprintf(stderr, "Error al leer la entrada\n");
                 return -1;
             }
-            sprintf(tmp, "%s%s%s\n", CYAN, entrada.nombre, RESET);
+            sprintf(tmp, "%s%s%s\t", CYAN, entrada.nombre, RESET);
             strcat(buffer, tmp);
         }
         return 1;  // solo un fichero
@@ -348,9 +357,9 @@ int mi_chmod(const char *camino, unsigned char permisos) {
 }
 
 int mi_stat(const char *camino, struct STAT *p_stat) {
-    unsigned int p_inodo, p_inodo_dir, p_entrada;
+    unsigned int p_inodo, p_inodo_dir = 0, p_entrada;
 
-    int resultado = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0);
+    int resultado = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
     if (resultado < 0) {
         fprintf(stderr, "Error en buscar_entrada() para el camino '%s'\n", camino);
         return resultado;
@@ -361,7 +370,7 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
         return FALLO;
     }
 
-    printf("Inodo: %d\n", p_inodo); // Mostrar número de inodo
+    printf(BLUE "Nº de inodo: %d\n" RESET, p_inodo); // Mostrar número de inodo
 
     return EXITO; // 0
 } 

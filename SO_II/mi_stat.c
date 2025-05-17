@@ -25,14 +25,14 @@ int main(int argc, char **argv) {
     }
 
     // Mostramos la información del inodo
-    printf("Tipo: %c\n", stat.tipo);
-    printf("Permisos: %d\n", stat.permisos);
+    printf("tipo: %c\n", stat.tipo);
+    printf("permisos: %d\n", stat.permisos);
     printf("atime: %s", ctime(&stat.atime));
     printf("mtime: %s", ctime(&stat.mtime));
     printf("ctime: %s", ctime(&stat.ctime));
     printf("nlinks: %d\n", stat.nlinks);
-    printf("Tamaño en bytes lógicos: %d\n", stat.tamEnBytesLog);
-    printf("Bloques ocupados: %d\n", stat.numBloquesOcupados);
+    printf("tamEnBytesLog: %d\n", stat.tamEnBytesLog);
+    printf("numBloquesOcupados: %d\n", stat.numBloquesOcupados);
 
     bumount();
     return EXIT_SUCCESS;

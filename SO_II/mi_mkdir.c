@@ -19,7 +19,7 @@ int main (int argc, char **argv) {
     // Comprobar permisos
     int permisos = atoi(argv[2]);
     if (permisos < 0 || permisos > 7) {
-        fprintf(stderr, RED "Error: Permisos incorrectos\n" RESET);
+        fprintf(stderr, RED "Error: modo inválido: <<%d>>\n" RESET, permisos);
         return FALLO;
     }
     // Comprobar ruta
