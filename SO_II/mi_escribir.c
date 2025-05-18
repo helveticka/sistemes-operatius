@@ -5,7 +5,7 @@
 #include "directorios.h"
 
 int main (int argc, char **argv) {
-    int aux, offset, nbytes, bytes_escritos;
+    int offset, nbytes, bytes_escritos;
     char *nombre_dispositivo, *ruta, *texto;
 
     // Comprobar la sintaxis
@@ -24,7 +24,7 @@ int main (int argc, char **argv) {
     // Comprobar que el texto a escribir no es vacío
     texto = argv[3];
     nbytes = strlen(texto);
-    if(nbytes <= 0) {
+    if (nbytes <= 0) {
         fprintf(stderr, RED "Error en mi_escribir: el texto a escribir no es válido\n" RESET);
         return FALLO;
     }
@@ -34,7 +34,7 @@ int main (int argc, char **argv) {
 
     // Comprobar que el offset es válido
     offset = atoi(argv[4]);
-    if(offset < 0) {
+    if (offset < 0) {
         fprintf(stderr, RED "Error en mi_escribir: el offset no es válido\n" RESET);
         return FALLO;
     }
@@ -49,7 +49,7 @@ int main (int argc, char **argv) {
 
     if ((bytes_escritos = mi_write(ruta, texto, offset, nbytes)) < 0) {
         mostrar_error_buscar_entrada(bytes_escritos);
-        if(bytes_escritos == FALLO){
+        if (bytes_escritos == FALLO){
             fprintf(stderr, RED "Error en mi_escribir: no se ha podido escribir en el fichero\n" RESET);
             bumount();
             return FALLO;
