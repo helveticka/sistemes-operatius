@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
     printf("atime: %s", ctime(&stat.atime));
     printf("mtime: %s", ctime(&stat.mtime));
     printf("ctime: %s", ctime(&stat.ctime));
+    printf("btime: %s", ctime(&stat.btime));
     printf("nlinks: %d\n", stat.nlinks);
     printf("tamEnBytesLog: %d\n", stat.tamEnBytesLog);
     printf("numBloquesOcupados: %d\n", stat.numBloquesOcupados);

@@ -50,12 +50,11 @@ int main (int argc, char **argv) {
     if ((bytes_escritos = mi_write(ruta, texto, offset, nbytes)) < 0) {
         mostrar_error_buscar_entrada(bytes_escritos);
         if (bytes_escritos == FALLO){
-            fprintf(stderr, RED "Error en mi_escribir: no se ha podido escribir en el fichero\n" RESET);
-            bumount();
-            return FALLO;
+            bytes_escritos = 0;
         }
-        bytes_escritos = 0;
+        
     }
+
 #if DEBUGN9
     fprintf(stderr, "Bytes escritos: %d\n", bytes_escritos);
 #endif
