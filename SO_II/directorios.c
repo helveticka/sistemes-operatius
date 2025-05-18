@@ -4,7 +4,13 @@
  */
 #include "directorios.h"
 
-static struct UltimaEntrada UltimaEntradaEscritura = {"", -1};
+#if (USARCACHE==2 || USARCACHE==3)
+  #define CACHE_SIZE 3 // Cantidad de entradas en la caché
+  static struct ultimaEntrada cache[CACHE_SIZE];
+#endif
+
+static int CACHE_LIBRE = CACHE_SIZE; // Número de entradas libres en la caché
+static int ultima_entrada_mod = 0; // Última entrada de la caché actualizada
 
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
     // Validar que comience por '/'
@@ -388,24 +394,43 @@ int mi_creat(const char *camino, unsigned char permisos) {
 }
 
 int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes) {
-    unsigned int p_inodo;
+    unsigned int p_inodo = 0;
     unsigned int p_inodo_dir = 0;
-    unsigned int p_entrada;
+    unsigned int p_entrada = 0;
 
-    // Comprobar si el camino está en caché
-    if (strcmp(UltimaEntradaEscritura.camino, camino) == 0) {
-        p_inodo = UltimaEntradaEscritura.p_inodo;
-    } else {
-        // No está en caché, buscar la entrada
-        int error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 2); // modo lectura+escritura
+    for (int i = 0; i < (CACHE_SIZE-1); i++){
+        // Comprobar si la entrada está en caché
+        if (strcmp(cache[i].camino, camino) == 0) {
+            p_inodo = cache[i].p_inodo;
+
+#if DEBUGN9
+            fprintf(stderr, BLUE "[mi_write()→ Utilizamos la caché de escritura en vez de llamar a buscar_entrada()]\n" RESET);
+#endif
+        break;
+        }
+    }
+    
+    if(p_inodo_dir == p_inodo) { // Si no está en caché
+        int error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
         if (error < 0) return error;
 
-        // Actualizar la caché
-        strcpy(UltimaEntradaEscritura.camino, camino);
-        UltimaEntradaEscritura.p_inodo = p_inodo;
+        if(CACHE_LIBRE > 0){
+            strcpy(cache[CACHE_SIZE-CACHE_LIBRE].camino, camino);
+            cache[CACHE_SIZE-CACHE_LIBRE].p_inodo = p_inodo;
+            CACHE_LIBRE--;
+        } else{
+            strcpy(cache[ultima_entrada_mod].camino, camino);
+            cache[ultima_entrada_mod].p_inodo = p_inodo;
+        }
+
+#if DEBUGN9
+        fprintf(stderr, ORANGE "[mi_write()→ Reemplazamos caché[%d]: %s]\n" RESET, ultima_entrada_mod, camino);
+#endif
+        
+        // Actualizar la última entrada modificada
+        ultima_entrada_mod = (ultima_entrada_mod + 1) % CACHE_SIZE;
     }
 
-    // Llamar a mi_write_f de la capa de ficheros
     return mi_write_f(p_inodo, buf, offset, nbytes);
 }
 

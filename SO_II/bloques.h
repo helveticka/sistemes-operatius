@@ -37,8 +37,8 @@
 #define DEBUGN5 0
 #define DEBUGN6 0
 #define DEBUGN7 0
-#define DEBUGN8 1
-#define DEBUGN9 0
+#define DEBUGN8 0
+#define DEBUGN9 1
 #define DEBUGN10 0
 #define DEBUGN11 0
 #define DEBUGN12 0
