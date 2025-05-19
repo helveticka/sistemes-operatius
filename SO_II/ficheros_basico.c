@@ -425,6 +425,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     inodo.nlinks = 1;
     inodo.tamEnBytesLog = 0;
     inodo.btime = time(NULL);
+    inodo.mtime = time(NULL);
     inodo.numBloquesOcupados = 0;
     for (int i = 0; i < 12; i++) {
         inodo.punterosDirectos[i] = 0;
