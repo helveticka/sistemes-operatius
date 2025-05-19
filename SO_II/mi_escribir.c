@@ -28,7 +28,7 @@ int main (int argc, char **argv) {
         fprintf(stderr, RED "Error en mi_escribir: el texto a escribir no es válido\n" RESET);
         return FALLO;
     }
-#if DEBUGN9
+#if DEBUGN9 || DEBUGN10
     fprintf(stderr, "longitud texto: %d\n", nbytes);
 #endif
 
@@ -55,7 +55,7 @@ int main (int argc, char **argv) {
         
     }
 
-#if DEBUGN9
+#if DEBUGN9 || DEBUGN10
     fprintf(stderr, "Bytes escritos: %d\n", bytes_escritos);
 #endif
     // Desmontar el sistema de archivos
