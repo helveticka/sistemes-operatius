@@ -51,5 +51,8 @@ int mi_read(const char *camino, char *buf, unsigned int offset, unsigned int nby
 int mi_link(const char *camino1, const char *camino2);
 int mi_unlink(const char *camino);
 
+// Extras
+int mi_rename(const char *camino, const char *nuevo);
+
 // Adicionales
 int comparar_timeval(struct timeval a, struct timeval b);

@@ -39,7 +39,6 @@ int main(int argc, char **argv) {
     if ((nentradas = mi_dir(camino, buffer, tipo, flag)) < 0) {
         mostrar_error_buscar_entrada(nentradas);
         if(nentradas == FALLO){
-            fprintf(stderr, "Error en mi_ls: No se pudo listar el contenido.\n");
             bumount();
             return FALLO;
         }

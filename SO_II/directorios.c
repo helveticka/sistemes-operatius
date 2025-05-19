@@ -74,7 +74,6 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
             return FALLO;
         }
         if (reservar == 1) {
-            fprintf(stderr, "No se puede modificar la raíz\n");
             return FALLO;
         }
         *p_inodo = SB.posInodoRaiz; // El inodo de la raíz
@@ -97,7 +96,9 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     // Leer el inodo del directorio
     leer_inodo(*p_inodo_dir, &inodo_dir);
     if ((inodo_dir.permisos & 4) != 4) {
+#if DEBUGN7 || DEBUGN8
         fprintf(stderr, GRAY "[buscar_entrada()→ El inodo %d no tiene permisos de lectura]\n" RESET, *p_inodo_dir);
+#endif
         return ERROR_PERMISO_LECTURA;
     }
 
@@ -236,20 +237,8 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
         return -1;
     }
 
-    struct entrada entradas[inodo.numBloquesOcupados*BLOCKSIZE / sizeof(struct entrada)];
-
     // Si es un fichero
     if (inodo.tipo == 'f') {
-
-        // Leer las entradas del directorio
-        int leidos = mi_read_f(p_inodo, (char *)entradas, 0, sizeof(entradas));
-        if (leidos < 0) {
-            fprintf(stderr, RED "Error al leer el contenido del directorio.\n" RESET);
-            return -1;
-        }
-
-        n_entradas = leidos / sizeof(struct entrada);
-        
         if (flag == 'l') {
             tm = localtime(&inodo.mtime);
             sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d",
@@ -263,7 +252,6 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
             strcat(buffer, (inodo.permisos & 2) ? "w" : "-");
             strcat(buffer, (inodo.permisos & 1) ? "x" : "-");
             sprintf(buffer + strlen(buffer), "\t%s\t%u\t\t", tmp, inodo.tamEnBytesLog);
-            
             sprintf(tmp, "%s%s%s\n", CYAN, strrchr(camino, '/') + 1, RESET);
             strcat(buffer, tmp);
         } else {
@@ -271,27 +259,25 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
             strcat(buffer, "\n");
         }
         return EXITO;
+    }
 
-    } else {
-        // Leer las entradas del directorio
-        int leidos = mi_read_f(p_inodo_dir, (char *)entradas, 0, sizeof(entradas));
-        if (leidos < 0) {
-            fprintf(stderr, RED "Error al leer el contenido del directorio.\n" RESET);
-            return FALLO;
+    // Si es un directorio, leemos sus entradas bloque por bloque
+    int offset = 0, leidos = 0;
+    struct entrada entradas[BLOCKSIZE / sizeof(struct entrada)];
+    int num_entradas_bloque = 0;
+    int cabacera = 0;
+
+    while ((leidos = mi_read_f(p_inodo_dir, entradas, offset, BLOCKSIZE)) > 0) {
+        if(cabacera == 0) {
+            cabacera = 1;
+            if (flag == 'l') {
+                strcat(buffer, "Tipo\tModo\tmTime\t\t\tTamaño\t\tNombre\n");
+                strcat(buffer, "---------------------------------------------------------------------\n");
+            }
         }
-
-        n_entradas = leidos / sizeof(struct entrada);
-        sprintf(buffer + strlen(buffer), "Total: %d\n", n_entradas);
-
-        // Si se solicita un listado extendido
-        if (flag == 'l' && n_entradas > 0) {
-            strcat(buffer, "Tipo\tModo\tmTime\t\t\tTamaño\t\tNombre\n");
-            strcat(buffer, "---------------------------------------------------------------------\n");
-        }
-
-        // Procesar cada entrada del directorio
-        for (int i = 0; i < n_entradas; i++) {
-            if (entradas[i].nombre[0] == 0) continue; // Ignorar entradas vacías
+        num_entradas_bloque = leidos / sizeof(struct entrada);
+        for (int i = 0; i < num_entradas_bloque; i++) {
+            if (entradas[i].nombre[0] == '\0') continue;
 
             struct inodo inodo_aux;
             if (leer_inodo(entradas[i].ninodo, &inodo_aux) < 0) {
@@ -299,41 +285,44 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
                 continue;
             }
 
-
-            // Concatenar información al buffer
-            if (flag == 'l') {  // Si es listado largo, mostramos detalles adicionales
+            if (flag == 'l') {
                 tm = localtime(&inodo_aux.mtime);
                 sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d",
                         tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
                         tm->tm_hour, tm->tm_min, tm->tm_sec);
 
-                sprintf(buffer + strlen(buffer), "%c\t", inodo_aux.tipo);  // Tipo de archivo (d/f)
+                sprintf(buffer + strlen(buffer), "%c\t", inodo_aux.tipo);
                 strcat(buffer, (inodo_aux.permisos & 4) ? "r" : "-");
                 strcat(buffer, (inodo_aux.permisos & 2) ? "w" : "-");
                 strcat(buffer, (inodo_aux.permisos & 1) ? "x" : "-");
-                sprintf(buffer + strlen(buffer), "\t%s\t%u\t\t", tmp,
-                        inodo_aux.tamEnBytesLog);
-                if(inodo_aux.tipo == 'd') {
+                sprintf(buffer + strlen(buffer), "\t%s\t%u\t\t", tmp, inodo_aux.tamEnBytesLog);
+
+                if (inodo_aux.tipo == 'd') {
                     sprintf(tmp, "%s%s%s\n", ORANGE, entradas[i].nombre, RESET);
                 } else {
                     sprintf(tmp, "%s%s%s\n", CYAN, entradas[i].nombre, RESET);
                 }
                 strcat(buffer, tmp);
-            } else {  // Listado simple, solo el nombre
-                if(inodo_aux.tipo == 'd') {
+            } else {
+                if (inodo_aux.tipo == 'd') {
                     sprintf(tmp, "%s%s%s\t", ORANGE, entradas[i].nombre, RESET);
                 } else {
                     sprintf(tmp, "%s%s%s\t", CYAN, entradas[i].nombre, RESET);
                 }
                 strcat(buffer, tmp);
             }
+            n_entradas++;
         }
+        offset += BLOCKSIZE;
     }
-    
-    // Asegurarse de que el buffer termine correctamente
+
     if (flag != 'l') strcat(buffer, "\n");
-    return n_entradas;  // Retornar el número de entradas procesadas
+
+    printf("Total: %d\n", n_entradas);
+
+    return n_entradas;
 }
+
 
 
 int mi_chmod(const char *camino, unsigned char permisos) {
@@ -706,6 +695,45 @@ int mi_unlink(const char *camino){
         // Actualizar ctime y escribir inodo
         inodo.ctime = time(NULL);
         if (escribir_inodo(p_inodo, &inodo) == FALLO) return FALLO;
+    }
+
+    return EXITO;
+}
+
+int mi_rename(const char *camino, const char *nuevo)
+{
+    struct entrada entrada;
+    char caminoNuevo[strlen(nuevo)+1];
+    unsigned int p_inodo_dir, p_inodo, p_entrada;
+    int error;
+
+    p_inodo_dir = 0;
+    
+    // Buscar la entrada
+    if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0){
+        return error;
+    }
+
+    sprintf(caminoNuevo, "/%s", nuevo);
+
+    // Comprobar que el nuevo nombre no exista
+    if ((error = buscar_entrada(caminoNuevo, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) != ERROR_NO_EXISTE_ENTRADA_CONSULTA){
+        if (error == EXITO){
+            fprintf(stderr, RED"ERROR: Ya hay un archivo con este nombre\n"RESET);
+        }
+        return error;
+    }
+    
+    // Leer el inodo del directorio padre
+    if ((error = mi_read_f(p_inodo_dir, &entrada, p_entrada*TAMENTRADA, TAMENTRADA)) < 0){
+        return error;
+    }
+
+    strcpy(entrada.nombre, nuevo);
+
+    // Escribir la entrada en el directorio padre
+    if ((error = mi_write_f(p_inodo_dir, &entrada, p_entrada*TAMENTRADA, TAMENTRADA)) < 0){
+        return error;
     }
 
     return EXITO;
