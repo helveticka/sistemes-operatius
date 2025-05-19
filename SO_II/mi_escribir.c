@@ -3,7 +3,12 @@
  * @authors Xavier Campos, Pedro Félix, Harpo Joan
  */
 #include "directorios.h"
-
+/**
+ * @brief Función principal que escribe en un fichero
+ * @param argc Cantidad de argumentos
+ * @param argv Argumentos
+ * @return EXITO si no hay errores, FALLO en caso contrario
+ */
 int main (int argc, char **argv) {
     int offset, nbytes, bytes_escritos;
     char *nombre_dispositivo, *ruta, *texto;
@@ -28,7 +33,7 @@ int main (int argc, char **argv) {
         fprintf(stderr, RED "Error en mi_escribir: el texto a escribir no es válido\n" RESET);
         return FALLO;
     }
-#if DEBUGN9 || DEBUGN10
+#if DEBUGN9 || DEBUGN10 || ENTREGA_2
     fprintf(stderr, "longitud texto: %d\n", nbytes);
 #endif
 
@@ -55,7 +60,7 @@ int main (int argc, char **argv) {
         
     }
 
-#if DEBUGN9 || DEBUGN10
+#if DEBUGN9 || DEBUGN10 || ENTREGA_2
     fprintf(stderr, "Bytes escritos: %d\n", bytes_escritos);
 #endif
     // Desmontar el sistema de archivos
