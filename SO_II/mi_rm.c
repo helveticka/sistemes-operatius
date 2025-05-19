@@ -23,7 +23,6 @@ int main(int argc, char **argv)
 
     // Montar el sistema de archivos
     if (bmount(camino) == FALLO){
-        fprintf(stderr, RED"ERROR EN ./mi_rm\n"RESET);
         return FALLO;
     }
 
@@ -31,14 +30,12 @@ int main(int argc, char **argv)
     if ((error = mi_unlink(ruta)) < 0){
         mostrar_error_buscar_entrada(error);
         if (error == FALLO){
-            fprintf(stderr, RED"ERROR EN ./mi_rm\n"RESET);
             return FALLO;
         }
     }
 
     // Desmontar el sistema de archivos
     if (bumount() == FALLO){
-        fprintf(stderr, RED"ERROR EN ./mi_rm\n"RESET);
         return FALLO;
     }
     return EXITO;

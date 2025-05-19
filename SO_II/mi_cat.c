@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
     // Leemos el inodo
     memset(texto, 0, tambuffer);
     leidos = mi_read(ruta, texto, offset, tambuffer);
+
     // Leemos el contenido del inodo
     while (leidos > 0) {
         write(1, texto, leidos);
@@ -45,7 +46,7 @@ int main(int argc, char **argv) {
         }
     }
 #if DEBUGN9 || DEBUGN10
-    fprintf(stderr, "\nTotal_leidos: %d\n", total_leidos);
+    fprintf(stderr, "\n\nTotal_leidos: %d", total_leidos);
 #endif
     if (bumount() == FALLO){
         fprintf(stderr, RED "Error al desmontar el dispositivo virtual en ./mi_cat" RESET);

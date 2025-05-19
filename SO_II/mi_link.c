@@ -22,7 +22,6 @@ int main(int argc, char **argv) {
 
     // Llamar a mi_link (de la capa de directorios)
     if (mi_link(camino1, camino2) < 0) {
-        fprintf(stderr, "Error: No se pudo crear el enlace.\n");
         bumount();
         return FALLO;
     }

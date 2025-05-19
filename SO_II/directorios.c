@@ -244,11 +244,12 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
 
     if (inodo.tipo == 'd') {  // Si es un directorio
         int n_entradas = inodo.tamEnBytesLog / sizeof(struct entrada);
-        if (n_entradas == 0) return 0;
 
         strcat(buffer, "Total: ");
         sprintf(tmp, "%d\n", n_entradas);
         strcat(buffer, tmp);
+
+        if (n_entradas == 0) return 0;
 
         if (flag == 1) {  // Formato extendido estilo ls -l
             strcat(buffer, "Tipo\tPermisos\tmTime\t\t\tTamaño\tNombre\n");
@@ -493,6 +494,14 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
     return mi_write_f(p_inodo, buf, offset, nbytes);
 }
 
+/**
+ * @brief Lee un fichero y lo almacena en el buffer
+ * @param camino Ruta del fichero a leer
+ * @param buf Buffer donde se almacenará el contenido leído
+ * @param offset Offset desde donde se comenzará a leer
+ * @param nbytes Número de bytes a leer
+ * @return Número de bytes leídos o error
+ */
 int mi_read(const char *camino, char *buf, unsigned int offset, unsigned int nbytes) {
     unsigned int p_inodo = 0;
     unsigned int p_inodo_dir = 0;
@@ -600,25 +609,25 @@ int mi_link(const char *camino1, const char *camino2){
     // Buscar camino1 (no reservar)
     int err = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 4);
     if (err < 0) {
-        fprintf(stderr, "Error: El archivo de origen no existe o no es un fichero.\n");
+        fprintf(stderr, RED "Error: No existe el archivo o el directorio.\n" RESET);
         return FALLO;
     }
 
     // Leer inodo de camino1
     if (leer_inodo(p_inodo1, &inodo1) == FALLO){
-        fprintf(stderr, "Error: No se pudo leer el inodo del fichero origen.\n");
+        fprintf(stderr, RED "Error: No se pudo leer el inodo del fichero origen.\n" RESET);
         return FALLO;
     }
 
     // Comprobar que sea un fichero
     if (inodo1.tipo != 'f') {
-        fprintf(stderr, "Error: El origen debe ser un fichero.\n");
+        fprintf(stderr, RED "Error: El origen debe ser un fichero.\n" RESET);
         return FALLO;
     }
 
     // Comprobar permisos de lectura
     if ((inodo1.permisos & 4) != 4) {
-        fprintf(stderr, "Error: Permiso denegado de lectura en el fichero origen.\n");
+        fprintf(stderr, RED "Error: Permiso denegado de lectura en el fichero origen.\n" RESET);
         return FALLO;
     }
 
@@ -626,28 +635,27 @@ int mi_link(const char *camino1, const char *camino2){
     err = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6);
     if (err < 0) {
         if (err == ERROR_ENTRADA_YA_EXISTENTE) {
-            fprintf(stderr, "Error: El archivo ya existe.\n");
+            fprintf(stderr, RED "Error: El archivo ya existe.\n" RESET);
         }
-        fprintf(stderr, "Error: No se pudo crear el enlace.\n");
         return FALLO;
     }
     
     // Leer inodo de camino1
     if (leer_inodo(p_inodo2, &inodo2) == FALLO){
-        fprintf(stderr, "Error: No se pudo leer el inodo del fichero destino.\n");
+        fprintf(stderr, RED "Error: No se pudo leer el inodo del fichero destino.\n" RESET);
         return FALLO;
     }
 
     // Leer la entrada creada
     if (mi_read_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
-        fprintf(stderr, "Error: No se pudo leer la entrada del destino.\n");
+        fprintf(stderr, RED "Error: No se pudo leer la entrada del destino.\n" RESET);
         return FALLO;
     }
 
     // Modificar entrada para que apunte al inodo1
     entrada.ninodo = p_inodo1;
     if (mi_write_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
-        fprintf(stderr, "Error: No se pudo escribir la entrada modificada.\n");
+        fprintf(stderr, RED "Error: No se pudo escribir la entrada modificada.\n" RESET);
         return FALLO;
     }
 
@@ -663,7 +671,7 @@ int mi_link(const char *camino1, const char *camino2){
 }
 
 int mi_unlink(const char *camino){
-    unsigned int p_inodo_dir, p_inodo, p_entrada;
+    unsigned int p_inodo_dir = 0, p_inodo, p_entrada;
     struct inodo inodo, inodo_dir;
     struct entrada entrada;
     int nentradas;
@@ -672,7 +680,7 @@ int mi_unlink(const char *camino){
     // Buscar entrada (comprobamos que existe)
     error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
     if (error < 0) {
-        fprintf(stderr, "Error: No existe el archivo o el directorio.\n");
+        fprintf(stderr, RED "Error: No existe el archivo o el directorio.\n" RESET);
         return FALLO;
     }
 
@@ -681,7 +689,7 @@ int mi_unlink(const char *camino){
 
     // Si es directorio, comprobar que está vacío
     if (inodo.tipo == 'd' && inodo.tamEnBytesLog > 0) {
-        fprintf(stderr, "Error: El directorio no está vacío.\n");
+        fprintf(stderr, RED "Error: El directorio no está vacío.\n" RESET);
         return FALLO;
     }
 
