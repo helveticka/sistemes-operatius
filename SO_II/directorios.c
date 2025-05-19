@@ -509,7 +509,10 @@ int mi_read(const char *camino, char *buf, unsigned int offset, unsigned int nby
 #endif
         // Buscar la entrada
         int error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
-        if (error < 0) return error;
+        if (error < 0){
+            mostrar_error_buscar_entrada(error);
+            return error;
+        }
 
 #if USARCACHE == 1 || USARCACHE == 2 || USARCACHE == 3 // Si se utiliza caché
 
@@ -711,6 +714,7 @@ int mi_rename(const char *camino, const char *nuevo)
     
     // Buscar la entrada
     if ((error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) < 0){
+        mostrar_error_buscar_entrada(error);
         return error;
     }
 
@@ -719,7 +723,7 @@ int mi_rename(const char *camino, const char *nuevo)
     // Comprobar que el nuevo nombre no exista
     if ((error = buscar_entrada(caminoNuevo, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4)) != ERROR_NO_EXISTE_ENTRADA_CONSULTA){
         if (error == EXITO){
-            fprintf(stderr, RED"ERROR: Ya hay un archivo con este nombre\n"RESET);
+            fprintf(stderr, RED"Error: La entrada ya existe\n"RESET);
         }
         return error;
     }

@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
         }
     }
 #if DEBUGN9 || DEBUGN10
-    fprintf(stderr, "\n\nTotal_leidos: %d", total_leidos);
+    fprintf(stderr, "\nTotal_leidos: %d\n", total_leidos);
 #endif
     if (bumount() == FALLO){
         fprintf(stderr, RED "Error al desmontar el dispositivo virtual en ./mi_cat" RESET);
