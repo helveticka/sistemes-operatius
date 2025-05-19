@@ -104,6 +104,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     cant_entradas_inodo = inodo_dir.tamEnBytesLog / TAMENTRADA;
     num_entrada_inodo = 0;
     offset = 0;
+    
     // Inicializar el buffer de lectura
     struct entrada entradas [BLOCKSIZE / TAMENTRADA];
     memset(&entrada, 0, TAMENTRADA);
@@ -210,146 +211,128 @@ void mostrar_error_buscar_entrada(int error) {
 }
 
 int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
-    struct entrada entrada;
     struct inodo inodo;
-    unsigned int p_inodo_dir;
-    unsigned int p_inodo;
-    unsigned int p_entrada;
-    int total = 0;
+    struct tm *tm;
     char tmp[100];
-    buffer[0] = '\0';  // vaciamos buffer
+    unsigned int n_entrada = 0;
+    unsigned int p_inodo = 0, p_inodo_dir = 0;
+    int n_entradas = 0;
 
-    // Buscar la entrada
-    int error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
-    if (error < 0) return error;
-
-    // Leer el inodo de la entrada
-    if (leer_inodo(p_inodo, &inodo) < 0) return -1;
-
-    // Comprobación de sintaxis y tipo
-    if (tipo == 'd' && inodo.tipo != 'd') {
-        fprintf(stderr, "Error: la sintaxis no concuerda con el tipo (esperaba directorio)\n");
-        return -1;
-    }
-    if (tipo == 'f' && inodo.tipo != 'f') {
-        fprintf(stderr, "Error: la sintaxis no concuerda con el tipo (esperaba fichero)\n");
+    // Buscar la entrada correspondiente a 'camino'
+    if (buscar_entrada(camino, &p_inodo, &p_inodo_dir, &n_entrada, 0, 0) < 0) {
+        fprintf(stderr, RED "Error: No existe el archivo o el directorio.\n" RESET);
         return -1;
     }
 
-    // Comprobar permisos de lectura
+    // Leer el inodo del directorio
+    if (leer_inodo(p_inodo_dir, &inodo) < 0) {
+        fprintf(stderr, RED "Error al leer inodo\n" RESET);
+        return -1;
+    }
+
+    // Verificar permisos de lectura
     if (!(inodo.permisos & 4)) {
-        fprintf(stderr, "Error: no tienes permisos de lectura\n");
+        fprintf(stderr, RED "Error: permiso de lectura denegado\n" RESET);
         return -1;
     }
 
-    if (inodo.tipo == 'd') {  // Si es un directorio
-        int n_entradas = inodo.tamEnBytesLog / sizeof(struct entrada);
+    struct entrada entradas[inodo.numBloquesOcupados*BLOCKSIZE / sizeof(struct entrada)];
 
-        strcat(buffer, "Total: ");
-        sprintf(tmp, "%d\n", n_entradas);
-        strcat(buffer, tmp);
+    // Si es un fichero
+    if (inodo.tipo == 'f') {
 
-        if (n_entradas == 0) return 0;
-
-        if (flag == 1) {  // Formato extendido estilo ls -l
-            strcat(buffer, "Tipo\tPermisos\tmTime\t\t\tTamaño\tNombre\n");
-            strcat(buffer, "-------------------------------------------------------------\n");
+        // Leer las entradas del directorio
+        int leidos = mi_read_f(p_inodo, (char *)entradas, 0, sizeof(entradas));
+        if (leidos < 0) {
+            fprintf(stderr, RED "Error al leer el contenido del directorio.\n" RESET);
+            return -1;
         }
 
-        for (int i = 0; i < n_entradas; i++) {
-            if (mi_read_f(p_inodo, &entrada, i * sizeof(struct entrada), sizeof(struct entrada)) != sizeof(struct entrada)) {
-                fprintf(stderr, "Error al leer entrada %d\n", i);
-                return -1;
-            }
-
-            struct inodo inodo_aux;
-            int ninodo_aux = entrada.ninodo;
-
-            if (leer_inodo(ninodo_aux, &inodo_aux) < 0) return -1;
-
-            if (flag == 1) {  // Extendida
-                // Tipo
-                if (inodo_aux.tipo == 'd') strcat(buffer, "d\t");
-                else strcat(buffer, "f\t");
-
-                // Permisos
-                strcat(buffer, (inodo_aux.permisos & 4) ? "r" : "-");
-                strcat(buffer, (inodo_aux.permisos & 2) ? "w" : "-");
-                strcat(buffer, (inodo_aux.permisos & 1) ? "x\t\t" : "-\t\t");
-
-                // Fecha
-                struct tm *tm;
-                tm = localtime(&inodo_aux.mtime);
-                sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d\t",
+        n_entradas = leidos / sizeof(struct entrada);
+        
+        if (flag == 'l') {
+            tm = localtime(&inodo.mtime);
+            sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d",
                     tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
                     tm->tm_hour, tm->tm_min, tm->tm_sec);
-                strcat(buffer, tmp);
 
-                // Tamaño
-                sprintf(tmp, "%d\t", inodo_aux.tamEnBytesLog);
-                strcat(buffer, tmp);
-
-                // Nombre
-                if(inodo_aux.tipo == 'd') {
-                    sprintf(tmp, "%s%s%s\n", ORANGE, entrada.nombre, RESET);
-                } else {
-                    sprintf(tmp, "%s%s%s\n", CYAN, entrada.nombre, RESET);
-                }
-                strcat(buffer, tmp);
-            } else {  // Simple
-                if(inodo_aux.tipo == 'd') {
-                    sprintf(tmp, "%s%s%s\t", ORANGE, entrada.nombre, RESET);
-                } else {
-                    sprintf(tmp, "%s%s%s\t", CYAN, entrada.nombre, RESET);
-                }
-                strcat(buffer, tmp);
-            }
-            total++;
-        }
-        return total;
-    } else {  // Si es un fichero
-        if (flag == 1) {  // Formato extendido para fichero
-            strcat(buffer, "Tipo\tPermisos\tmTime\t\t\tTamaño\tNombre\n");
-            strcat(buffer, "-------------------------------------------------------------\n");
-
-            // Tipo
-            strcat(buffer, "f\t");
-
-            // Permisos
+            sprintf(buffer + strlen(buffer), "Tipo\tModo\tmTime\t\t\tTamaño\t\tNombre\n");
+            sprintf(buffer + strlen(buffer), "---------------------------------------------------------------------\n");
+            sprintf(buffer + strlen(buffer), "%c\t", inodo.tipo);
             strcat(buffer, (inodo.permisos & 4) ? "r" : "-");
             strcat(buffer, (inodo.permisos & 2) ? "w" : "-");
-            strcat(buffer, (inodo.permisos & 1) ? "x\t\t" : "-\t\t");
-
-            // Fecha
-            struct tm *tm;
-            tm = localtime(&inodo.mtime);
-            sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d\t",
-                tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
-                tm->tm_hour, tm->tm_min, tm->tm_sec);
-            strcat(buffer, tmp);
-
-            // Tamaño
-            sprintf(tmp, "%d\t", inodo.tamEnBytesLog);
-            strcat(buffer, tmp);
-
-            // Nombre
-            if (mi_read_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) != sizeof(struct entrada)) {
-                fprintf(stderr, "Error al leer la entrada\n");
-                return -1;
-            }
+            strcat(buffer, (inodo.permisos & 1) ? "x" : "-");
+            sprintf(buffer + strlen(buffer), "\t%s\t%u\t\t", tmp, inodo.tamEnBytesLog);
             
-            sprintf(tmp, "%s%s%s\n", CYAN, entrada.nombre, RESET);
+            sprintf(tmp, "%s%s%s\n", CYAN, strrchr(camino, '/') + 1, RESET);
             strcat(buffer, tmp);
-        } else {  // Simple
-            if (mi_read_f(p_inodo, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) != sizeof(struct entrada)) {
-                fprintf(stderr, "Error al leer la entrada\n");
-                return -1;
-            }
-            sprintf(tmp, "%s%s%s\t", CYAN, entrada.nombre, RESET);
-            strcat(buffer, tmp);
+        } else {
+            strcat(buffer, strrchr(camino, '/') + 1);
+            strcat(buffer, "\n");
         }
-        return 1;  // solo un fichero
+        return EXITO;
+
+    } else {
+        // Leer las entradas del directorio
+        int leidos = mi_read_f(p_inodo_dir, (char *)entradas, 0, sizeof(entradas));
+        if (leidos < 0) {
+            fprintf(stderr, RED "Error al leer el contenido del directorio.\n" RESET);
+            return FALLO;
+        }
+
+        n_entradas = leidos / sizeof(struct entrada);
+        sprintf(buffer + strlen(buffer), "Total: %d\n", n_entradas);
+
+        // Si se solicita un listado extendido
+        if (flag == 'l' && n_entradas > 0) {
+            strcat(buffer, "Tipo\tModo\tmTime\t\t\tTamaño\t\tNombre\n");
+            strcat(buffer, "---------------------------------------------------------------------\n");
+        }
+
+        // Procesar cada entrada del directorio
+        for (int i = 0; i < n_entradas; i++) {
+            if (entradas[i].nombre[0] == 0) continue; // Ignorar entradas vacías
+
+            struct inodo inodo_aux;
+            if (leer_inodo(entradas[i].ninodo, &inodo_aux) < 0) {
+                fprintf(stderr, RED "Error al leer inodo de entrada.\n" RESET);
+                continue;
+            }
+
+
+            // Concatenar información al buffer
+            if (flag == 'l') {  // Si es listado largo, mostramos detalles adicionales
+                tm = localtime(&inodo_aux.mtime);
+                sprintf(tmp, "%d-%02d-%02d %02d:%02d:%02d",
+                        tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
+                        tm->tm_hour, tm->tm_min, tm->tm_sec);
+
+                sprintf(buffer + strlen(buffer), "%c\t", inodo_aux.tipo);  // Tipo de archivo (d/f)
+                strcat(buffer, (inodo_aux.permisos & 4) ? "r" : "-");
+                strcat(buffer, (inodo_aux.permisos & 2) ? "w" : "-");
+                strcat(buffer, (inodo_aux.permisos & 1) ? "x" : "-");
+                sprintf(buffer + strlen(buffer), "\t%s\t%u\t\t", tmp,
+                        inodo_aux.tamEnBytesLog);
+                if(inodo_aux.tipo == 'd') {
+                    sprintf(tmp, "%s%s%s\n", ORANGE, entradas[i].nombre, RESET);
+                } else {
+                    sprintf(tmp, "%s%s%s\n", CYAN, entradas[i].nombre, RESET);
+                }
+                strcat(buffer, tmp);
+            } else {  // Listado simple, solo el nombre
+                if(inodo_aux.tipo == 'd') {
+                    sprintf(tmp, "%s%s%s\t", ORANGE, entradas[i].nombre, RESET);
+                } else {
+                    sprintf(tmp, "%s%s%s\t", CYAN, entradas[i].nombre, RESET);
+                }
+                strcat(buffer, tmp);
+            }
+        }
     }
+    
+    // Asegurarse de que el buffer termine correctamente
+    if (flag != 'l') strcat(buffer, "\n");
+    return n_entradas;  // Retornar el número de entradas procesadas
 }
 
 

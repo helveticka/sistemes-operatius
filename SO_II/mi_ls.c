@@ -19,10 +19,13 @@ int main(int argc, char **argv) {
             fprintf(stderr, "Opción no válida: %s\n", argv[1]);
             return FALLO;
         }
-        flag = 1;  // 'l' indica el formato extendido
+        flag = 'l';  // 'l' indica el formato extendido
+        disco = argv[2];
+        camino = argv[3];
+    } else{
+        disco = argv[1];
+        camino = argv[2];
     }
-    disco = argv[1+flag];
-    camino = argv[2+flag];
     // Determinar si la ruta corresponde a un directorio o fichero
     tipo = (camino[strlen(camino) - 1] == '/') ? 'd' : 'f';
     // Montar el disco
