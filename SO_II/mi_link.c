@@ -1,7 +1,16 @@
+/**
+ * @file mi_link.c
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
+ */
 #include "directorios.h"
 #include <stdio.h>
 #include <string.h>
-
+/**
+ * @brief Función principal que crea un enlace a un fichero
+ * @param argc Cantidad de argumentos
+ * @param argv Argumentos
+ * @return EXITO si no hay errores, FALLO en caso contrario
+ */
 int main(int argc, char **argv) {
     char *camino1, *camino2;
 

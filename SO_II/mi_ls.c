@@ -1,8 +1,17 @@
+/**
+ * @file mi_ls.c
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
+ */
 #include "directorios.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+/**
+ * @brief Función principal que lista el contenido de un directorio
+ * @param argc Cantidad de argumentos
+ * @param argv Argumentos
+ * @return EXITO si no hay errores, FALLO en caso contrario
+ */
 int main(int argc, char **argv) {
     char buffer[TAMBUFFER];
     int nentradas;

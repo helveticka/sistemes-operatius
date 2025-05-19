@@ -20,7 +20,14 @@
 #if USARCACHE == 1 || USARCACHE == 2
     static int ultima_entrada_mod = 0; // Última entrada de la caché actualizada
 #endif
-
+/**
+ * @brief Extrae el camino de un directorio o fichero
+ * @param camino Cadena de caracteres que representa el camino
+ * @param inicial Cadena de caracteres donde se almacenará la parte inicial del camino
+ * @param final Cadena de caracteres donde se almacenará la parte final del camino
+ * @param tipo Tipo de entrada ('d' para directorio, 'f' para fichero)
+ * @return 0 si se ha extraído correctamente, -1 si el camino es incorrecto
+ */
 int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
     // Validar que comience por '/'
     if (camino[0] != '/') {
@@ -54,9 +61,8 @@ int extraer_camino(const char *camino, char *inicial, char *final, char *tipo) {
  * @param p_entrada Puntero a la entrada
  * @param reservar Indica si se debe reservar un inodo
  * @param permisos Permisos del inodo
- * @return EXITO si se encuentra la entrada, ERROR_NO_EXISTE_ENTRADA_CONSULTA si no existe
+ * @return EXITO si se encuentra la entrada o los distintos ERRORES tipificados
  */
-
 int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsigned int *p_inodo, unsigned int *p_entrada, char reservar, unsigned char permisos) {
     struct entrada entrada;
     struct inodo inodo_dir;
@@ -89,14 +95,14 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
         return ERROR_CAMINO_INCORRECTO;
     }
 
-#if DEBUGN7 || DEBUGN8
+#if DEBUGN7 || DEBUGN8 || DEBUGN9 || DEBUGN10
     fprintf(stderr, GRAY "[buscar_entrada()→ inicial: %s, final: %s, reservar: %d]\n"RESET, inicial, final, reservar);
 #endif
 
     // Leer el inodo del directorio
     leer_inodo(*p_inodo_dir, &inodo_dir);
     if ((inodo_dir.permisos & 4) != 4) {
-#if DEBUGN7 || DEBUGN8
+#if DEBUGN7 || DEBUGN8 || DEBUGN9 || DEBUGN10
         fprintf(stderr, GRAY "[buscar_entrada()→ El inodo %d no tiene permisos de lectura]\n" RESET, *p_inodo_dir);
 #endif
         return ERROR_PERMISO_LECTURA;
@@ -154,7 +160,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                     } else {
                         entrada.ninodo = reservar_inodo('f', permisos); // Reservamos un inodo como fichero
                     }
-#if DEBUGN7 || DEBUGN8
+#if DEBUGN7 || DEBUGN8 || DEBUGN9 || DEBUGN10
                     fprintf(stderr, GRAY"[buscar_entrada()→ reservado inodo %d tipo %c con permisos %d para %s]\n"RESET, entrada.ninodo, tipo, permisos, entrada.nombre);
                     fprintf(stderr, GRAY"[buscar_entrada()→ creada entrada: %s, %d]\n"RESET, inicial, entrada.ninodo);
 #endif               
@@ -184,7 +190,10 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
     }
     return EXITO;
 }
-
+/**
+ * @brief Muestra un mensaje de error según el código de error
+ * @param error Código de error
+ */
 void mostrar_error_buscar_entrada(int error) {
     switch (error) {
     case -2:
@@ -210,7 +219,14 @@ void mostrar_error_buscar_entrada(int error) {
         break;
     }
 }
-
+/**
+ * @brief Muestra el contenido de un directorio
+ * @param camino Ruta del directorio a mostrar
+ * @param buffer Buffer donde se almacenará el contenido
+ * @param tipo Tipo de entrada ('d' para directorio, 'f' para fichero)
+ * @param flag Indica si se debe mostrar en formato largo ('l') o corto ('c')
+ * @return Número de entradas leídas o error
+ */
 int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
     struct inodo inodo;
     struct tm *tm;
@@ -323,8 +339,12 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
     return n_entradas;
 }
 
-
-
+/**
+ * @brief Cambia los permisos de un fichero o directorio
+ * @param camino Ruta del fichero o directorio
+ * @param permisos Permisos a establecer
+ * @return EXITO si se ha cambiado correctamente, FALLO en caso contrario
+ */
 int mi_chmod(const char *camino, unsigned char permisos) {
     unsigned int p_inodo, p_inodo_dir = 0, p_entrada;
 
@@ -343,7 +363,12 @@ int mi_chmod(const char *camino, unsigned char permisos) {
 
     return EXITO;
 }
-
+/**
+ * @brief Muestra el estado de un fichero o directorio
+ * @param camino Ruta del fichero o directorio
+ * @param p_stat Puntero a la estructura donde se almacenará el estado
+ * @return EXITO si se ha mostrado correctamente, FALLO en caso contrario
+ */
 int mi_stat(const char *camino, struct STAT *p_stat) {
     unsigned int p_inodo, p_inodo_dir = 0, p_entrada;
 
@@ -362,7 +387,12 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
 
     return EXITO; // 0
 } 
-
+/**
+ * @brief Crea un fichero o directorio
+ * @param camino Ruta del fichero o directorio a crear
+ * @param permisos Permisos a establecer
+ * @return EXITO si se ha creado correctamente, FALLO en caso contrario
+ */
 int mi_creat(const char *camino, unsigned char permisos) {
     unsigned int p_inodo = 0, p_inodo_dir = 0, p_entrada;
     int error;
@@ -374,7 +404,14 @@ int mi_creat(const char *camino, unsigned char permisos) {
         return EXITO;
     }
 }
-
+/**
+ * @brief Escribe en un fichero
+ * @param camino Ruta del fichero a escribir
+ * @param buf Buffer que contiene los datos a escribir
+ * @param offset Offset desde donde se comenzará a escribir
+ * @param nbytes Número de bytes a escribir
+ * @return Número de bytes escritos o error
+ */
 int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned int nbytes) {
     unsigned int p_inodo = 0;
     unsigned int p_inodo_dir = 0;
@@ -567,6 +604,12 @@ int mi_read(const char *camino, char *buf, unsigned int offset, unsigned int nby
     return mi_read_f(p_inodo, buf, offset, nbytes);
 }
 
+/**
+ * @brief Compara dos estructuras timeval
+ * @param a Primera estructura timeval
+ * @param b Segunda estructura timeval
+ * @return -1 si a < b, 1 si a > b, 0 si son iguales
+ */
 int comparar_timeval(struct timeval a, struct timeval b) {
     if (a.tv_sec < b.tv_sec) return -1;
     if (a.tv_sec > b.tv_sec) return 1;
@@ -574,7 +617,12 @@ int comparar_timeval(struct timeval a, struct timeval b) {
     if (a.tv_usec > b.tv_usec) return 1;
     return 0;
 }
-
+/**
+ * @brief Crea un enlace a un fichero
+ * @param camino1 Ruta del fichero origen
+ * @param camino2 Ruta del fichero destino
+ * @return EXITO si se ha creado correctamente, FALLO en caso contrario
+ */
 int mi_link(const char *camino1, const char *camino2){
     unsigned int p_inodo_dir1, p_inodo1, p_entrada1;
     unsigned int p_inodo_dir2, p_inodo2, p_entrada2;
@@ -644,7 +692,11 @@ int mi_link(const char *camino1, const char *camino2){
 
     return EXITO;
 }
-
+/**
+ * @brief Elimina un enlace a un fichero o directorio
+ * @param camino Ruta del fichero o directorio a eliminar
+ * @return EXITO si se ha eliminado correctamente, FALLO en caso contrario
+ */
 int mi_unlink(const char *camino){
     unsigned int p_inodo_dir = 0, p_inodo, p_entrada;
     struct inodo inodo, inodo_dir;
@@ -703,8 +755,13 @@ int mi_unlink(const char *camino){
     return EXITO;
 }
 
-int mi_rename(const char *camino, const char *nuevo)
-{
+/**
+ * @brief Cambia el nombre de un fichero o directorio
+ * @param camino Ruta del fichero o directorio a renombrar
+ * @param nuevo Nuevo nombre
+ * @return EXITO si se ha renombrado correctamente, FALLO en caso contrario
+ */
+int mi_rename(const char *camino, const char *nuevo) {
     struct entrada entrada;
     char caminoNuevo[strlen(nuevo)+1];
     unsigned int p_inodo_dir, p_inodo, p_entrada;

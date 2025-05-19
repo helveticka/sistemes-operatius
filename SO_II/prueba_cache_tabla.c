@@ -1,5 +1,15 @@
+/**
+ * @file prueba_cache_tabla.c
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
+ * @brief Prueba de la función mi_write con caché
+ */
 #include "directorios.h"
-
+/**
+ * @brief Función principal que prueba la función mi_write con caché
+ * @param argc Cantidad de argumentos
+ * @param argv Argumentos
+ * @return EXITO si no hay errores, FALLO en caso contrario
+ */
 int main(int argc, char **argv){
 
    if (argc!=3) {

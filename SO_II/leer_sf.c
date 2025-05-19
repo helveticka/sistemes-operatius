@@ -204,7 +204,10 @@ int main(int argc, char *argv[]) {
     }
     return EXITO;
 }
-
+/**
+ * @brief Muestra un mensaje de error según el código de error
+ * @param error Código de error
+ */
 void mostrar_buscar_entrada(char *camino, char reservar){
     unsigned int p_inodo_dir = 0;
     unsigned int p_inodo = 0;

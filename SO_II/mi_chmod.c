@@ -1,10 +1,18 @@
+/**
+ * @file mi_chmod.c
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
+ */
 #include "directorios.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
+/**
+ * @brief Función principal que cambia los permisos de un fichero o directorio
+ * @param argc Cantidad de argumentos
+ * @param argv Argumentos
+ * @return EXITO si no hay errores, FALLO en caso contrario
+ */
 int main(int argc, char *argv[]) {
     if (argc != 4) {
         fprintf(stderr, RED "Sintaxis: ./mi_chmod <nombre_dispositivo> <permisos> </ruta>\n");

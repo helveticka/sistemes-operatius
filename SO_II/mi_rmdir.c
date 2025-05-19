@@ -1,8 +1,15 @@
+/**
+ * @file mi_rmdir.c
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
+ */
 #include "directorios.h"
-
-
-int main(int argc, char **argv)
-{
+/**
+ * @brief Función principal que elimina un directorio
+ * @param argc Cantidad de argumentos
+ * @param argv Argumentos
+ * @return EXITO si no hay errores, FALLO en caso contrario
+ */
+int main(int argc, char **argv) {
     char *camino, *ruta;
     int error;
     

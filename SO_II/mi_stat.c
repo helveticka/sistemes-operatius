@@ -1,9 +1,18 @@
+/**
+ * @file mi_stat.c
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include "directorios.h"
-
+/**
+ * @brief Función principal que muestra el estado de un fichero o directorio
+ * @param argc Cantidad de argumentos
+ * @param argv Argumentos
+ * @return EXITO si no hay errores, FALLO en caso contrario
+ */
 int main(int argc, char **argv) {
     if (argc != 3) {
         fprintf(stderr, RED "Sintaxis: %s <disco> </ruta>\n" RESET, argv[0]);

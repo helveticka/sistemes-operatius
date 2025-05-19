@@ -1,8 +1,15 @@
+/**
+ * @file mi_escribir_varios.c
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
+ */
 #include "directorios.h"
-
-
+/**
+ * @brief Función principal que escribe en un fichero
+ * @param argc Cantidad de argumentos
+ * @param argv Argumentos
+ * @return EXITO si no hay errores, FALLO en caso contrario
+ */
 int main(int argc, char **argv){
-
   //Comprobamos sintaxis
   if (argc!=5) {
     fprintf(stderr, RED "Sintaxis: mi_escribir <nombre_dispositivo> </ruta_fichero> <texto> <offset>\n" RESET);
@@ -37,11 +44,6 @@ int main(int argc, char **argv){
     escritos += mi_write(camino,buffer_texto,offset+BLOCKSIZE*i,longitud); 
   }
   fprintf(stderr, ROSE "Bytes escritos: %d\n" RESET, escritos);
-  /* Visualización del stat
-  mi_stat_f(ninodo, &stat);
-  printf("stat.tamEnBytesLog=%d\n",stat.tamEnBytesLog);
-  printf("stat.numBloquesOcupados=%d\n",stat.numBloquesOcupados);
-  */
-
+  
   bumount();
 }
