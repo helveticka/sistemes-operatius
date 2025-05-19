@@ -594,57 +594,67 @@ int comparar_timeval(struct timeval a, struct timeval b) {
 int mi_link(const char *camino1, const char *camino2){
     unsigned int p_inodo_dir1, p_inodo1, p_entrada1;
     unsigned int p_inodo_dir2, p_inodo2, p_entrada2;
-    struct inodo inodo1;
+    struct inodo inodo1, inodo2;
     struct entrada entrada;
 
-    // 1. Buscar camino1 (no reservar)
-    int err = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 0);
+    // Buscar camino1 (no reservar)
+    int err = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 4);
     if (err < 0) {
         fprintf(stderr, "Error: El archivo de origen no existe o no es un fichero.\n");
         return FALLO;
     }
 
-    // 2. Leer inodo de camino1
-    if (leer_inodo(p_inodo1, &inodo1) == FALLO) return FALLO;
+    // Leer inodo de camino1
+    if (leer_inodo(p_inodo1, &inodo1) == FALLO){
+        fprintf(stderr, "Error: No se pudo leer el inodo del fichero origen.\n");
+        return FALLO;
+    }
 
-    // 3. Comprobar que sea un fichero
+    // Comprobar que sea un fichero
     if (inodo1.tipo != 'f') {
         fprintf(stderr, "Error: El origen debe ser un fichero.\n");
         return FALLO;
     }
 
-    // 4. Comprobar permisos de lectura
+    // Comprobar permisos de lectura
     if ((inodo1.permisos & 4) != 4) {
         fprintf(stderr, "Error: Permiso denegado de lectura en el fichero origen.\n");
         return FALLO;
     }
 
-    // 5. Buscar camino2 (reservar = 1, permisos = 6)
+    // Buscar camino2 (reservar = 1, permisos = 6)
     err = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6);
     if (err < 0) {
-        if (err == -EEXIST) {
+        if (err == ERROR_ENTRADA_YA_EXISTENTE) {
             fprintf(stderr, "Error: El archivo ya existe.\n");
         }
+        fprintf(stderr, "Error: No se pudo crear el enlace.\n");
+        return FALLO;
+    }
+    
+    // Leer inodo de camino1
+    if (leer_inodo(p_inodo2, &inodo2) == FALLO){
+        fprintf(stderr, "Error: No se pudo leer el inodo del fichero destino.\n");
         return FALLO;
     }
 
-    // 6. Leer la entrada creada
+    // Leer la entrada creada
     if (mi_read_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
         fprintf(stderr, "Error: No se pudo leer la entrada del destino.\n");
         return FALLO;
     }
 
-    // 7. Modificar entrada para que apunte al inodo1
+    // Modificar entrada para que apunte al inodo1
     entrada.ninodo = p_inodo1;
     if (mi_write_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
         fprintf(stderr, "Error: No se pudo escribir la entrada modificada.\n");
         return FALLO;
     }
 
-    // 8. Liberar inodo que se había reservado
+    // Liberar inodo que se había reservado
     liberar_inodo(p_inodo2);
 
-    // 9. Incrementar nlinks de inodo1 y actualizar ctime
+    // Incrementar nlinks de inodo1 y actualizar ctime
     inodo1.nlinks++;
     inodo1.ctime = time(NULL);
     escribir_inodo(p_inodo1, &inodo1);
@@ -659,49 +669,50 @@ int mi_unlink(const char *camino){
     int nentradas;
     int error;
 
-    // Paso 1: Buscar entrada (comprobamos que existe)
-    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 0);
+    // Buscar entrada (comprobamos que existe)
+    error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
     if (error < 0) {
         fprintf(stderr, "Error: No existe el archivo o el directorio.\n");
         return FALLO;
     }
 
-    // Paso 2: Leer el inodo
+    // Leer el inodo
     if (leer_inodo(p_inodo, &inodo) == FALLO) return FALLO;
 
-    // Paso 3: Si es directorio, comprobar que está vacío
+    // Si es directorio, comprobar que está vacío
     if (inodo.tipo == 'd' && inodo.tamEnBytesLog > 0) {
         fprintf(stderr, "Error: El directorio no está vacío.\n");
         return FALLO;
     }
 
-    // Paso 4: Leer inodo del directorio padre
+    // Leer inodo del directorio padre
     if (leer_inodo(p_inodo_dir, &inodo_dir) == FALLO) return FALLO;
 
-    // Paso 5: Calcular número de entradas
+    // Calcular número de entradas
     nentradas = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
 
     if (nentradas > 0 && p_entrada != (nentradas - 1)) {
         // Paso 6: No es la última entrada, copiamos la última en su lugar
-        if (mi_read_f(p_inodo_dir, &entrada, (nentradas - 1) * sizeof(struct entrada), sizeof(struct entrada)) < 0)
+        if (mi_read_f(p_inodo_dir, &entrada, (nentradas - 1) * sizeof(struct entrada), sizeof(struct entrada)) < 0){
             return FALLO;
-
-        if (mi_write_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) < 0)
+        }
+        if (mi_write_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) < 0){
             return FALLO;
+        }
     }
 
-    // Paso 7: Truncar el inodo del directorio padre
+    // Truncar el inodo del directorio padre
     int nbytes = inodo_dir.tamEnBytesLog - sizeof(struct entrada);
     if (mi_truncar_f(p_inodo_dir, nbytes) < 0) return FALLO;
 
-    // Paso 8: Decrementar nlinks del inodo borrado
+    // Decrementar nlinks del inodo borrado
     inodo.nlinks--;
 
     if (inodo.nlinks == 0) {
-        // Paso 9a: Liberar inodo si no hay más enlaces
+        // Liberar inodo si no hay más enlaces
         liberar_inodo(p_inodo);
     } else {
-        // Paso 9b: Actualizar ctime y escribir inodo
+        // Actualizar ctime y escribir inodo
         inodo.ctime = time(NULL);
         if (escribir_inodo(p_inodo, &inodo) == FALLO) return FALLO;
     }
