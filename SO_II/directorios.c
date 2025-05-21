@@ -155,7 +155,7 @@ int buscar_entrada(const char *camino_parcial, unsigned int *p_inodo_dir, unsign
                         if (strcmp(final, "/") == 0) {
                             entrada.ninodo = reservar_inodo('d', permisos); // Reservamos un inodo como directorio
                         } else {
-                            return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO; // No es el final de ruta
+                            return ERROR_NO_EXISTE_DIRECTORIO_INTERMEDIO;
                         }
                     } else {
                         entrada.ninodo = reservar_inodo('f', permisos); // Reservamos un inodo como fichero
@@ -236,13 +236,13 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
     int n_entradas = 0;
 
     // Buscar la entrada correspondiente a 'camino'
-    if (buscar_entrada(camino, &p_inodo, &p_inodo_dir, &n_entrada, 0, 0) < 0) {
+    if (buscar_entrada(camino, &p_inodo_dir, &p_inodo, &n_entrada, 0, 0) < 0) {
         fprintf(stderr, RED "Error: No existe el archivo o el directorio.\n" RESET);
         return -1;
     }
 
     // Leer el inodo del directorio
-    if (leer_inodo(p_inodo_dir, &inodo) < 0) {
+    if (leer_inodo(p_inodo, &inodo) < 0) {
         fprintf(stderr, RED "Error al leer inodo\n" RESET);
         return -1;
     }
@@ -283,7 +283,7 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
     int num_entradas_bloque = 0;
     int cabacera = 0;
 
-    while ((leidos = mi_read_f(p_inodo_dir, entradas, offset, BLOCKSIZE)) > 0) {
+    while ((leidos = mi_read_f(p_inodo, entradas, offset, BLOCKSIZE)) > 0) {
         if(cabacera == 0) {
             cabacera = 1;
             if (flag == 'l') {
@@ -293,7 +293,6 @@ int mi_dir(const char *camino, char *buffer, char tipo, char flag) {
         }
         num_entradas_bloque = leidos / sizeof(struct entrada);
         for (int i = 0; i < num_entradas_bloque; i++) {
-            if (entradas[i].nombre[0] == '\0') continue;
 
             struct inodo inodo_aux;
             if (leer_inodo(entradas[i].ninodo, &inodo_aux) < 0) {
@@ -420,7 +419,7 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
 #if USARCACHE == 1 || USARCACHE == 2 || USARCACHE == 3 // Si se utiliza caché
     int encontrada = 0; // Variable para comprobar si la entrada está en caché
 
-    for (int i = 0; i < CACHE_SIZE; i++){
+    for (int i = 0; i < CACHE_SIZE && encontrada == 0; i++){
 
         // Comprobar si la entrada está en caché
         if (strcmp(cache[i].camino, camino) == 0) {
@@ -461,9 +460,13 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
             cache[indice].p_inodo = p_inodo;
             CACHE_LIBRE--; 
 
+#if USARCACHE == 3
+    gettimeofday(&cache[indice].ultima_consulta, NULL);
+#endif
+
         } else{ // Si no hay espacio en la caché
 
-#if USARCACHE == 1 || USARCACHE == 2 // Si se utiliza estrategia FIFO
+#if USARCACHE == 1 || USARCACHE == 2 // última L/E, FIFO
             indice = ultima_entrada_mod;
             ultima_entrada_mod = (ultima_entrada_mod + 1) % CACHE_SIZE;
 #endif
@@ -476,8 +479,6 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
                 }
             }
 #endif
-
-
         // Reemplazar la entrada
         strcpy(cache[indice].camino, camino);
         cache[indice].p_inodo = p_inodo;
@@ -486,7 +487,6 @@ int mi_write(const char *camino, const void *buf, unsigned int offset, unsigned 
         // Actualizar la última consulta
         gettimeofday(&cache[indice].ultima_consulta, NULL);
 #endif
-
         }
 
 #if DEBUGN9 && USARCACHE == 1

@@ -18,7 +18,7 @@
 #define ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO (-8)
 #define TAMFILA 100 // Tamaño de la fila del directorio
 #define TAMBUFFER (TAMFILA*1000) // suponemos un máx de 1000 entradas, aunque debería ser SB.totInodos
-#define USARCACHE 1 //0:sin caché, 1:última L/E, 2:tabla FIFO, 3:tabla LRU
+#define USARCACHE 2 //0:sin caché, 1:última L/E, 2:tabla FIFO, 3:tabla LRU
 
 struct entrada {
   char nombre[TAMNOMBRE];

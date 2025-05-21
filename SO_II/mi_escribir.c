@@ -37,13 +37,7 @@ int main (int argc, char **argv) {
     fprintf(stderr, "longitud texto: %d\n", nbytes);
 #endif
 
-    // Comprobar que el offset es válido
     offset = atoi(argv[4]);
-    if (offset < 0) {
-        fprintf(stderr, RED "Error en mi_escribir: el offset no es válido\n" RESET);
-        return FALLO;
-    }
-
     nombre_dispositivo = argv[1];
 
     // Montar el sistema de archivos
@@ -57,7 +51,6 @@ int main (int argc, char **argv) {
         if (bytes_escritos == FALLO){
             bytes_escritos = 0;
         }
-        
     }
 
 #if DEBUGN9 || DEBUGN10 || ENTREGA_2
