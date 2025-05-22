@@ -563,6 +563,11 @@ int mi_read(const char *camino, char *buf, unsigned int offset, unsigned int nby
             cache[indice].p_inodo = p_inodo;
             CACHE_LIBRE--; 
 
+#if USARCACHE == 3
+        // Actualizar la última consulta
+        gettimeofday(&cache[indice].ultima_consulta, NULL);
+#endif
+
         } else{ // Si no hay espacio en la caché
 
 #if USARCACHE == 1 || USARCACHE == 2 // Si se utiliza estrategia FIFO
@@ -629,14 +634,14 @@ int mi_link(const char *camino1, const char *camino2){
     struct inodo inodo1, inodo2;
     struct entrada entrada;
 
-    // Buscar camino1 (no reservar)
+    // Buscar camino fichero origen
     int err = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 4);
     if (err < 0) {
         fprintf(stderr, RED "Error: No existe el archivo o el directorio.\n" RESET);
         return FALLO;
     }
 
-    // Leer inodo de camino1
+    // Leer inodo de fichero origen
     if (leer_inodo(p_inodo1, &inodo1) == FALLO){
         fprintf(stderr, RED "Error: No se pudo leer el inodo del fichero origen.\n" RESET);
         return FALLO;
@@ -654,7 +659,7 @@ int mi_link(const char *camino1, const char *camino2){
         return FALLO;
     }
 
-    // Buscar camino2 (reservar = 1, permisos = 6)
+    // Crear camino fichero destino
     err = buscar_entrada(camino2, &p_inodo_dir2, &p_inodo2, &p_entrada2, 1, 6);
     if (err < 0) {
         if (err == ERROR_ENTRADA_YA_EXISTENTE) {
@@ -663,26 +668,26 @@ int mi_link(const char *camino1, const char *camino2){
         return FALLO;
     }
     
-    // Leer inodo de camino1
+    // Leer inodo de camino destino
     if (leer_inodo(p_inodo2, &inodo2) == FALLO){
         fprintf(stderr, RED "Error: No se pudo leer el inodo del fichero destino.\n" RESET);
         return FALLO;
     }
 
-    // Leer la entrada creada
+    // Leer entrada del destino
     if (mi_read_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
         fprintf(stderr, RED "Error: No se pudo leer la entrada del destino.\n" RESET);
         return FALLO;
     }
 
-    // Modificar entrada para que apunte al inodo1
+    // Modificar entrada para que apunte al inodo del fichero origen
     entrada.ninodo = p_inodo1;
     if (mi_write_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
         fprintf(stderr, RED "Error: No se pudo escribir la entrada modificada.\n" RESET);
         return FALLO;
     }
 
-    // Liberar inodo que se había reservado
+    // Liberar inodo creado del destino
     liberar_inodo(p_inodo2);
 
     // Incrementar nlinks de inodo1 y actualizar ctime
@@ -726,8 +731,7 @@ int mi_unlink(const char *camino){
     // Calcular número de entradas
     nentradas = inodo_dir.tamEnBytesLog / sizeof(struct entrada);
 
-    if (nentradas > 0 && p_entrada != (nentradas - 1)) {
-        // Paso 6: No es la última entrada, copiamos la última en su lugar
+    if (nentradas > 0 && p_entrada != (nentradas - 1)) { // No es la última entrada, copiamos la última en su lugar
         if (mi_read_f(p_inodo_dir, &entrada, (nentradas - 1) * sizeof(struct entrada), sizeof(struct entrada)) < 0){
             return FALLO;
         }
