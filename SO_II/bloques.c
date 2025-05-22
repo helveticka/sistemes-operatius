@@ -3,19 +3,28 @@
  * @authors Xavier Campos, Pedro Félix, Harpo Joan
  */
 #include "bloques.h"
+#include "semaforo_mutex_posix.h"
 // Variables globales
 static int descriptor = 0;
+static sem_t *mutex;
 /**
  * @brief Monta el dispositivo virtual
  * @param camino Ruta del dispositivo virtual
  * @return Descriptor del dispositivo virtual, -1 si ha habido un error
  */
 int bmount(const char *camino) {
+    if (!mutex) { // el semáforo es único en el sistema y sólo se ha de inicializar 1 vez (padre)
+        mutex = initSem(); 
+        if (mutex == SEM_FAILED) {
+            return -1;
+        }
+    } 
     umask(000);
     descriptor = open(camino, O_RDWR | O_CREAT, 0666);
     if (descriptor == FALLO) {
         return FALLO;
     }
+    
     return descriptor;
 }
 /**
@@ -23,6 +32,7 @@ int bmount(const char *camino) {
  * @return 0 si se ha desmontado correctamente, -1 si ha habido un error
  */
 int bumount() {
+    deleteSem(); 
     if (close(descriptor) == FALLO) {
         return FALLO;
     }
@@ -54,4 +64,12 @@ int bread(unsigned int nbloque, void *buf) {
         return FALLO;
     }
     return bytes_leidos;
+}
+
+void mi_waitSem() {
+    waitSem(mutex);
+}
+
+void mi_signalSem() {
+    signalSem(mutex);
 }
