@@ -424,6 +424,7 @@ int reservar_inodo(unsigned char tipo, unsigned char permisos){
     inodo.permisos = permisos;    
     inodo.nlinks = 1;
     inodo.tamEnBytesLog = 0;
+    inodo.atime = time(NULL);
     inodo.btime = time(NULL);
     inodo.mtime = time(NULL);
     inodo.numBloquesOcupados = 0;
