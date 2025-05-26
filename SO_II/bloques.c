@@ -7,6 +7,7 @@
 // Variables globales
 static int descriptor = 0;
 static sem_t *mutex;
+static unsigned int inside_sc = 0;
 /**
  * @brief Monta el dispositivo virtual
  * @param camino Ruta del dispositivo virtual
@@ -67,9 +68,15 @@ int bread(unsigned int nbloque, void *buf) {
 }
 
 void mi_waitSem() {
-    waitSem(mutex);
+    if (!inside_sc) { // Si no estamos dentro de una sección crítica
+        waitSem(mutex); // Entramos en la sección crítica
+    }
+    inside_sc++; // Incrementamos el contador de secciones críticas
 }
 
 void mi_signalSem() {
-    signalSem(mutex);
+    inside_sc--; // Decrementamos el contador de secciones críticas
+    if (!inside_sc) { // Si hemos salido de la última sección crítica
+        signalSem(mutex); // Liberamos el semáforo
+    }
 }
