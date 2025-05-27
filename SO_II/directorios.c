@@ -393,16 +393,16 @@ int mi_stat(const char *camino, struct STAT *p_stat) {
  * @return EXITO si se ha creado correctamente, FALLO en caso contrario
  */
 int mi_creat(const char *camino, unsigned char permisos) {
-    mi_wait_sem();
+    mi_waitSem();
     unsigned int p_inodo = 0, p_inodo_dir = 0, p_entrada;
     int error;
     p_inodo_dir = 0;
     error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 1, permisos);
     if (error < 0) {
-        mi_signal_sem(); 
+        mi_signalSem(); 
         return error;
     } else {
-        mi_signal_sem();
+        mi_signalSem();
         return EXITO;
     }
 }
@@ -632,7 +632,7 @@ int comparar_timeval(struct timeval a, struct timeval b) {
  * @return EXITO si se ha creado correctamente, FALLO en caso contrario
  */
 int mi_link(const char *camino1, const char *camino2){
-    mi_wait_sem();
+    mi_waitSem();
 
     unsigned int p_inodo_dir1, p_inodo1, p_entrada1;
     unsigned int p_inodo_dir2, p_inodo2, p_entrada2;
@@ -643,28 +643,28 @@ int mi_link(const char *camino1, const char *camino2){
     int err = buscar_entrada(camino1, &p_inodo_dir1, &p_inodo1, &p_entrada1, 0, 4);
     if (err < 0) {
         fprintf(stderr, RED "Error: No existe el archivo o el directorio.\n" RESET);
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
 
     // Leer inodo de fichero origen
     if (leer_inodo(p_inodo1, &inodo1) == FALLO){
         fprintf(stderr, RED "Error: No se pudo leer el inodo del fichero origen.\n" RESET);
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
 
     // Comprobar que sea un fichero
     if (inodo1.tipo != 'f') {
         fprintf(stderr, RED "Error: El origen debe ser un fichero.\n" RESET);
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
 
     // Comprobar permisos de lectura
     if ((inodo1.permisos & 4) != 4) {
         fprintf(stderr, RED "Error: Permiso denegado de lectura en el fichero origen.\n" RESET);
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -674,21 +674,21 @@ int mi_link(const char *camino1, const char *camino2){
         if (err == ERROR_ENTRADA_YA_EXISTENTE) {
             fprintf(stderr, RED "Error: El archivo ya existe.\n" RESET);
         }
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
     
     // Leer inodo de camino destino
     if (leer_inodo(p_inodo2, &inodo2) == FALLO){
         fprintf(stderr, RED "Error: No se pudo leer el inodo del fichero destino.\n" RESET);
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
 
     // Leer entrada del destino
     if (mi_read_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
         fprintf(stderr, RED "Error: No se pudo leer la entrada del destino.\n" RESET);
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -696,7 +696,7 @@ int mi_link(const char *camino1, const char *camino2){
     entrada.ninodo = p_inodo1;
     if (mi_write_f(p_inodo_dir2, &entrada, p_entrada2 * sizeof(struct entrada), sizeof(struct entrada)) < 0) {
         fprintf(stderr, RED "Error: No se pudo escribir la entrada modificada.\n" RESET);
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
 
@@ -708,7 +708,7 @@ int mi_link(const char *camino1, const char *camino2){
     inodo1.ctime = time(NULL);
     escribir_inodo(p_inodo1, &inodo1);
 
-    mi_signal_sem();
+    mi_signalSem();
     return EXITO;
 }
 /**
@@ -717,7 +717,7 @@ int mi_link(const char *camino1, const char *camino2){
  * @return EXITO si se ha eliminado correctamente, FALLO en caso contrario
  */
 int mi_unlink(const char *camino){
-    mi_wait_sem();
+    mi_waitSem();
     unsigned int p_inodo_dir = 0, p_inodo, p_entrada;
     struct inodo inodo, inodo_dir;
     struct entrada entrada;
@@ -728,25 +728,25 @@ int mi_unlink(const char *camino){
     error = buscar_entrada(camino, &p_inodo_dir, &p_inodo, &p_entrada, 0, 4);
     if (error < 0) {
         fprintf(stderr, RED "Error: No existe el archivo o el directorio.\n" RESET);
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
 
     // Leer el inodo
     if (leer_inodo(p_inodo, &inodo) == FALLO) {
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
     // Si es directorio, comprobar que está vacío
     if (inodo.tipo == 'd' && inodo.tamEnBytesLog > 0) {
         fprintf(stderr, RED "Error: El directorio %s no está vacío.\n" RESET, camino);
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
 
     // Leer inodo del directorio padre
     if (leer_inodo(p_inodo_dir, &inodo_dir) == FALLO){
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
     // Calcular número de entradas
@@ -754,11 +754,11 @@ int mi_unlink(const char *camino){
 
     if (nentradas > 0 && p_entrada != (nentradas - 1)) { // No es la última entrada, copiamos la última en su lugar
         if (mi_read_f(p_inodo_dir, &entrada, (nentradas - 1) * sizeof(struct entrada), sizeof(struct entrada)) < 0){
-            mi_signal_sem();
+            mi_signalSem();
             return FALLO;
         }
         if (mi_write_f(p_inodo_dir, &entrada, p_entrada * sizeof(struct entrada), sizeof(struct entrada)) < 0){
-            mi_signal_sem();
+            mi_signalSem();
             return FALLO;
         }
     }
@@ -766,7 +766,7 @@ int mi_unlink(const char *camino){
     // Truncar el inodo del directorio padre
     int nbytes = inodo_dir.tamEnBytesLog - sizeof(struct entrada);
     if (mi_truncar_f(p_inodo_dir, nbytes) < 0) {
-        mi_signal_sem();
+        mi_signalSem();
         return FALLO;
     }
     // Decrementar nlinks del inodo borrado
@@ -779,11 +779,11 @@ int mi_unlink(const char *camino){
         // Actualizar ctime y escribir inodo
         inodo.ctime = time(NULL);
         if (escribir_inodo(p_inodo, &inodo) == FALLO) {
-            mi_signal_sem();
+            mi_signalSem();
             return FALLO;
         }
     }
-    mi_signal_sem();
+    mi_signalSem();
     return EXITO;
 }
 
