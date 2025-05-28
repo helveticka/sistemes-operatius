@@ -46,10 +46,12 @@ int main(int argc, char **argv) {
                 reg.nEscritura = j + 1;
                 reg.nRegistro = rand() % REGMAX;
 
-                if (escribir_f(camino, &reg, reg.nRegistro * sizeof(struct REGISTRO), sizeof(struct REGISTRO)) < 0) {
+                if (mi_write(camino, &reg, reg.nRegistro * sizeof(struct REGISTRO), sizeof(struct REGISTRO)) < 0) {
                     fprintf(stderr, "[%d] Error escribiendo en %s\n", mi_pid, camino);
                 }
-
+#if DEBUGN12
+                fprintf(stderr, "[simulacion.c -> Escritura %d en %s]\n", reg.nEscritura, camino);
+#endif
                 my_sleep(rand() % 51);  // entre 0 y 50 ms
             }
 

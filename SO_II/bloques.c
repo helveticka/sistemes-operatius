@@ -14,6 +14,9 @@ static unsigned int inside_sc = 0;
  * @return Descriptor del dispositivo virtual, -1 si ha habido un error
  */
 int bmount(const char *camino) {
+    if (descriptor > 0) {
+        close(descriptor); // cerramos el descriptor para que se pueda abrir con el bloque de tamaño correcto
+    }
     if (!mutex) { // el semáforo es único en el sistema y sólo se ha de inicializar 1 vez (padre)
         mutex = initSem(); 
         if (mutex == SEM_FAILED) {
@@ -21,8 +24,11 @@ int bmount(const char *camino) {
         }
     } 
     umask(000);
+    
     descriptor = open(camino, O_RDWR | O_CREAT, 0666);
+    
     if (descriptor == FALLO) {
+        fprintf(stderr, RED "Error al abrir el dispositivo virtual" RESET);
         return FALLO;
     }
     
@@ -33,10 +39,10 @@ int bmount(const char *camino) {
  * @return 0 si se ha desmontado correctamente, -1 si ha habido un error
  */
 int bumount() {
-    deleteSem(); 
     if (close(descriptor) == FALLO) {
         return FALLO;
     }
+    deleteSem();
     return EXITO;
 }
 /**
