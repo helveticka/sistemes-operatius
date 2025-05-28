@@ -1,6 +1,7 @@
 #include "simulacion.h"
 
 int acabados = 0;
+char simul_dir[64];  // para /simul_aaaammddhhmmss
 
 int main(int argc, char **argv) {
     if (argc != 2) {
@@ -8,37 +9,54 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    // Montar sistema de ficheros
+    signal(SIGCHLD, reaper); // Asociar la señal
+
     if (bmount(argv[1]) == -1) {
         perror("Error montando el dispositivo");
         return -1;
     }
 
-    // Crear directorio /simulacion/
-    if (mi_creat("/simulacion", 6) < 0) {
-        fprintf(stderr, "Error creando el directorio /simulacion\n");
+    // Crear directorio simul_yyyymmddhhmmss
+    time_t now = time(NULL);
+    struct tm *tm_info = localtime(&now);
+    sprintf(simul_dir, "/simul_%04d%02d%02d%02d%02d%02d/",
+            tm_info->tm_year + 1900, tm_info->tm_mon + 1, tm_info->tm_mday,
+            tm_info->tm_hour, tm_info->tm_min, tm_info->tm_sec);
+
+    if (mi_creat(simul_dir, 6) < 0) {
+        fprintf(stderr, "Error creando el directorio %s\n", simul_dir);
         bumount();
         return -1;
     }
 
-    signal(SIGCHLD, reaper);  // Activamos el reaper
-
-    pid_t pid;
     for (int i = 0; i < NUMPROCESOS; i++) {
-        pid = fork();
+        pid_t pid = fork();
         if (pid == 0) {  // Hijo
-            char camino[100];
-            struct REGISTRO reg;
-
-            pid_t mi_pid = getpid();
-            sprintf(camino, "/simulacion/%d", mi_pid);
-
-            if (mi_creat(camino, 6) < 0) {
-                fprintf(stderr, "[%d] Error creando el fichero %s\n", mi_pid, camino);
+            if (bmount(argv[1]) == -1) {
+                perror("Hijo: error montando dispositivo");
                 exit(1);
             }
 
-            srand(time(NULL) ^ (getpid()<<16)); // Semilla diferente para cada hijo
+            pid_t mi_pid = getpid();
+            char dir_proceso[100];
+            sprintf(dir_proceso, "%sproceso_%d/", simul_dir, mi_pid);
+
+            char camino[110];
+            sprintf(camino, "%sprueba.dat", dir_proceso);
+            if (mi_creat(dir_proceso, 6) < 0) {
+                fprintf(stderr, "[%d] Error creando %s\n", mi_pid, dir_proceso);
+                bumount();
+                exit(1);
+            }
+
+            if (mi_creat(camino, 6) < 0) {
+                fprintf(stderr, "[%d] Error creando %s\n", mi_pid, camino);
+                bumount();
+                exit(1);
+            }
+
+            srand(time(NULL) + mi_pid);
+            struct REGISTRO reg;
 
             for (int j = 0; j < NUMESCRITURAS; j++) {
                 reg.fecha = time(NULL);
@@ -46,27 +64,32 @@ int main(int argc, char **argv) {
                 reg.nEscritura = j + 1;
                 reg.nRegistro = rand() % REGMAX;
 
-                if (mi_write(camino, &reg, reg.nRegistro * sizeof(struct REGISTRO), sizeof(struct REGISTRO)) < 0) {
+                off_t offset = reg.nRegistro * sizeof(struct REGISTRO);
+                if (mi_write(camino, &reg, offset, sizeof(struct REGISTRO)) < 0) {
                     fprintf(stderr, "[%d] Error escribiendo en %s\n", mi_pid, camino);
                 }
+
 #if DEBUGN12
-                fprintf(stderr, "[simulacion.c -> Escritura %d en %s]\n", reg.nEscritura, camino);
+                fprintf(stderr, "[simulación.c → Escritura %d en %s]\n", reg.nEscritura, camino);
 #endif
-                my_sleep(rand() % 51);  // entre 0 y 50 ms
+
+                my_sleep(50);
             }
 
-            exit(0);  // Hijo termina
+            printf("[Proceso %d: Completadas %d escrituras en %s]\n",
+                   i + 1, NUMESCRITURAS, camino);
+
+            bumount();
+            exit(0);
         }
+
+        my_sleep(150);  // pausa entre procesos
     }
 
-    // Esperamos a que terminen todos
     while (acabados < NUMPROCESOS) {
-        pause();  // Espera activa hasta recibir SIGCHLD
+        pause();
     }
 
-    printf("Todos los procesos han terminado (%d)\n", acabados);
-
-    // Desmontar sistema
     bumount();
     return 0;
 }
@@ -79,7 +102,7 @@ void reaper(){
     }
   }
 
-  void my_sleep(unsigned msec) { //recibe tiempo en milisegundos
+void my_sleep(unsigned msec) { //recibe tiempo en milisegundos
     struct timespec req, rem;
     int err;
     req.tv_sec = msec / 1000; //conversión a segundos
@@ -96,6 +119,4 @@ void reaper(){
             req.tv_nsec = rem.tv_nsec;
         }
     }
- }
- 
-  
+}
