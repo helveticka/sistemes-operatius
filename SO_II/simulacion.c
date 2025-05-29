@@ -69,16 +69,11 @@ int main(int argc, char **argv) {
                     fprintf(stderr, "[%d] Error escribiendo en %s\n", mi_pid, camino);
                 }
 
-#if DEBUGN12
-                fprintf(stderr, "[simulación.c → Escritura %d en %s]\n", reg.nEscritura, camino);
-#endif
-
                 my_sleep(50);
             }
-
-            printf("[Proceso %d: Completadas %d escrituras en %s]\n",
-                   i + 1, NUMESCRITURAS, camino);
-
+#if DEBUGN12
+            fprintf(stderr, GRAY"[Proceso %d: Completadas %d escrituras en %s]\n" RESET, i + 1, NUMESCRITURAS, camino);
+#endif
             bumount();
             exit(0);
         }
