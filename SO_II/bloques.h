@@ -41,10 +41,10 @@
 #define DEBUGN9 0
 #define DEBUGN10 0
 #define DEBUGN11 0
-#define DEBUGN12 0
+#define DEBUGN12 1
 #define DEBUGN13 0
 #define ENTREGA_1 0
-#define ENTREGA_2 1
+#define ENTREGA_2 0
 #define ENTREGA_3 0
 #define DEBUG_CP 0 // Depuración de mi_cp
 // Funciones
@@ -52,3 +52,5 @@ int bmount(const char *camino);
 int bumount();
 int bwrite(unsigned int nbloque, const void *buf);
 int bread(unsigned int nbloque, void *buf);
+void mi_signalSem();
+void mi_waitSem();
