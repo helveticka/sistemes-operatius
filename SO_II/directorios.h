@@ -18,7 +18,7 @@
 #define ERROR_NO_SE_PUEDE_CREAR_ENTRADA_EN_UN_FICHERO (-8)
 #define TAMFILA 100 // Tamaño de la fila del directorio
 #define TAMBUFFER (TAMFILA*1000) // suponemos un máx de 1000 entradas, aunque debería ser SB.totInodos
-#define USARCACHE 2 //0:sin caché, 1:última L/E, 2:tabla FIFO, 3:tabla LRU
+#define USARCACHE 3 //0:sin caché, 1:última L/E, 2:tabla FIFO, 3:tabla LRU
 
 struct entrada {
   char nombre[TAMNOMBRE];
@@ -53,6 +53,10 @@ int mi_unlink(const char *camino);
 
 // Extras
 int mi_rename(const char *camino, const char *nuevo);
+int mi_cp_f(const char *camino_origen, const char *camino_destino);
+int mi_cp(const char *camino_origen, const char *camino_destino);
+int mi_mv(const char *camino_origen, const char *camino_destino);
+int mi_rm_r(const char *camino);
 
 // Adicionales
 int comparar_timeval(struct timeval a, struct timeval b);

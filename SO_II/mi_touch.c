@@ -25,7 +25,7 @@ int main (int argc, char **argv) {
         fprintf(stderr, RED "Error: Permisos incorrectos\n" RESET);
         return FALLO;
     }
-    // Comprobar ruta
+    // Comprobar que la ruta es un fichero
     ruta = argv[3];
     if (ruta[strlen(ruta) - 1] == '/') {
         fprintf(stderr, RED "Error: Camino incorrecto.\n" RESET);

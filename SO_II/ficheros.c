@@ -90,6 +90,9 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
     inodo.mtime = time(NULL);
     //inodo.numBloquesOcupados = (inodo.tamEnBytesLog + BLOCKSIZE - 1) / BLOCKSIZE;
     if (escribir_inodo(ninodo, &inodo) == FALLO) return FALLO;
+#if DEBUG_CP
+    fprintf(stderr, GRAY "mi_write_f() → Escritura en inodo %d]\n" RESET, ninodo);
+#endif
     return bytes_escritos;
 }
 /**

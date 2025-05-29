@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
     printf("numBloquesOcupados: %d\n", inodo.numBloquesOcupados);
 #endif
 // Debug de la semana 4
-#if DEBUGN4
+#if DEBUGN4 && 0
     struct inodo inodo;
     printf("\nINODO 1. TRADUCCION DE LOS BLOQUES LOGICOS 8, 204, 30.004, 400.004 y 468.750\n");
     int nblogicos[5] = {8, 204, 30004, 400004, 468750};

@@ -478,13 +478,13 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
                 // El bloque cuelga directamente del inodo
                 if (nivel_punteros == nRangoBL) { 
                     inodo.punterosIndirectos[nRangoBL - 1] = ptr;
-#if DEBUGN4 || DEBUGN5 || DEBUGN6 || ENTREGA_1
+#if DEBUGN4 || DEBUGN5 || DEBUGN6 || ENTREGA_1 || DEBUG_CP
                     fprintf(stderr, GRAY"[traducir_bloque_inodo()→ inodo.punterosIndirectos[%d] = %d (reservado BF %d para punteros_nivel%d)]\n"RESET, nRangoBL-1, ptr, ptr, nRangoBL);
 #endif
                 } else { // El bloque cuelga de otro bloque de punteros
                     // Salvar el puntero del bloque reservado
                     buffer[indice] = ptr; 
-#if DEBUGN4 || DEBUGN5 || DEBUGN6 || ENTREGA_1
+#if DEBUGN4 || DEBUGN5 || DEBUGN6 || ENTREGA_1 || DEBUG_CP
                     fprintf(stderr, GRAY"[traducir_bloque_inodo()→ inodo.punteros_nivel%d[%d] = %d (reservado BF %d para punteros_nivel%d)]\n"RESET, nivel_punteros+1, indice, ptr, ptr, nRangoBL-1);
 #endif
                     // Salvar el bloque de punteros modificado
@@ -520,13 +520,13 @@ int traducir_bloque_inodo(unsigned int ninodo, unsigned int nblogico, unsigned c
             if (nRangoBL == 0) { 
                 // Actualizar puntero directo
                 inodo.punterosDirectos[nblogico] = ptr; 
-#if DEBUGN4 || DEBUGN5 || DEBUGN6 || ENTREGA_1
+#if DEBUGN4 || DEBUGN5 || DEBUGN6 || ENTREGA_1 || DEBUG_CP
                 fprintf(stderr, GRAY"[traducir_bloque_inodo()→ inodo.punterosDirectos[%d] = %d (reservado BF %d para BL %d)]\n"RESET, nblogico, ptr, ptr, nblogico);
 #endif
             } else {
                 // Guardamos puntero al bloque de datos
                 buffer[indice] = ptr; 
-#if DEBUGN4 || DEBUGN5 || DEBUGN6 || ENTREGA_1
+#if DEBUGN4 || DEBUGN5 || DEBUGN6 || ENTREGA_1 || DEBUG_CP
                 fprintf(stderr, GRAY"[traducir_bloque_inodo()→ inodo.punteros_nivel1[%d] = %d (reservado BF %d para BL %d)]\n"RESET, indice, ptr, ptr, nblogico);
 #endif
                 // escribimos el bloque de punteros
