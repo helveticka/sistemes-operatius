@@ -131,6 +131,9 @@ int mi_write_f(unsigned int ninodo, const void *buf_original, unsigned int offse
         return FALLO;
     }
     mi_signalSem();
+    #if DEBUG_CP
+    fprintf(stderr, GRAY "mi_write_f() → Escritura en inodo %d]\n" RESET, ninodo);
+    #endif
     return bytes_escritos;
 }
 /**
