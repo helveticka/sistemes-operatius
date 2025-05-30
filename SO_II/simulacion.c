@@ -6,14 +6,14 @@ char simul_dir[64];  // para /simul_aaaammddhhmmss
 int main(int argc, char **argv) {
     if (argc != 2) {
         fprintf(stderr, "Uso: %s <nombre_dispositivo>\n", argv[0]);
-        return -1;
+        return FALLO;
     }
 
     signal(SIGCHLD, reaper); // Asociar la señal
 
     if (bmount(argv[1]) == -1) {
         perror("Error montando el dispositivo");
-        return -1;
+        return FALLO;
     }
 
     // Crear directorio simul_yyyymmddhhmmss
@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     if (mi_creat(simul_dir, 6) < 0) {
         fprintf(stderr, "Error creando el directorio %s\n", simul_dir);
         bumount();
-        return -1;
+        return FALLO;
     }
 
     for (int i = 0; i < NUMPROCESOS; i++) {
