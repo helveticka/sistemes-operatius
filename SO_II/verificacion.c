@@ -25,7 +25,10 @@ int main(int argc, char **argv) {
     }
 
     int numentradas = stat.tamEnBytesLog / sizeof(struct entrada);
+
+#if DEBUGN13
     printf("dir_sim: %s\nnumentradas: %d NUMPROCESOS: %d\n", dir_sim, numentradas, NUMPROCESOS);
+#endif
 
     if (numentradas != NUMPROCESOS) {
         fprintf(stderr, RED"ERROR: No coinciden las entradas con NUMPROCESOS\n"RESET);
@@ -87,7 +90,10 @@ int main(int argc, char **argv) {
         }
 
         info.nEscrituras = validadas;
+
+#if DEBUGN13
         printf("[%d) %u escrituras validadas en %s]\n", i + 1, info.nEscrituras, fichero_path);
+#endif
 
         char linea[256];
         sprintf(linea, "PID: %d\nNumero de escrituras: %u\n", info.pid, info.nEscrituras);
