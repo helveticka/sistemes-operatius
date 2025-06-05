@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
                 }
                 my_sleep(50);
             }
-#if DEBUGN12
+#if DEBUGN12 || ENTREGA_3
             fprintf(stderr, GRAY"[Proceso %d: Completadas %d escrituras en %s]\n" RESET, i + 1, NUMESCRITURAS, camino);
 #endif
             bumount();

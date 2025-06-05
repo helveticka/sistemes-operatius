@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
             return FALLO;
         }
     }
-#if DEBUGN9 || DEBUGN10 || ENTREGA_2
+#if DEBUGN9 || DEBUGN10 || ENTREGA_2 || ENTREGA_3
     fprintf(stderr, "\nTotal_leidos: %d\n", total_leidos);
 #endif
     if (bumount() == FALLO){
