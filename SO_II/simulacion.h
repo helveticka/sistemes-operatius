@@ -1,3 +1,8 @@
+/**
+ * @file simulacion.h
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
+ */
+
 #include "directorios.h"
 #include <sys/wait.h>
 #include <signal.h>

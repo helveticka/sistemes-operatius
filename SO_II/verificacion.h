@@ -1,3 +1,8 @@
+/**
+ * @file verificacion.h
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
+ */
+
 #include "simulacion.h"
 
 struct INFORMACION {

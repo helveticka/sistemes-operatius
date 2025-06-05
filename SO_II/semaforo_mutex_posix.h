@@ -1,4 +1,7 @@
- /* semaforo_mutex_posix.h */
+/**
+ * @file semaforo_mutex_posix.h
+ * @authors Xavier Campos, Pedro Félix, Harpo Joan
+ */
  #include <stdlib.h>
  #include <sys/stat.h>
  #include <fcntl.h>
