@@ -45,7 +45,7 @@
 #define DEBUGN13 1
 #define ENTREGA_1 0
 #define ENTREGA_2 0
-#define ENTREGA_3 0
+#define ENTREGA_3 1
 #define DEBUG_CP 0 // Depuración de mi_cp
 // Funciones
 int bmount(const char *camino);

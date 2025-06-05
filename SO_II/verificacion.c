@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
 
     int numentradas = stat.tamEnBytesLog / sizeof(struct entrada);
 
-#if DEBUGN13
+#if DEBUGN13 || ENTREGA_3
     printf("dir_sim: %s\nnumentradas: %d NUMPROCESOS: %d\n", dir_sim, numentradas, NUMPROCESOS);
 #endif
 
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 
         info.nEscrituras = validadas;
 
-#if DEBUGN13
+#if DEBUGN13 || ENTREGA_3
         printf("[%d) %u escrituras validadas en %s]\n", i + 1, info.nEscrituras, fichero_path);
 #endif
 
