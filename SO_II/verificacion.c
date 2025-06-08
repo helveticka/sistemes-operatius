@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
         bumount();
         return FALLO;
     }
-
+    int offset_write = 0;
     for (int i = 0; i < NUMPROCESOS; i++) {
         struct INFORMACION info = {0};
         int validadas = 0;
@@ -95,33 +95,43 @@ int main(int argc, char **argv) {
         printf("[%d) %u escrituras validadas en %s]\n", i + 1, info.nEscrituras, fichero_path);
 #endif
 
-        char linea[256];
-        sprintf(linea, "PID: %d\nNumero de escrituras: %u\n", info.pid, info.nEscrituras);
-        mi_write(camino_informe, linea, -1, strlen(linea));
+        char linea[BLOCKSIZE];
+        char *fecha_primera = malloc(200);
+        strftime(fecha_primera, 200, "%Y-%m-%d %H:%M:%S", localtime(&info.PrimeraEscritura.fecha));
+        fecha_primera[strcspn(fecha_primera, "\n")] = '\0';
 
-        sprintf(linea, "Primera Escritura\t%d\t%d\t%s",
-                info.PrimeraEscritura.nEscritura,
-                info.PrimeraEscritura.nRegistro,
-                asctime(localtime(&info.PrimeraEscritura.fecha)));
-        mi_write(camino_informe, linea, -1, strlen(linea));
+        char *fecha_ultima = malloc(200);
+        strftime(fecha_ultima, 200, "%Y-%m-%d %H:%M:%S", localtime(&info.UltimaEscritura.fecha));
+        fecha_ultima[strcspn(fecha_ultima, "\n")] = '\0';
 
-        sprintf(linea, "Ultima Escritura\t%d\t%d\t%s",
-                info.UltimaEscritura.nEscritura,
-                info.UltimaEscritura.nRegistro,
-                asctime(localtime(&info.UltimaEscritura.fecha)));
-        mi_write(camino_informe, linea, -1, strlen(linea));
+        char *fecha_menor = malloc(200);
+        strftime(fecha_menor, 200, "%Y-%m-%d %H:%M:%S", localtime(&info.MenorPosicion.fecha));
+        fecha_menor[strcspn(fecha_menor, "\n")] = '\0';
 
-        sprintf(linea, "Menor Posicion\t\t%d\t%d\t%s",
-                info.MenorPosicion.nEscritura,
-                info.MenorPosicion.nRegistro,
-                asctime(localtime(&info.MenorPosicion.fecha)));
-        mi_write(camino_informe, linea, -1, strlen(linea));
+        char *fecha_mayor = malloc(200);
+        strftime(fecha_mayor, 200, "%Y-%m-%d %H:%M:%S", localtime(&info.MayorPosicion.fecha));
+        fecha_mayor[strcspn(fecha_mayor, "\n")] = '\0';
 
-        sprintf(linea, "Mayor Posicion\t\t%d\t%d\t%s",
-                info.MayorPosicion.nEscritura,
-                info.MayorPosicion.nRegistro,
-                asctime(localtime(&info.MayorPosicion.fecha)));
-        mi_write(camino_informe, linea, -1, strlen(linea));
+        sprintf(linea, "\nPID: %d\n"
+        "Numero de escrituras:\t%d\n"
+        "Primera escritura:\t%d\t%d\t%s\n"
+        "Ultima escritura:\t%d\t%d\t%s\n"
+        "Menor posición:\t\t%d\t%d\t%s\n"
+        "Mayor posición:\t\t%d\t%d\t%s\n",
+        info.pid,
+        info.nEscrituras,
+        info.PrimeraEscritura.nEscritura, info.PrimeraEscritura.nRegistro, fecha_primera,
+        info.UltimaEscritura.nEscritura, info.UltimaEscritura.nRegistro, fecha_ultima,
+        info.MenorPosicion.nEscritura, info.MenorPosicion.nRegistro, fecha_menor,
+        info.MayorPosicion.nEscritura, info.MayorPosicion.nRegistro, fecha_mayor);
+
+        int bytes_escritos = mi_write(camino_informe, linea, offset_write, strlen(linea));
+        if (bytes_escritos == FALLO) {
+            fprintf(stderr, RED"Error escribiendo en el informe\n"RESET);
+            bumount();
+            return FALLO;
+        }
+        offset_write += bytes_escritos;
     }
 
     bumount();
