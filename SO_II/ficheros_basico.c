@@ -574,22 +574,53 @@ int obtener_nRangoBL(struct inodo *inodo, unsigned int nblogico, unsigned int *p
  * @return Índice del bloque de punteros, FALLO en caso de error
  */
 int obtener_indice(unsigned int nblogico, int nivel_punteros){
+
+#if OBTENER_INDICE_BINARIO
+    const int bits_por_nivel = 8;
+    const unsigned int mascara = (1 << bits_por_nivel) - 1; // 11111111
+#endif
+
     if (nblogico < DIRECTOS) {
         return nblogico;
+
     } else if (nblogico < INDIRECTOS0) {
         return nblogico - DIRECTOS;
+
     } else if (nblogico < INDIRECTOS1) {
         if (nivel_punteros == 2) {
+
+#if OBTENER_INDICE_BINARIO
+            return (nblogico - INDIRECTOS0) >> bits_por_nivel;
+#endif
+
             return (nblogico - INDIRECTOS0) / NPUNTEROS;
         } else if (nivel_punteros == 1) {
+
+#if OBTENER_INDICE_BINARIO
+            return (nblogico - INDIRECTOS0) & mascara;
+#endif
+
             return (nblogico - INDIRECTOS0) % NPUNTEROS;
         }
     } else if (nblogico < INDIRECTOS2) {
         if (nivel_punteros == 3) {
+
+#if OBTENER_INDICE_BINARIO
+            return (nblogico - INDIRECTOS1) >> (2 * bits_por_nivel);
+#endif
+
             return (nblogico - INDIRECTOS1) / (NPUNTEROS * NPUNTEROS);
         } else if (nivel_punteros == 2) {
+
+#if OBTENER_INDICE_BINARIO
+            return ((nblogico - INDIRECTOS1) >> bits_por_nivel) & mascara;
+#endif
             return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) / NPUNTEROS;
         } else if (nivel_punteros == 1) {
+
+#if OBTENER_INDICE_BINARIO
+            return (nblogico - INDIRECTOS1) & mascara;
+#endif
             return ((nblogico - INDIRECTOS1) % (NPUNTEROS * NPUNTEROS)) % NPUNTEROS;
         }
     }
