@@ -4,6 +4,7 @@
  */
 
  #include "verificacion.h"
+ #define USE_READ_BLOCKS 1
 
 int main(int argc, char **argv) {
     if (argc != 3) {
@@ -61,56 +62,139 @@ int main(int argc, char **argv) {
         char fichero_path[200];
         sprintf(fichero_path, "%s%s/prueba.dat", dir_sim, entradas[i].nombre);
 
-        off_t offset = 0;
-        struct REGISTRO buffer[BLOCKSIZE / sizeof(struct REGISTRO)];
-        int leidos;
+#if USE_READ_BLOCKS
 
-        while ((leidos = mi_read(fichero_path, (char *)buffer, offset, sizeof(buffer))) > 0) {
-            int nregs = leidos / sizeof(struct REGISTRO);
-            for (int j = 0; j < nregs; j++) {
-                if (buffer[j].pid == info.pid) {
-                    if (validadas == 0) {
-                        info.PrimeraEscritura = info.UltimaEscritura =
-                        info.MenorPosicion = info.MayorPosicion = buffer[j];
-                    } else {
-                        if (buffer[j].nEscritura < info.PrimeraEscritura.nEscritura)
-                            info.PrimeraEscritura = buffer[j];
-                        if (buffer[j].nEscritura > info.UltimaEscritura.nEscritura)
-                            info.UltimaEscritura = buffer[j];
-                        if (buffer[j].nRegistro < info.MenorPosicion.nRegistro)
-                            info.MenorPosicion = buffer[j];
-                        if (buffer[j].nRegistro > info.MayorPosicion.nRegistro)
-                            info.MayorPosicion = buffer[j];
-                    }
-                    validadas++;
+    off_t offset = 0;
+
+    struct REGISTRO buffer[BLOCKSIZE / sizeof(struct REGISTRO)];
+
+    int leidos;
+
+
+    while ((leidos = mi_read(fichero_path, (char *)buffer, offset, sizeof(buffer))) > 0) {
+
+        int nregs = leidos / sizeof(struct REGISTRO);
+
+        for (int j = 0; j < nregs; j++) {
+
+            if (buffer[j].pid == info.pid) {
+
+                if (validadas == 0) {
+
+                    info.PrimeraEscritura = info.UltimaEscritura =
+
+                    info.MenorPosicion = info.MayorPosicion = buffer[j];
+
+                } else {
+
+                    if (buffer[j].nEscritura < info.PrimeraEscritura.nEscritura)
+
+                        info.PrimeraEscritura = buffer[j];
+
+                    if (buffer[j].nEscritura > info.UltimaEscritura.nEscritura)
+
+                        info.UltimaEscritura = buffer[j];
+
+                    if (buffer[j].nRegistro < info.MenorPosicion.nRegistro)
+
+                        info.MenorPosicion = buffer[j];
+
+                    if (buffer[j].nRegistro > info.MayorPosicion.nRegistro)
+
+                        info.MayorPosicion = buffer[j];
+
                 }
+
+                validadas++;
+
             }
-            offset += leidos;
-            memset(buffer, 0, sizeof(buffer));
+
         }
+
+        offset += leidos;
+
+        memset(buffer, 0, sizeof(buffer));
+
+    }
+
+
+#else
+
+    off_t offset = 0;
+
+    struct REGISTRO reg;
+
+
+    while (mi_read(fichero_path, (char *)&reg, offset, sizeof(struct REGISTRO)) == sizeof(struct REGISTRO)) {
+
+        if (reg.pid == info.pid) {
+
+            if (validadas == 0) {
+
+                info.PrimeraEscritura = info.UltimaEscritura =
+
+                info.MenorPosicion = info.MayorPosicion = reg;
+
+            } else {
+
+                if (reg.nEscritura < info.PrimeraEscritura.nEscritura)
+
+                    info.PrimeraEscritura = reg;
+
+                if (reg.nEscritura > info.UltimaEscritura.nEscritura)
+
+                    info.UltimaEscritura = reg;
+
+                if (reg.nRegistro < info.MenorPosicion.nRegistro)
+
+                    info.MenorPosicion = reg;
+
+                if (reg.nRegistro > info.MayorPosicion.nRegistro)
+
+                    info.MayorPosicion = reg;
+
+            }
+
+            validadas++;
+
+        }
+
+        offset += sizeof(struct REGISTRO);
+
+    }
+
+#endif
 
         info.nEscrituras = validadas;
 
 #if DEBUGN13 || ENTREGA_3
-        printf("[%d) %u escrituras validadas en %s]\n", i + 1, info.nEscrituras, fichero_path);
+        fprintf(stderr, GRAY"[%d) %u escrituras validadas en %s]\n" RESET, i + 1, info.nEscrituras, fichero_path);
 #endif
 
         char linea[BLOCKSIZE];
         char *fecha_primera = malloc(200);
-        strftime(fecha_primera, 200, "%Y-%m-%d %H:%M:%S", localtime(&info.PrimeraEscritura.fecha));
-        fecha_primera[strcspn(fecha_primera, "\n")] = '\0';
+        struct tm *tm_primera = localtime(&info.PrimeraEscritura.fecha.tv_sec);
+        strftime(fecha_primera, 64, "%Y-%m-%d %H:%M:%S", tm_primera);
+        char fecha_primera_milis[100];
+        sprintf(fecha_primera_milis, "%s.%06ld", fecha_primera, info.PrimeraEscritura.fecha.tv_usec);
 
         char *fecha_ultima = malloc(200);
-        strftime(fecha_ultima, 200, "%Y-%m-%d %H:%M:%S", localtime(&info.UltimaEscritura.fecha));
-        fecha_ultima[strcspn(fecha_ultima, "\n")] = '\0';
+        struct tm *tm_ultima = localtime(&info.UltimaEscritura.fecha.tv_sec);
+        strftime(fecha_ultima, 64, "%Y-%m-%d %H:%M:%S", tm_ultima);
+        char fecha_ultima_milis[100];
+        sprintf(fecha_ultima_milis, "%s.%06ld", fecha_ultima, info.UltimaEscritura.fecha.tv_usec);
 
         char *fecha_menor = malloc(200);
-        strftime(fecha_menor, 200, "%Y-%m-%d %H:%M:%S", localtime(&info.MenorPosicion.fecha));
-        fecha_menor[strcspn(fecha_menor, "\n")] = '\0';
+        struct tm *tm_menor = localtime(&info.MenorPosicion.fecha.tv_sec);
+        strftime(fecha_menor, 64, "%Y-%m-%d %H:%M:%S", tm_menor);
+        char fecha_menor_milis[100];
+        sprintf(fecha_menor_milis, "%s.%06ld", fecha_menor, info.MenorPosicion.fecha.tv_usec);
 
         char *fecha_mayor = malloc(200);
-        strftime(fecha_mayor, 200, "%Y-%m-%d %H:%M:%S", localtime(&info.MayorPosicion.fecha));
-        fecha_mayor[strcspn(fecha_mayor, "\n")] = '\0';
+        struct tm *tm_mayor = localtime(&info.MayorPosicion.fecha.tv_sec);
+        strftime(fecha_mayor, 64, "%Y-%m-%d %H:%M:%S", tm_mayor);
+        char fecha_mayor_milis[100];
+        sprintf(fecha_mayor_milis, "%s.%06ld", fecha_mayor, info.MayorPosicion.fecha.tv_usec);
 
         sprintf(linea, "\nPID: %d\n"
         "Numero de escrituras:\t%d\n"
@@ -120,10 +204,10 @@ int main(int argc, char **argv) {
         "Mayor posición:\t\t%d\t%d\t%s\n",
         info.pid,
         info.nEscrituras,
-        info.PrimeraEscritura.nEscritura, info.PrimeraEscritura.nRegistro, fecha_primera,
-        info.UltimaEscritura.nEscritura, info.UltimaEscritura.nRegistro, fecha_ultima,
-        info.MenorPosicion.nEscritura, info.MenorPosicion.nRegistro, fecha_menor,
-        info.MayorPosicion.nEscritura, info.MayorPosicion.nRegistro, fecha_mayor);
+        info.PrimeraEscritura.nEscritura, info.PrimeraEscritura.nRegistro, fecha_primera_milis,
+        info.UltimaEscritura.nEscritura, info.UltimaEscritura.nRegistro, fecha_ultima_milis,
+        info.MenorPosicion.nEscritura, info.MenorPosicion.nRegistro, fecha_menor_milis,
+        info.MayorPosicion.nEscritura, info.MayorPosicion.nRegistro, fecha_mayor_milis);
 
         int bytes_escritos = mi_write(camino_informe, linea, offset_write, strlen(linea));
         if (bytes_escritos == FALLO) {

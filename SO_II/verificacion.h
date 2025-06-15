@@ -12,4 +12,5 @@ struct INFORMACION {
     struct REGISTRO UltimaEscritura;
     struct REGISTRO MenorPosicion;
     struct REGISTRO MayorPosicion;
+    struct timeval fecha;
 };

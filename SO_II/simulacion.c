@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
             struct REGISTRO reg;
             // Inicializar el registro
             for (int j = 0; j < NUMESCRITURAS; j++) {
-                reg.fecha = time(NULL);
+                gettimeofday(&reg.fecha, NULL);
                 reg.pid = mi_pid;
                 reg.nEscritura = j + 1;
                 reg.nRegistro = rand() % REGMAX;
