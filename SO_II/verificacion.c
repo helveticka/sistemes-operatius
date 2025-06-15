@@ -4,7 +4,6 @@
  */
 
  #include "verificacion.h"
- #define USE_MMAP 1
 
 int main(int argc, char **argv) {
     if (argc != 3) {

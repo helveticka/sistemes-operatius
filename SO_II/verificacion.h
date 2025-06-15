@@ -4,6 +4,7 @@
  */
 
 #include "simulacion.h"
+#define USE_MMAP 1
 
 struct INFORMACION {
     int pid;
