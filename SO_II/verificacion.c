@@ -4,7 +4,7 @@
  */
 
  #include "verificacion.h"
- #define USE_READ_BLOCKS 1
+ #define USE_MMAP 1
 
 int main(int argc, char **argv) {
     if (argc != 3) {
@@ -62,105 +62,59 @@ int main(int argc, char **argv) {
         char fichero_path[200];
         sprintf(fichero_path, "%s%s/prueba.dat", dir_sim, entradas[i].nombre);
 
-#if USE_READ_BLOCKS
+#if USE_MMAP
 
     off_t offset = 0;
-
     struct REGISTRO buffer[BLOCKSIZE / sizeof(struct REGISTRO)];
-
     int leidos;
 
-
     while ((leidos = mi_read(fichero_path, (char *)buffer, offset, sizeof(buffer))) > 0) {
-
         int nregs = leidos / sizeof(struct REGISTRO);
-
         for (int j = 0; j < nregs; j++) {
-
             if (buffer[j].pid == info.pid) {
-
                 if (validadas == 0) {
-
                     info.PrimeraEscritura = info.UltimaEscritura =
-
                     info.MenorPosicion = info.MayorPosicion = buffer[j];
-
                 } else {
-
                     if (buffer[j].nEscritura < info.PrimeraEscritura.nEscritura)
-
                         info.PrimeraEscritura = buffer[j];
-
                     if (buffer[j].nEscritura > info.UltimaEscritura.nEscritura)
-
                         info.UltimaEscritura = buffer[j];
-
                     if (buffer[j].nRegistro < info.MenorPosicion.nRegistro)
-
                         info.MenorPosicion = buffer[j];
-
                     if (buffer[j].nRegistro > info.MayorPosicion.nRegistro)
-
                         info.MayorPosicion = buffer[j];
-
                 }
-
                 validadas++;
-
             }
-
         }
-
         offset += leidos;
-
         memset(buffer, 0, sizeof(buffer));
-
     }
-
 
 #else
 
     off_t offset = 0;
-
     struct REGISTRO reg;
 
-
     while (mi_read(fichero_path, (char *)&reg, offset, sizeof(struct REGISTRO)) == sizeof(struct REGISTRO)) {
-
         if (reg.pid == info.pid) {
-
             if (validadas == 0) {
-
                 info.PrimeraEscritura = info.UltimaEscritura =
-
                 info.MenorPosicion = info.MayorPosicion = reg;
-
             } else {
-
                 if (reg.nEscritura < info.PrimeraEscritura.nEscritura)
-
                     info.PrimeraEscritura = reg;
-
                 if (reg.nEscritura > info.UltimaEscritura.nEscritura)
-
                     info.UltimaEscritura = reg;
-
                 if (reg.nRegistro < info.MenorPosicion.nRegistro)
-
                     info.MenorPosicion = reg;
-
                 if (reg.nRegistro > info.MayorPosicion.nRegistro)
-
                     info.MayorPosicion = reg;
-
             }
-
             validadas++;
-
         }
-
         offset += sizeof(struct REGISTRO);
-
     }
 
 #endif
