@@ -65,8 +65,6 @@ int main(int argc, char **argv) {
         char fichero_path[200];
         sprintf(fichero_path, "%s%s/prueba.dat", dir_sim, entradas[i].nombre);
 
-#if USE_MMAP
-        // Usar "mmap" para leer el fichero
         off_t offset = 0;
         struct REGISTRO buffer[BLOCKSIZE / sizeof(struct REGISTRO)];
         int leidos;
@@ -95,33 +93,6 @@ int main(int argc, char **argv) {
             offset += leidos;
             memset(buffer, 0, sizeof(buffer));
         }
-
-#else
-        // No usar buffer para leer el fichero
-        off_t offset = 0;
-        struct REGISTRO reg;
-        // Leer el fichero directamente
-        while (mi_read(fichero_path, (char *)&reg, offset, sizeof(struct REGISTRO)) == sizeof(struct REGISTRO)) {
-            if (reg.pid == info.pid) {
-                if (validadas == 0) {
-                    info.PrimeraEscritura = info.UltimaEscritura =
-                    info.MenorPosicion = info.MayorPosicion = reg;
-                } else {
-                    if (reg.nEscritura < info.PrimeraEscritura.nEscritura)
-                        info.PrimeraEscritura = reg;
-                    if (reg.nEscritura > info.UltimaEscritura.nEscritura)
-                        info.UltimaEscritura = reg;
-                    if (reg.nRegistro < info.MenorPosicion.nRegistro)
-                        info.MenorPosicion = reg;
-                    if (reg.nRegistro > info.MayorPosicion.nRegistro)
-                        info.MayorPosicion = reg;
-                }
-                validadas++;
-            }
-            offset += sizeof(struct REGISTRO);
-        }
-
-#endif
         // Actualizar el número de escrituras
         info.nEscrituras = validadas;
 

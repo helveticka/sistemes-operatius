@@ -9,6 +9,7 @@
 #include <unistd.h> // SEEK_SET, read(), write(), open(), close(), lseek()
 #include <errno.h>  //errno
 #include <string.h> // strerror()
+#include <sys/mman.h> // mmap(), munmap(), msync()
 // Constantes
 #define BLOCKSIZE 1024 // bytes
 #define EXITO 0 //para gestión errores
@@ -54,3 +55,4 @@ int bwrite(unsigned int nbloque, const void *buf);
 int bread(unsigned int nbloque, void *buf);
 void mi_signalSem();
 void mi_waitSem();
+void *do_mmap(int fd);
