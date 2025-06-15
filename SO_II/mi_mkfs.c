@@ -12,12 +12,16 @@ int main(int argc, char**argv) {
     int nbloques = atoi(argv[2]);
     unsigned char buffer[BLOCKSIZE];
     memset(buffer, 0, BLOCKSIZE);
+
+#if MMAP
     // Bloque para mmap
     unsigned int finDV = atoi(argv[2]) * BLOCKSIZE - 1;
     FILE *fp = fopen(argv[1], "w");
     fseek(fp, finDV, SEEK_SET);
     fputc('\0', fp);
     fclose(fp);
+#endif
+
     // Montamos el dispositivo virtual 
     if (bmount(argv[1]) == FALLO) {
         fprintf(stderr, RED "Error al montar el dispositivo virtual en ./mi_mkfs\n");

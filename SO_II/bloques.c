@@ -8,8 +8,13 @@
 static int descriptor = 0;
 static sem_t *mutex;
 static unsigned int inside_sc = 0;
+
+#if MMAP
 static void *ptrSFM = NULL;
+#endif
+
 static size_t tamSFM = 0;
+
 /**
  * @brief Monta el dispositivo virtual
  * @param camino Ruta del dispositivo virtual
@@ -33,11 +38,14 @@ int bmount(const char *camino) {
         fprintf(stderr, RED "Error al abrir el dispositivo virtual" RESET);
         return FALLO;
     }
-    // Funcionalidad de mmap
+
+#if MMAP
     ptrSFM = do_mmap(descriptor);
     if (ptrSFM == NULL) {
         return FALLO;
     }
+#endif
+
     return descriptor;
 }
 /**
@@ -45,6 +53,7 @@ int bmount(const char *camino) {
  * @return 0 si se ha desmontado correctamente, -1 si ha habido un error
  */
 int bumount() {
+#if MMAP
     if (msync(ptrSFM, tamSFM, MS_SYNC) == FALLO) {
         fprintf(stderr, RED "Error al sincronizar memoria: %s\n" RESET, strerror(errno));
         return FALLO;
@@ -53,6 +62,8 @@ int bumount() {
         fprintf(stderr, RED "Error al liberar memoria: %s\n" RESET, strerror(errno));
         return FALLO;
     }
+#endif
+
     if (close(descriptor) == FALLO) {
         return FALLO;
     }
@@ -66,16 +77,27 @@ int bumount() {
  * @return Número de bytes escritos en el bloque, -1 si ha habido un error
  */
 int bwrite(unsigned int nbloque, const void *buf) {
+#if MMAP
     size_t pos = nbloque * BLOCKSIZE;
+    // Comprobamos si la posición está dentro del tamaño de la memoria
     if (pos >= tamSFM) {
         return FALLO;
     }
     size_t nbytes = BLOCKSIZE;
+    // Comprobamos si la posición más el número de bytes a escribir supera el tamaño de la memoria
     if (pos + nbytes > tamSFM) {
         nbytes = tamSFM - pos; 
     }
+    // Copiamos los datos al bloque
     memcpy(ptrSFM + pos, buf, nbytes);
     return nbytes;
+#endif
+
+    lseek(descriptor, nbloque*BLOCKSIZE, SEEK_SET);
+    if (write(descriptor, buf, BLOCKSIZE) == -1) {
+        return FALLO;
+    }
+    return BLOCKSIZE;
 }
 /**
  * @brief Lee un bloque del dispositivo virtual
@@ -84,16 +106,29 @@ int bwrite(unsigned int nbloque, const void *buf) {
  * @return Número de bytes leídos, -1 si ha habido un error
  */
 int bread(unsigned int nbloque, void *buf) {
+
+#if MMAP
     size_t pos = nbloque * BLOCKSIZE;
+    // Comprobamos si la posición está dentro del tamaño de la memoria
     if (pos >= tamSFM) {
         return FALLO;
     }
     size_t nbytes = BLOCKSIZE;
+    // Comprobamos si la posición más el número de bytes a leer supera el tamaño de la memoria
     if (pos + nbytes > tamSFM) {
         nbytes = tamSFM - pos; 
     }
+    // Copiamos los datos del bloque
     memcpy(buf, ptrSFM + pos, nbytes);
     return nbytes;
+#endif
+
+    lseek(descriptor, nbloque * BLOCKSIZE, SEEK_SET);
+    size_t bytes_leidos = read(descriptor, buf, BLOCKSIZE);
+    if (bytes_leidos == -1) {
+        return FALLO;
+    }
+    return bytes_leidos;
 }
 /**
  * @brief Espera a que el semáforo esté disponible para entrar en una sección crítica
@@ -113,6 +148,7 @@ void mi_signalSem() {
         signalSem(mutex); // Liberamos el semáforo
     }
 }
+
 /**
  * @brief Mapea el dispositivo virtual a memoria compartida
  * @param fd Descriptor del dispositivo virtual

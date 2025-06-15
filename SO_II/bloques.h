@@ -48,6 +48,7 @@
 #define ENTREGA_2 0
 #define ENTREGA_3 1
 #define DEBUG_CP 0 // Depuración de mi_cp
+#define MMAP 1 // Utilizar mmap para la lectura/escritura de bloques
 // Funciones
 int bmount(const char *camino);
 int bumount();
