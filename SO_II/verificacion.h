@@ -2,7 +2,6 @@
  * @file verificacion.h
  * @authors Xavier Campos, Pedro Félix, Harpo Joan
  */
-
 #include "simulacion.h"
 #define USE_MMAP 1
 

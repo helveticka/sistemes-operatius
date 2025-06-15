@@ -2,20 +2,25 @@
  * @file verificacion.c
  * @authors Xavier Campos, Pedro Félix, Harpo Joan
  */
-
- #include "verificacion.h"
-
+#include "verificacion.h"
+/**
+ * @brief Función principal que verifica las escrituras de los procesos
+ * @param argc Cantidad de argumentos
+ * @param argv Argumentos
+ * @return EXITO si no hay errores, FALLO en caso contrario
+ */
 int main(int argc, char **argv) {
+    // Comprobación de la sintaxis
     if (argc != 3) {
         fprintf(stderr, RED"Sintaxis: verificacion <nombre_dispositivo> <directorio_simulacion>\n"RESET);
         return FALLO;
     }
-
+    // Montar el dispositivo
     if (bmount(argv[1]) == FALLO) {
         fprintf(stderr, RED"Error al montar el dispositivo en ./verificacion\n"RESET);
         return FALLO;
     }
-
+    // Comprobar que el directorio de simulación existe y tiene el número correcto de entradas
     char *dir_sim = argv[2];
     struct STAT stat;
     if (mi_stat(dir_sim, &stat) == FALLO) {
@@ -23,19 +28,17 @@ int main(int argc, char **argv) {
         bumount();
         return FALLO;
     }
-
     int numentradas = stat.tamEnBytesLog / sizeof(struct entrada);
-
 #if DEBUGN13 || ENTREGA_3
     printf("dir_sim: %s\nnumentradas: %d NUMPROCESOS: %d\n", dir_sim, numentradas, NUMPROCESOS);
 #endif
-
+    // Comprobar que el número de entradas es igual a NUMPROCESOS
     if (numentradas != NUMPROCESOS) {
         fprintf(stderr, RED"ERROR: No coinciden las entradas con NUMPROCESOS\n"RESET);
         bumount();
         return FALLO;
     }
-
+    // Crear el informe
     char camino_informe[200];
     sprintf(camino_informe, "%sinforme.txt", dir_sim);
     if (mi_creat(camino_informe, 6) == FALLO) {
@@ -43,7 +46,7 @@ int main(int argc, char **argv) {
         bumount();
         return FALLO;
     }
-
+    // Leer las entradas del directorio de simulación
     struct entrada entradas[NUMPROCESOS];
     if (mi_read(dir_sim, (char *)entradas, 0, sizeof(entradas)) == FALLO) {
         fprintf(stderr, RED"Error leyendo directorio de simulacion\n"RESET);
@@ -51,6 +54,7 @@ int main(int argc, char **argv) {
         return FALLO;
     }
     int offset_write = 0;
+    // Procesar cada entrada para obtener la información de las escrituras
     for (int i = 0; i < NUMPROCESOS; i++) {
         struct INFORMACION info = {0};
         int validadas = 0;
@@ -62,68 +66,69 @@ int main(int argc, char **argv) {
         sprintf(fichero_path, "%s%s/prueba.dat", dir_sim, entradas[i].nombre);
 
 #if USE_MMAP
+        // Usar "mmap" para leer el fichero
+        off_t offset = 0;
+        struct REGISTRO buffer[BLOCKSIZE / sizeof(struct REGISTRO)];
+        int leidos;
+        // Leer el fichero en bloques
+        while ((leidos = mi_read(fichero_path, (char *)buffer, offset, sizeof(buffer))) > 0) {
+            int nregs = leidos / sizeof(struct REGISTRO);
+            // Validar las escrituras del proceso
+            for (int j = 0; j < nregs; j++) {
+                if (buffer[j].pid == info.pid) {
+                    if (validadas == 0) {
+                        info.PrimeraEscritura = info.UltimaEscritura =
+                        info.MenorPosicion = info.MayorPosicion = buffer[j];
+                    } else {
+                        if (buffer[j].nEscritura < info.PrimeraEscritura.nEscritura)
+                            info.PrimeraEscritura = buffer[j];
+                        if (buffer[j].nEscritura > info.UltimaEscritura.nEscritura)
+                            info.UltimaEscritura = buffer[j];
+                        if (buffer[j].nRegistro < info.MenorPosicion.nRegistro)
+                            info.MenorPosicion = buffer[j];
+                        if (buffer[j].nRegistro > info.MayorPosicion.nRegistro)
+                            info.MayorPosicion = buffer[j];
+                    }
+                    validadas++;
+                }
+            }
+            offset += leidos;
+            memset(buffer, 0, sizeof(buffer));
+        }
 
-    off_t offset = 0;
-    struct REGISTRO buffer[BLOCKSIZE / sizeof(struct REGISTRO)];
-    int leidos;
-
-    while ((leidos = mi_read(fichero_path, (char *)buffer, offset, sizeof(buffer))) > 0) {
-        int nregs = leidos / sizeof(struct REGISTRO);
-        for (int j = 0; j < nregs; j++) {
-            if (buffer[j].pid == info.pid) {
+#else
+        // No usar buffer para leer el fichero
+        off_t offset = 0;
+        struct REGISTRO reg;
+        // Leer el fichero directamente
+        while (mi_read(fichero_path, (char *)&reg, offset, sizeof(struct REGISTRO)) == sizeof(struct REGISTRO)) {
+            if (reg.pid == info.pid) {
                 if (validadas == 0) {
                     info.PrimeraEscritura = info.UltimaEscritura =
-                    info.MenorPosicion = info.MayorPosicion = buffer[j];
+                    info.MenorPosicion = info.MayorPosicion = reg;
                 } else {
-                    if (buffer[j].nEscritura < info.PrimeraEscritura.nEscritura)
-                        info.PrimeraEscritura = buffer[j];
-                    if (buffer[j].nEscritura > info.UltimaEscritura.nEscritura)
-                        info.UltimaEscritura = buffer[j];
-                    if (buffer[j].nRegistro < info.MenorPosicion.nRegistro)
-                        info.MenorPosicion = buffer[j];
-                    if (buffer[j].nRegistro > info.MayorPosicion.nRegistro)
-                        info.MayorPosicion = buffer[j];
+                    if (reg.nEscritura < info.PrimeraEscritura.nEscritura)
+                        info.PrimeraEscritura = reg;
+                    if (reg.nEscritura > info.UltimaEscritura.nEscritura)
+                        info.UltimaEscritura = reg;
+                    if (reg.nRegistro < info.MenorPosicion.nRegistro)
+                        info.MenorPosicion = reg;
+                    if (reg.nRegistro > info.MayorPosicion.nRegistro)
+                        info.MayorPosicion = reg;
                 }
                 validadas++;
             }
+            offset += sizeof(struct REGISTRO);
         }
-        offset += leidos;
-        memset(buffer, 0, sizeof(buffer));
-    }
-
-#else
-
-    off_t offset = 0;
-    struct REGISTRO reg;
-
-    while (mi_read(fichero_path, (char *)&reg, offset, sizeof(struct REGISTRO)) == sizeof(struct REGISTRO)) {
-        if (reg.pid == info.pid) {
-            if (validadas == 0) {
-                info.PrimeraEscritura = info.UltimaEscritura =
-                info.MenorPosicion = info.MayorPosicion = reg;
-            } else {
-                if (reg.nEscritura < info.PrimeraEscritura.nEscritura)
-                    info.PrimeraEscritura = reg;
-                if (reg.nEscritura > info.UltimaEscritura.nEscritura)
-                    info.UltimaEscritura = reg;
-                if (reg.nRegistro < info.MenorPosicion.nRegistro)
-                    info.MenorPosicion = reg;
-                if (reg.nRegistro > info.MayorPosicion.nRegistro)
-                    info.MayorPosicion = reg;
-            }
-            validadas++;
-        }
-        offset += sizeof(struct REGISTRO);
-    }
 
 #endif
-
+        // Actualizar el número de escrituras
         info.nEscrituras = validadas;
 
 #if DEBUGN13 || ENTREGA_3
         fprintf(stderr, GRAY"[%d) %u escrituras validadas en %s]\n" RESET, i + 1, info.nEscrituras, fichero_path);
 #endif
-
+        // Crear las fechas de las escrituras
         char linea[BLOCKSIZE];
         char *fecha_primera = malloc(200);
         struct tm *tm_primera = localtime(&info.PrimeraEscritura.fecha.tv_sec);
@@ -149,6 +154,7 @@ int main(int argc, char **argv) {
         char fecha_mayor_milis[100];
         sprintf(fecha_mayor_milis, "%s.%06ld", fecha_mayor, info.MayorPosicion.fecha.tv_usec);
 
+        // Crear la línea del informe
         sprintf(linea, "\nPID: %d\n"
         "Numero de escrituras:\t%d\n"
         "Primera escritura:\t%d\t%d\t%s\n"
@@ -161,7 +167,8 @@ int main(int argc, char **argv) {
         info.UltimaEscritura.nEscritura, info.UltimaEscritura.nRegistro, fecha_ultima_milis,
         info.MenorPosicion.nEscritura, info.MenorPosicion.nRegistro, fecha_menor_milis,
         info.MayorPosicion.nEscritura, info.MayorPosicion.nRegistro, fecha_mayor_milis);
-
+        
+        // Escribir la línea en el informe
         int bytes_escritos = mi_write(camino_informe, linea, offset_write, strlen(linea));
         if (bytes_escritos == FALLO) {
             fprintf(stderr, RED"Error escribiendo en el informe\n"RESET);
@@ -170,7 +177,8 @@ int main(int argc, char **argv) {
         }
         offset_write += bytes_escritos;
     }
-
+    // Desmontar el dispositivo
     bumount();
+    
     return EXITO;
 }
