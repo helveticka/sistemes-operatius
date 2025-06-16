@@ -1,4 +1,4 @@
-# Sistemes Operatius
+# Sistemes Operatius - 21708
 
 ## Content
 In this repository there are two directorys, each one storing the projects of the differents parts of the subject (SO I & SO II).
