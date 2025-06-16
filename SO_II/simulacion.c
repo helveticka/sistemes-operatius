@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
                 if (mi_write(camino, &reg, offset, sizeof(struct REGISTRO)) < 0) {
                     fprintf(stderr, "[%d] Error escribiendo en %s\n", mi_pid, camino);
                 }
-                my_sleep(50);
+                usleep(50*1000);
             }
 #if DEBUGN12 || ENTREGA_3
             fprintf(stderr, GRAY"[Proceso %d: Completadas %d escrituras en %s]\n" RESET, i + 1, NUMESCRITURAS, camino);
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
             bumount();
             exit(0);
         }
-        my_sleep(150);  // pausa entre procesos
+        usleep(150*1000);  // pausa entre procesos
     }
     // Esperar a que terminen todos los procesos hijos
     while (acabados < NUMPROCESOS) {

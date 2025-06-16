@@ -48,7 +48,7 @@
 #define ENTREGA_2 0
 #define ENTREGA_3 1
 #define DEBUG_CP 0 // Depuración de mi_cp
-#define MMAP 1 // Utilizar mmap para la lectura/escritura de bloques
+#define MMAP 0 // Utilizar mmap para la lectura/escritura de bloques
 #define OBTENER_INDICE_BINARIO 1 // Utilizar el método binario para obtener el índice en binario
 // Funciones
 int bmount(const char *camino);
