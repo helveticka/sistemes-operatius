@@ -66,9 +66,10 @@ int main(int argc, char **argv) {
         sprintf(fichero_path, "%s%s/prueba.dat", dir_sim, entradas[i].nombre);
 
         off_t offset = 0;
-        struct REGISTRO buffer[BLOCKSIZE / sizeof(struct REGISTRO)];
+        int cant_registros_buffer_escrituras = 256;
+        struct REGISTRO buffer[cant_registros_buffer_escrituras];
+        memset(buffer, 0, sizeof(buffer));
         int leidos;
-        // Leer el fichero en bloques
         while ((leidos = mi_read(fichero_path, (char *)buffer, offset, sizeof(buffer))) > 0) {
             int nregs = leidos / sizeof(struct REGISTRO);
             // Validar las escrituras del proceso
